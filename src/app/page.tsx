@@ -1,20 +1,26 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { IconArrowLeft, IconDotsVertical } from "@tabler/icons-react";
+import {
+  IconArrowLeft,
+  IconDotsVertical,
+  IconSearch,
+  IconX,
+} from "@tabler/icons-react";
 import Image from "next/image";
 
 export default function Home() {
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen w-full gap-4 bg-zinc-50">
-      <div className="flex gap-2 items-baseline">
+    <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-zinc-50">
+      <div className="flex items-baseline gap-2">
         <Image src="/outbound.svg" width={24} height={24} alt="outbound" />
-        <h1 className="font-display text-4xl  font-semibold text-brand-900">
+        <h1 className="font-display text-4xl font-semibold text-brand-900">
           Outbound
         </h1>
       </div>
       <p>Testing page</p>
       <Separator />
-      <div className="grid grid-cols-6 max-w-6xl h-full gap-4 justify-items-start items-center">
+      <div className="grid h-full max-w-6xl grid-cols-6 items-center justify-items-start gap-4">
         <Button>Hello</Button>
         <Button size={"large"}>Hello</Button>
         <Button size="large" iconOnly>
@@ -73,6 +79,17 @@ export default function Home() {
         <Button size={"small"} variant={"ghost"} iconOnly>
           <IconDotsVertical />
         </Button>
+        <Input />
+        <Input left={<IconSearch />} placeholder="Search..." />
+        <Input right={<IconSearch />} disabled placeholder="Search..." />
+        <Input
+          left={<IconSearch />}
+          right={
+            <Button size="small" iconOnly variant="ghost">
+              <IconX />
+            </Button>
+          }
+        />
       </div>
     </main>
   );
