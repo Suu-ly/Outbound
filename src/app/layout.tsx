@@ -5,15 +5,15 @@ import "./globals.css";
 
 const generalSans = localFont({
   src: [
-    { path: "./fonts/GeneralSans-Variable.woff2", style: "normal" },
-    { path: "./fonts/GeneralSans-VariableItalic.woff2", style: "italic" },
+    { path: "./GeneralSans-Variable.woff2", style: "normal" },
+    { path: "./GeneralSans-VariableItalic.woff2", style: "italic" },
   ],
   display: "swap",
   variable: "--font-general-sans",
 });
 
 const clashDisplay = localFont({
-  src: "./fonts/ClashDisplay-Variable.woff2",
+  src: "./ClashDisplay-Variable.woff2",
   display: "swap",
   variable: "--font-clash-display",
 });
