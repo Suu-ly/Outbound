@@ -74,7 +74,7 @@ export const verification = pgTable("verification", {
 
 export const resetLink = pgTable("reset_link", {
   id: varchar("id", { length: 12 }).primaryKey(),
-  userId: integer("user_id")
+  userId: text("user_id")
     .references(() => user.id)
     .notNull(),
   createdAt: timestamp("created_at", {
@@ -191,7 +191,7 @@ export type SelectPlace = typeof place.$inferSelect;
 export const trip = pgTable("trip", {
   id: varchar("id", { length: 12 }).primaryKey(),
   // User ID foreign key
-  userId: integer("user_id")
+  userId: text("user_id")
     .references(() => user.id, {
       onDelete: "cascade",
     })

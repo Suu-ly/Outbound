@@ -1,6 +1,7 @@
-import Footer from "@/components/footer";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const generalSans = localFont({
@@ -35,7 +36,7 @@ export default function RootLayout({
     >
       <body>
         {children}
-        <Footer />
+        <Toaster />
       </body>
     </html>
   );

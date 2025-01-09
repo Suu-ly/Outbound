@@ -1,6 +1,22 @@
 CREATE TYPE "public"."login_type_enum" AS ENUM('gmail', 'github', 'email');--> statement-breakpoint
 CREATE TYPE "public"."trip_place_type_enum" AS ENUM('saved', 'skipped', 'undecided');--> statement-breakpoint
 CREATE TYPE "public"."trip_travel_time_type_enum" AS ENUM('drive', 'walk', 'cycle');--> statement-breakpoint
+CREATE TABLE "account" (
+	"id" text PRIMARY KEY NOT NULL,
+	"account_id" text NOT NULL,
+	"provider_id" text NOT NULL,
+	"user_id" text NOT NULL,
+	"access_token" text,
+	"refresh_token" text,
+	"id_token" text,
+	"access_token_expires_at" timestamp,
+	"refresh_token_expires_at" timestamp,
+	"scope" text,
+	"password" text,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "location" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
@@ -41,14 +57,26 @@ CREATE TABLE "place" (
 --> statement-breakpoint
 CREATE TABLE "reset_link" (
 	"id" varchar(12) PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
+	"user_id" text NOT NULL,
 	"created_at" timestamp (3) with time zone DEFAULT now() NOT NULL,
 	"active" boolean DEFAULT true NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "session" (
+	"id" text PRIMARY KEY NOT NULL,
+	"expires_at" timestamp NOT NULL,
+	"token" text NOT NULL,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL,
+	"ip_address" text,
+	"user_agent" text,
+	"user_id" text NOT NULL,
+	CONSTRAINT "session_token_unique" UNIQUE("token")
+);
+--> statement-breakpoint
 CREATE TABLE "trip" (
 	"id" varchar(12) PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
+	"user_id" text NOT NULL,
 	"location_id" integer NOT NULL,
 	"name" text NOT NULL,
 	"start_date" date NOT NULL,
@@ -91,20 +119,28 @@ CREATE TABLE "trip_travel_time" (
 );
 --> statement-breakpoint
 CREATE TABLE "user" (
-	"id" serial PRIMARY KEY NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"email" text NOT NULL,
-	"password" text NOT NULL,
-	"login_type" "login_type_enum" NOT NULL,
-	"profile_picture" text,
-	"access_token" text,
-	"refresh_token" text,
-	"created_at" timestamp (3) with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp (3) with time zone NOT NULL,
+	"email_verified" boolean NOT NULL,
+	"image" text,
+	"created_at" timestamp NOT NULL,
+	"updated_at" timestamp NOT NULL,
 	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
+CREATE TABLE "verification" (
+	"id" text PRIMARY KEY NOT NULL,
+	"identifier" text NOT NULL,
+	"value" text NOT NULL,
+	"expires_at" timestamp NOT NULL,
+	"created_at" timestamp,
+	"updated_at" timestamp
+);
+--> statement-breakpoint
+ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "reset_link" ADD CONSTRAINT "reset_link_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "trip" ADD CONSTRAINT "trip_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "trip" ADD CONSTRAINT "trip_location_id_location_id_fk" FOREIGN KEY ("location_id") REFERENCES "public"."location"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "trip_day" ADD CONSTRAINT "trip_day_trip_id_trip_id_fk" FOREIGN KEY ("trip_id") REFERENCES "public"."trip"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
