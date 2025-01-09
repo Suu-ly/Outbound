@@ -11,7 +11,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import Spinner from "@/components/ui/spinner";
 import { authClient } from "@/lib/authClient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconEye, IconEyeClosed } from "@tabler/icons-react";
@@ -169,9 +168,9 @@ export default function Register() {
             size="large"
             className="mb-3 w-full"
             type="submit"
-            disabled={isLoading}
+            loading={isLoading}
           >
-            {isLoading ? <Spinner /> : "Register"}
+            Register
           </Button>
         </form>
       </Form>

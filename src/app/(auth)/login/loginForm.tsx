@@ -9,11 +9,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/authClient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconEye, IconEyeClosed } from "@tabler/icons-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -24,6 +27,8 @@ const formSchema = z.object({
 });
 
 const LoginForm = () => {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -32,8 +37,25 @@ const LoginForm = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    await authClient.signIn.email(
+      {
+        email: values.email,
+        password: values.password,
+      },
+      {
+        onRequest: () => {
+          setIsLoading(true);
+        },
+        onError: (ctx) => {
+          setIsLoading(false);
+          toast.error(ctx.error.message);
+        },
+        onSuccess: () => {
+          router.push("/");
+        },
+      },
+    );
   }
 
   const [showPassword, setShowPassword] = useState(false);
@@ -90,7 +112,12 @@ const LoginForm = () => {
               </FormItem>
             )}
           />
-          <Button size="large" className="mb-3 w-full" type="submit">
+          <Button
+            size="large"
+            className="mb-3 w-full"
+            type="submit"
+            loading={isLoading}
+          >
             Login
           </Button>
         </form>
