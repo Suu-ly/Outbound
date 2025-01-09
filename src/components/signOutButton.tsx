@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
-import Spinner from "./ui/spinner";
 
 const SignOutButton = () => {
   const [inProgress, setInProgress] = useState(false);
@@ -29,15 +28,9 @@ const SignOutButton = () => {
     });
   };
   return (
-    <Button variant="outline" onClick={signout} disabled={inProgress}>
-      {inProgress ? (
-        <Spinner />
-      ) : (
-        <>
-          <IconLogout />
-          Sign Out
-        </>
-      )}
+    <Button variant="outline" onClick={signout} loading={inProgress}>
+      <IconLogout />
+      Sign Out
     </Button>
   );
 };

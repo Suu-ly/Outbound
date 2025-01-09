@@ -3,12 +3,15 @@
 import { authClient } from "@/lib/authClient";
 import { cn } from "@/lib/utils";
 import { IconBrandGithub } from "@tabler/icons-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 
 const GithubSignIn = ({
   className,
   ...rest
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
+  const [isLoading, setIsLoading] = useState(false);
   return (
     <Button
       variant="secondary"
@@ -21,8 +24,18 @@ const GithubSignIn = ({
         await authClient.signIn.social({
           provider: "github",
           callbackURL: "/",
+          fetchOptions: {
+            onRequest: () => {
+              setIsLoading(true);
+            },
+            onError: (ctx) => {
+              setIsLoading(false);
+              toast.error(ctx.error.message);
+            },
+          },
         });
       }}
+      loading={isLoading}
       {...rest}
     >
       <IconBrandGithub />

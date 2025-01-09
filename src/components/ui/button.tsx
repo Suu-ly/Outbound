@@ -3,6 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import Spinner from "./spinner";
 
 const buttonVariants = cva(
   "relative inline-flex items-center justify-center group gap-2 whitespace-nowrap rounded-full font-medium ring-offset-zinc-50 transition active:ring-2 active:ring-offset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:text-slate-400 disabled:pointer-events-none disabled:opacity-70 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0",
@@ -57,6 +58,7 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  loading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -66,6 +68,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant,
       size,
       iconOnly,
+      loading,
       disabled,
       asChild = false,
       children,
@@ -78,7 +81,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(buttonVariants({ variant, size, iconOnly, className }))}
         ref={ref}
-        disabled={disabled}
+        disabled={disabled || loading}
         {...props}
       >
         {!disabled &&
@@ -95,7 +98,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
               {children}
             </span>
           )}
-        {children}
+        {loading && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <Spinner />
+          </span>
+        )}
+        <div className={cn("contents", loading && "invisible")}>{children}</div>
       </Comp>
     );
   },
