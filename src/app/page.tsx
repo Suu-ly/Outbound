@@ -1,5 +1,5 @@
 import Footer from "@/components/footer";
-import SignOutButton from "@/components/signOutButton";
+import SignOutButton from "@/components/sign-out-button";
 import Tester from "@/components/tester";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

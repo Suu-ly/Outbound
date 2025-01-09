@@ -1,6 +1,6 @@
 import AuthLayout from "@/components/auth-layout";
 import GithubSignIn from "@/components/github-sign-in";
-import LoginForm from "./loginForm";
+import LoginForm from "./login-form";
 
 export default function Login() {
   return (

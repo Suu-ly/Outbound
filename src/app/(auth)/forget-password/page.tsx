@@ -1,5 +1,6 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import AuthLayout from "@/components/auth-layout";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -11,9 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { IconEye, IconEyeClosed } from "@tabler/icons-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -21,27 +20,24 @@ import { z } from "zod";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please check your email!" }),
-  password: z
-    .string({ required_error: "Please enter a password!" })
-    .min(1, { message: "Please enter a password!" }),
 });
 
 const LoginForm = () => {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await authClient.signIn.email(
+    await authClient.forgetPassword(
       {
         email: values.email,
-        password: values.password,
+        redirectTo: "/reset-password",
       },
       {
         onRequest: () => {
@@ -52,16 +48,31 @@ const LoginForm = () => {
           toast.error(ctx.error.message);
         },
         onSuccess: () => {
-          router.push("/");
+          setSubmitted(true);
         },
       },
     );
   }
-
-  const [showPassword, setShowPassword] = useState(false);
+  if (submitted)
+    return (
+      <AuthLayout
+        header="Email sent"
+        subtitle="We've sent a password reset link to your email. Please check your spam folder if it does not show up!"
+      >
+        <Link
+          href="/"
+          className={buttonVariants({ size: "large", className: "w-full" })}
+        >
+          Back to Home
+        </Link>
+      </AuthLayout>
+    );
 
   return (
-    <div>
+    <AuthLayout
+      header="Forgot Password"
+      subtitle="Just enter your email below and a link to reset your password will be sent to your account."
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mb-3 space-y-6">
           <FormField
@@ -77,62 +88,25 @@ const LoginForm = () => {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex justify-between">
-                  <FormLabel>Password</FormLabel>
-                  <Link
-                    href="/forget-password"
-                    className="font-medium hover:underline"
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
-                <FormControl>
-                  <Input
-                    {...field}
-                    type={showPassword ? "text" : "password"}
-                    right={
-                      <Button
-                        size="small"
-                        iconOnly
-                        variant="ghost"
-                        type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                      >
-                        {showPassword ? <IconEyeClosed /> : <IconEye />}
-                      </Button>
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <Button
             size="large"
             className="mb-3 w-full"
             type="submit"
             loading={isLoading}
           >
-            Login
+            Send Reset Link
           </Button>
         </form>
       </Form>
       <div className="text-center">
-        Don&apos;t have an account yet?
-        <br />
         <Link
-          href="/register"
+          href="/login"
           className="whitespace-nowrap font-medium text-brand-600 hover:underline"
         >
-          Sign Up
+          Go Back
         </Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 
