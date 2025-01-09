@@ -1,5 +1,5 @@
-import AuthLayout from "@/components/authLayout";
-import GithubSignIn from "@/components/githubSignIn";
+import AuthLayout from "@/components/auth-layout";
+import GithubSignIn from "@/components/github-sign-in";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { IconMail } from "@tabler/icons-react";

@@ -1,6 +1,6 @@
 "use client";
 
-import AuthLayout from "@/components/authLayout";
+import AuthLayout from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { authClient } from "@/lib/authClient";
+import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconEye, IconEyeClosed } from "@tabler/icons-react";
 import Link from "next/link";

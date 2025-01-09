@@ -1,6 +1,6 @@
 "use client";
 
-import { authClient } from "@/lib/authClient";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { IconBrandGithub } from "@tabler/icons-react";
 import { useState } from "react";

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 type AuthLayoutProps = {
   header: string;
-  subtitle: string;
+  subtitle?: string;
   children: React.ReactNode;
 };
 
@@ -17,10 +17,12 @@ const AuthLayout = ({ header, subtitle, children }: AuthLayoutProps) => {
         </h1>
       </Link>
       <div className="w-full max-w-md rounded-2xl bg-white p-6">
-        <h1 className="mb-3 font-display text-2xl font-semibold md:text-3xl">
+        <h1
+          className={`${!!subtitle ? "mb-3" : "mb-6"} font-display text-2xl font-semibold md:text-3xl`}
+        >
           {header}
         </h1>
-        <p className="mb-6">{subtitle}</p>
+        {!!subtitle && <p className="mb-6">{subtitle}</p>}
         {children}
       </div>
     </main>

@@ -1,6 +1,6 @@
 "use client";
 
-import { authClient } from "@/lib/authClient";
+import { authClient } from "@/lib/auth-client";
 import { IconLogout } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
