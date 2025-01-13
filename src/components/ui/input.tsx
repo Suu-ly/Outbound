@@ -15,7 +15,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div
         className={cn(
-          "has-[input:disabled]:pointer-event flex h-12 w-full rounded-xl border-2 border-slate-200 bg-white text-slate-900 transition-colors has-[input:focus-visible]:border-slate-900 has-[input:disabled]:bg-slate-100 has-[input:disabled]:text-slate-400 has-[input:disabled]:opacity-70 [&_input]:placeholder:text-slate-400 [&_svg]:size-5 [&_svg]:text-slate-500",
+          "flex h-12 w-full rounded-xl border-2 border-slate-200 bg-white text-slate-900 transition-colors has-[input:disabled]:pointer-events-none has-[input:focus-visible]:border-slate-900 has-[input:disabled]:bg-slate-100 has-[input:disabled]:text-slate-400 has-[input:disabled]:opacity-70 [&_input]:placeholder:text-slate-400 [&_svg]:size-5 [&_svg]:text-slate-500",
           className,
         )}
         onPointerDown={(event) => {

@@ -27,6 +27,10 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
   },
 
+  emailVerification: {
+    autoSignInAfterVerification: true,
+  },
+
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID,

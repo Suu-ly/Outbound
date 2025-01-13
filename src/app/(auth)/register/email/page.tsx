@@ -67,7 +67,9 @@ export default function Register() {
           setIsLoading(true);
         },
         onSuccess: () => {
-          router.push("/");
+          const formattedEmail = new URLSearchParams();
+          formattedEmail.set("email", values.email);
+          router.push("/verify?" + formattedEmail.toString());
         },
         onError: (ctx) => {
           setIsLoading(false);

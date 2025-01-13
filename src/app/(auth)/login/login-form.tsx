@@ -49,7 +49,17 @@ const LoginForm = () => {
         },
         onError: (ctx) => {
           setIsLoading(false);
-          toast.error(ctx.error.message);
+          if (ctx.error.message === "Email not verified") {
+            authClient.emailOtp.sendVerificationOtp({
+              email: values.email,
+              type: "email-verification",
+            });
+            const formattedEmail = new URLSearchParams();
+            formattedEmail.set("email", values.email);
+            router.push("/verify?" + formattedEmail.toString());
+          } else {
+            toast.error(ctx.error.message);
+          }
         },
         onSuccess: () => {
           router.push("/");
