@@ -111,7 +111,7 @@ export const auth = betterAuth({
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {
         if (type === "email-verification") {
-          sendEmail({
+          await sendEmail({
             to: email,
             subject: "Verify your email",
             text: `Verify your email 

@@ -73,7 +73,18 @@ export default function Register() {
         },
         onError: (ctx) => {
           setIsLoading(false);
-          toast.error(ctx.error.message);
+          if (ctx.error.message === "User already exists") {
+            form.setError(
+              "email",
+              {
+                type: "validate",
+                message: "This email is already registered!",
+              },
+              { shouldFocus: true },
+            );
+          } else {
+            toast.error(ctx.error.message);
+          }
         },
       },
     );

@@ -18,7 +18,7 @@ const AuthLayout = ({ header, subtitle, children }: AuthLayoutProps) => {
       </Link>
       <div className="w-full max-w-md rounded-2xl bg-white p-6">
         <h1
-          className={`${!!subtitle ? "mb-3" : "mb-6"} font-display text-2xl font-semibold md:text-3xl`}
+          className={`${!!subtitle ? "mb-3" : "mb-6"} font-display text-2xl font-semibold sm:text-3xl`}
         >
           {header}
         </h1>

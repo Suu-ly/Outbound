@@ -13,7 +13,7 @@ export default async function Register({
   return (
     <AuthLayout
       header="Verify email"
-      subtitle="Enter the code below that was sent to your email account."
+      subtitle="Enter the code below that was sent to your email. Please check your spam folder if it does not show up!"
     >
       <VerifyOtp email={email} />
     </AuthLayout>

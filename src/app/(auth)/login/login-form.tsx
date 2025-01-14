@@ -42,6 +42,7 @@ const LoginForm = () => {
       {
         email: values.email,
         password: values.password,
+        callbackURL: "/",
       },
       {
         onRequest: () => {
@@ -57,12 +58,15 @@ const LoginForm = () => {
             const formattedEmail = new URLSearchParams();
             formattedEmail.set("email", values.email);
             router.push("/verify?" + formattedEmail.toString());
+          } else if (ctx.error.message === "Invalid email or password") {
+            form.setError(
+              "password",
+              { type: "validate", message: "Invalid email or password" },
+              { shouldFocus: true },
+            );
           } else {
             toast.error(ctx.error.message);
           }
-        },
-        onSuccess: () => {
-          router.push("/");
         },
       },
     );

@@ -18,7 +18,7 @@ const InputOTP = React.forwardRef<
       ref={ref}
       pattern={pattern}
       containerClassName={cn(
-        "flex items-center gap-2 has-[:disabled]:opacity-70 group",
+        "flex items-center gap-1 sm:gap-2 has-[:disabled]:opacity-70 group",
         containerClassName,
       )}
       className={cn("disabled:pointer-events-none", className)}
@@ -47,7 +47,7 @@ const InputOTPSlot = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex size-12 items-center justify-center rounded-xl border-2 border-slate-200 bg-white text-slate-900 transition-colors group-has-[input:disabled]:bg-slate-100 group-has-[input:disabled]:text-slate-400",
+        "relative flex size-9 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-900 transition-colors group-has-[input:disabled]:bg-slate-100 group-has-[input:disabled]:text-slate-400 sm:size-12 sm:rounded-xl",
         isActive && "border-slate-900",
         className,
       )}

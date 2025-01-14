@@ -79,6 +79,7 @@ export default function VerifyOtp({ email }: { email: string }) {
           }
         },
         onSuccess: () => {
+          toast.success("Email successfully verified!");
           router.push("/");
         },
       },
@@ -86,6 +87,7 @@ export default function VerifyOtp({ email }: { email: string }) {
   }
 
   const sendOTP = () => {
+    setCountdown(120);
     authClient.emailOtp.sendVerificationOtp({
       email: email,
       type: "email-verification",
