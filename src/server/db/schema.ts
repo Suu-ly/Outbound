@@ -42,7 +42,9 @@ export const session = pgTable("session", {
   userAgent: text("user_agent"),
   userId: text("user_id")
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, {
+      onDelete: "cascade",
+    }),
 });
 
 export const account = pgTable("account", {
@@ -51,7 +53,7 @@ export const account = pgTable("account", {
   providerId: text("provider_id").notNull(),
   userId: text("user_id")
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
@@ -75,7 +77,7 @@ export const verification = pgTable("verification", {
 export const resetLink = pgTable("reset_link", {
   id: varchar("id", { length: 12 }).primaryKey(),
   userId: text("user_id")
-    .references(() => user.id)
+    .references(() => user.id, { onDelete: "cascade" })
     .notNull(),
   createdAt: timestamp("created_at", {
     withTimezone: true,
