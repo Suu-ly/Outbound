@@ -130,7 +130,7 @@ export default function PasswordReset() {
           type="submit"
           loading={isLoading}
         >
-          Register
+          Reset Password
         </Button>
       </form>
     </Form>

@@ -15,7 +15,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
@@ -43,9 +42,8 @@ const LoginForm = () => {
         onRequest: () => {
           setIsLoading(true);
         },
-        onError: (ctx) => {
-          setIsLoading(false);
-          toast.error(ctx.error.message);
+        onError: () => {
+          setSubmitted(true);
         },
         onSuccess: () => {
           setSubmitted(true);
