@@ -12,7 +12,7 @@ export default function Register() {
       subtitle="Create an account and start planning your trips!"
     >
       <div className="mb-6 space-y-2">
-        <GithubSignIn />
+        <GithubSignIn>Register with Github</GithubSignIn>
         <Link
           href="/register/email"
           className={cn(

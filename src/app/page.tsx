@@ -1,7 +1,26 @@
 import Footer from "@/components/footer";
+import Header from "@/components/header";
 import SignOutButton from "@/components/sign-out-button";
 import Tester from "@/components/tester";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import PrimaryLink from "@/components/ui/button-link";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { auth } from "@/server/auth";
@@ -24,6 +43,14 @@ export default async function Home() {
     });
   return (
     <>
+      <Header>
+        <Avatar>
+          <AvatarImage
+            src={session && session.user.image ? session.user.image : undefined}
+          />
+          <AvatarFallback>{session ? session.user.name : "NA"}</AvatarFallback>
+        </Avatar>
+      </Header>
       <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-zinc-50">
         <div className="flex items-baseline gap-2">
           <Image src="/outbound.svg" width={24} height={24} alt="outbound" />
@@ -40,12 +67,50 @@ export default async function Home() {
         )}
         <SignOutButton />
         <Separator />
-        <div className="grid h-full max-w-6xl grid-cols-6 items-center justify-items-start gap-4">
-          <Button>Hello default</Button>
-          <Button size={"large"}>Hello</Button>
-          <Button size="large" iconOnly>
-            <IconArrowLeft />
-          </Button>
+        <div className="grid h-full max-w-6xl grid-cols-3 items-center justify-items-start gap-4 md:grid-cols-6">
+          <PrimaryLink href="/login">Login</PrimaryLink>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size={"large"}>Open Dialog</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogTitle>Example dialog</DialogTitle>
+              This is the dialog body. It is used to explain some stuff to the
+              user that needs their attention.
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button>Accept</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button variant="ghost">Cancel</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Drawer>
+            <DrawerTrigger asChild>
+              <Button variant="secondary" size="small">
+                Open Drawer
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <div className="space-y-6">
+                <DrawerTitle>Example Drawer</DrawerTitle>
+                <p>
+                  This is the drawer body. It is used to explain some stuff to
+                  the user that needs their attention.
+                </p>
+                <DrawerFooter>
+                  <DrawerClose asChild>
+                    <Button>Accept</Button>
+                  </DrawerClose>
+                  <DrawerClose asChild>
+                    <Button variant="ghost">Cancel</Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </div>
+            </DrawerContent>
+          </Drawer>
           <Button size={"small"}>
             <IconArrowLeft />
             Hello

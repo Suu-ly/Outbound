@@ -41,6 +41,9 @@ export default {
       animation: {
         "caret-blink": "caret-blink 1.25s ease-out infinite",
       },
+      transitionTimingFunction: {
+        snap: "cubic-bezier(0.8, 0, 0.2, 1)",
+      },
     },
   },
   // eslint-disable-next-line @typescript-eslint/no-require-imports

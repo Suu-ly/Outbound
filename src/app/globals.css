@@ -12,8 +12,7 @@
     @apply text-slate-900;
   }
   p,
-  li,
-  a {
+  li {
     @apply text-slate-700;
   }
   :root {

@@ -2,6 +2,7 @@
 
 import { toast } from "sonner";
 import { Button } from "./ui/button";
+import DrawerDialog from "./ui/drawer-dialog";
 
 const Tester = () => {
   return (
@@ -36,6 +37,17 @@ const Tester = () => {
       >
         Toast warning
       </Button>
+      <DrawerDialog
+        header="Responsive Dialog"
+        content={
+          "This is to tell you that there is a certain action that will happen and is asking you to confirm."
+        }
+        mainActionLabel="Confirm"
+        onMainAction={(close) => close()}
+        destructive
+      >
+        <Button size="large">Open Drawer Dialog</Button>
+      </DrawerDialog>
     </>
   );
 };

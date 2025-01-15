@@ -1,8 +1,6 @@
-import { Slot } from "@radix-ui/react-slot";
-import { cva, type VariantProps } from "class-variance-authority";
-import * as React from "react";
-
 import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
+import { forwardRef } from "react";
 import Spinner from "./spinner";
 
 const buttonVariants = cva(
@@ -57,11 +55,11 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
   loading?: boolean;
+  primaryBgColor?: string;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
@@ -70,15 +68,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       iconOnly,
       loading,
       disabled,
-      asChild = false,
+      primaryBgColor = "bg-slate-900",
       children,
       ...props
     },
     ref,
   ) => {
-    const Comp = asChild ? Slot : "button";
     return (
-      <Comp
+      <button
         className={cn(buttonVariants({ variant, size, iconOnly, className }))}
         ref={ref}
         disabled={disabled || loading}
@@ -92,7 +89,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
               role="presentation"
               className={cn(
                 buttonVariants({ variant, size, iconOnly, className }),
-                "clip-100 group-hover:clip-0 pointer-events-none absolute inset-0 m-0 size-auto bg-slate-900 text-zinc-100 transition-all duration-200 hover:text-zinc-100",
+                `clip-100 group-hover:clip-0 pointer-events-none absolute inset-0 m-0 size-auto border-0 ${primaryBgColor} ease-snap text-zinc-100 transition-all duration-300 hover:text-zinc-100`,
               )}
             >
               {children}
@@ -104,7 +101,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           </span>
         )}
         <div className={cn("contents", loading && "invisible")}>{children}</div>
-      </Comp>
+      </button>
     );
   },
 );

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "./ui/button";
 
 const GithubSignIn = ({
+  children,
   className,
   ...rest
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
@@ -39,7 +40,7 @@ const GithubSignIn = ({
       {...rest}
     >
       <IconBrandGithub />
-      Register with Github
+      {children}
     </Button>
   );
 };
