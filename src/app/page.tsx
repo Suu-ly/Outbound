@@ -42,7 +42,7 @@ export default async function Home() {
       console.log(e);
     });
   return (
-    <>
+    <div className="flex min-h-dvh flex-col">
       <Header>
         <Avatar>
           <AvatarImage
@@ -51,7 +51,7 @@ export default async function Home() {
           <AvatarFallback>{session ? session.user.name : "NA"}</AvatarFallback>
         </Avatar>
       </Header>
-      <main className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-zinc-50">
+      <main className="flex w-full grow flex-col items-center justify-center gap-4 bg-zinc-50 py-8">
         <div className="flex items-baseline gap-2">
           <Image src="/outbound.svg" width={24} height={24} alt="outbound" />
           <h1 className="font-display text-4xl font-semibold text-brand-900">
@@ -179,6 +179,6 @@ export default async function Home() {
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

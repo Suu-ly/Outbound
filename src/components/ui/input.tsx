@@ -6,16 +6,18 @@ import * as React from "react";
 type InputProps = React.ComponentProps<"input"> & {
   left?: React.ReactNode;
   right?: React.ReactNode;
+  large?: boolean;
 };
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, left, right, ...props }, ref) => {
+  ({ className, type, left, right, large = false, ...props }, ref) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
 
     return (
       <div
         className={cn(
-          "flex h-12 w-full rounded-xl border-2 border-slate-200 bg-white text-slate-900 transition-colors has-[input:disabled]:pointer-events-none has-[input:focus-visible]:border-slate-900 has-[input:disabled]:bg-slate-100 has-[input:disabled]:text-slate-400 has-[input:disabled]:opacity-70 [&_input]:placeholder:text-slate-400 [&_svg]:size-5 [&_svg]:text-slate-500",
+          "flex w-full rounded-xl border-2 border-slate-200 bg-white text-slate-900 transition-colors has-[input:disabled]:pointer-events-none has-[input:focus-visible]:border-slate-900 has-[input:disabled]:bg-slate-100 has-[input:disabled]:text-slate-400 has-[input:disabled]:opacity-70 [&_input]:placeholder:text-slate-400 [&_svg]:text-slate-500",
+          large ? "h-16 [&_svg]:size-7" : "h-12 [&_svg]:size-5",
           className,
         )}
         onPointerDown={(event) => {
@@ -41,20 +43,25 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         }}
       >
         {left !== undefined && (
-          <div className="flex shrink-0 items-center pl-3 pr-1.5">{left}</div>
+          <div
+            className={`flex shrink-0 items-center ${large ? "pl-4 pr-3" : "pl-3 pr-1.5"}`}
+          >
+            {left}
+          </div>
         )}
         <input
           type={type}
           ref={composeRefs(inputRef, ref)}
           {...props}
           className={cn(
-            "w-full bg-transparent py-3 file:border-0 file:bg-transparent file:text-slate-900 focus-visible:outline-none",
+            "w-full bg-transparent file:border-0 file:bg-transparent file:text-slate-900 focus-visible:outline-none",
+            large && "text-2xl",
             !left && "indent-4",
           )}
         />
         {right !== undefined && (
           <div
-            className="flex shrink-0 items-center pl-1.5 pr-3 has-[button]:pr-1.5"
+            className={`flex shrink-0 items-center ${large ? "pl-3 pr-4 has-[button]:pr-3" : "pl-1.5 pr-3 has-[button]:pr-1.5"}`}
             data-right={true}
           >
             {right}

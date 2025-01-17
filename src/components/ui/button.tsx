@@ -89,7 +89,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
               role="presentation"
               className={cn(
                 buttonVariants({ variant, size, iconOnly, className }),
-                `clip-100 group-hover:clip-0 pointer-events-none absolute inset-0 m-0 size-auto border-0 ${primaryBgColor} ease-snap text-zinc-100 transition-all duration-300 hover:text-zinc-100`,
+                `clip-100 group-hover:clip-0 pointer-events-none absolute inset-0 m-0 size-auto border-0 ${primaryBgColor} text-zinc-100 transition-all duration-300 ease-snap hover:text-zinc-100`,
               )}
             >
               {children}
