@@ -9,11 +9,17 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import useDebouncedFunction from "@/lib/use-debounced-function";
 import { useMediaQuery } from "@/lib/use-media-query";
+import {
+  AutocompleteReturn,
+  BoundsReturn,
+  getGoogleMapsLocationBounds,
+  googleMapsAutocomplete,
+} from "@/server/actions";
 import { IconCalendarWeek, IconWorldSearch } from "@tabler/icons-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { DateRange } from "react-day-picker";
-import { toast } from "sonner";
 import { v4 } from "uuid";
 
 export default function NewTrip() {
@@ -23,61 +29,53 @@ export default function NewTrip() {
   const session = useRef(v4());
 
   const [value, setValue] = useState("");
+  const [autocomplete, setAutocomplete] = useState<AutocompleteReturn>([]);
+  const [selected, setSelected] = useState<BoundsReturn>();
 
-  useEffect(() => {}, []);
+  const debounce = useDebouncedFunction();
 
-  const FRAMEWORKS = [
-    {
-      value: "next.js",
-      label: "Next.js",
-    },
-    {
-      value: "sveltekit",
-      label: "SvelteKit",
-    },
-    {
-      value: "nuxt.js",
-      label: "Nuxt.js",
-    },
-    {
-      value: "remix",
-      label: "Remix",
-    },
-    {
-      value: "astro",
-      label: "Astro",
-    },
-    {
-      value: "wordpress",
-      label: "WordPress",
-    },
-    {
-      value: "express.js",
-      label: "Express.js",
-    },
-    {
-      value: "nest.js",
-      label: "Nest.js",
-    },
-  ];
+  const getAutocompleteData = async (query: string) => {
+    if (query) {
+      const data = await googleMapsAutocomplete(query, session.current);
+      if (data.status === "success") {
+        setAutocomplete(data.data);
+      }
+    }
+  };
+
+  const getLocationData = async (location: string) => {
+    const data = await getGoogleMapsLocationBounds(location, session.current);
+    session.current = v4();
+    if (data.status === "success") {
+      setSelected(data.data);
+    }
+  };
 
   return (
     <>
       <AutoComplete
-        listItems={FRAMEWORKS}
+        listItems={autocomplete}
         listElement={(data) => (
           <div>
-            {data.label}{" "}
-            <span className="text-xs text-slate-500">{data.value}</span>
+            {data.label}
+            {data.subtitle && (
+              <div className="text-xs text-slate-500">{data.subtitle}</div>
+            )}
           </div>
         )}
-        listValueFunction={(data) => data.value}
-        emptyMessage="No results found"
+        listValueFunction={(data) => data.id}
+        inputReplaceFunction={(value) =>
+          autocomplete.find((data) => data.id === value)!.label
+        }
+        emptyMessage="No results found!"
         value={value}
         setValue={setValue}
-        onValueChange={(string) => {
-          toast(string);
+        onUserInput={(string) => {
+          if (!string) setAutocomplete([]);
+          setSelected(undefined);
+          debounce(() => getAutocompleteData(string));
         }}
+        onSelectItem={getLocationData}
         inputLarge={true}
         placeholder="Where to?"
         inputLeft={<IconWorldSearch />}
@@ -139,7 +137,9 @@ export default function NewTrip() {
           />
         </PopoverContent>
       </Popover>
-      <Button size="large">Get Started!</Button>
+      <Button size="large" disabled={!selected || !date}>
+        Get Started!
+      </Button>
     </>
   );
 }

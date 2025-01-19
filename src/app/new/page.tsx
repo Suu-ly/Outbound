@@ -20,7 +20,9 @@ export default async function Home() {
           <AvatarImage
             src={session && session.user.image ? session.user.image : undefined}
           />
-          <AvatarFallback>{session ? session.user.name : "NA"}</AvatarFallback>
+          <AvatarFallback>
+            {session ? session.user.name.substring(0, 2).toUpperCase() : "NA"}
+          </AvatarFallback>
         </Avatar>
       </Header>
       <main className="mx-auto flex w-full max-w-screen-sm grow flex-col items-center gap-12 px-8 pt-20">

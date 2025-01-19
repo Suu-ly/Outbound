@@ -1,5 +1,6 @@
 "use client";
 
+import { Presence } from "@radix-ui/react-presence";
 import {
   ComponentPropsWithoutRef,
   type JSX,
@@ -23,10 +24,12 @@ type AutoCompleteProps<T> = {
   listItems: T[];
   listElement: (data: T) => JSX.Element;
   listValueFunction: (data: T) => string;
+  inputReplaceFunction: (value: string) => string;
   emptyMessage: string;
   value: string;
   setValue: React.Dispatch<SetStateAction<string>>;
-  onValueChange: (value: string) => void;
+  onUserInput: (value: string) => void | Promise<void>;
+  onSelectItem: (value: string) => void | Promise<void>;
   isLoading?: boolean;
   disabled?: boolean;
   placeholder?: string;
@@ -39,11 +42,13 @@ export default function AutoComplete<T>({
   listElement,
   listItems,
   listValueFunction,
+  inputReplaceFunction,
   placeholder,
   emptyMessage,
   value,
   setValue,
-  onValueChange,
+  onUserInput,
+  onSelectItem,
   disabled,
   isLoading = false,
   inputLarge = false,
@@ -84,7 +89,7 @@ export default function AutoComplete<T>({
         value={value}
         onValueChange={(e) => {
           setValue(e);
-          onValueChange(e);
+          onUserInput(e);
         }}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
@@ -95,47 +100,50 @@ export default function AutoComplete<T>({
         large={inputLarge}
       />
       <div className="relative mt-1">
-        <div
-          className={cn(
-            "absolute top-0 z-50 w-full",
-            value.length > 0 && isOpen ? "block" : "hidden",
-          )}
-        >
-          <CommandList>
-            {isLoading && <CommandLoading />}
-            {listItems.length > 0 && (
-              <CommandGroup>
-                {listItems.map((data) => {
-                  const key = listValueFunction(data);
-                  return (
-                    <CommandItem
-                      key={key}
-                      value={key}
-                      onSelect={(value) => {
-                        setValue(value);
-                        const input = inputRef.current;
-                        if (input)
-                          requestAnimationFrame(() => {
-                            input.blur();
-                          });
-                      }}
-                      onMouseDown={(event) => {
-                        event.preventDefault();
-                      }}
-                    >
-                      {listElement(data)}
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
+        <Presence present={value.length > 0 && isOpen}>
+          <div
+            className={cn(
+              "absolute top-0 isolate z-50 w-full origin-top pb-4 data-[state=open]:block data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98]",
             )}
-            {!isLoading ? (
-              <CommandEmpty className="select-none rounded-sm px-2 py-3 text-center text-sm">
-                {emptyMessage}
-              </CommandEmpty>
-            ) : null}
-          </CommandList>
-        </div>
+            data-state={value.length > 0 && isOpen ? "open" : "closed"}
+          >
+            <CommandList>
+              {isLoading && listItems.length === 0 && <CommandLoading />}
+              {listItems.length > 0 && (
+                <CommandGroup>
+                  {listItems.map((data) => {
+                    const key = listValueFunction(data);
+                    return (
+                      <CommandItem
+                        key={key}
+                        value={key}
+                        onSelect={(value) => {
+                          onSelectItem(value);
+                          setValue(inputReplaceFunction(value));
+                          const input = inputRef.current;
+                          if (input)
+                            requestAnimationFrame(() => {
+                              input.blur();
+                            });
+                        }}
+                        onMouseDown={(event) => {
+                          event.preventDefault();
+                        }}
+                      >
+                        {listElement(data)}
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              )}
+              {!isLoading && value.length > 0 && (
+                <CommandEmpty className="select-none rounded-sm px-2 py-6 text-center text-slate-700">
+                  {emptyMessage}
+                </CommandEmpty>
+              )}
+            </CommandList>
+          </div>
+        </Presence>
       </div>
     </Command>
   );
