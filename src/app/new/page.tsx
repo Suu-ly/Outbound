@@ -25,7 +25,7 @@ export default async function Home() {
           </AvatarFallback>
         </Avatar>
       </Header>
-      <main className="mx-auto flex w-full max-w-screen-sm grow flex-col items-center gap-12 px-8 pt-20">
+      <main className="mx-auto flex w-full max-w-screen-sm grow flex-col items-center gap-12 px-4 pt-20">
         <div className="text-center">
           <h1 className="mb-3 font-display text-4xl font-semibold">New Trip</h1>
           <h3 className="text-lg text-slate-700">

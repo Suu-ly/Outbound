@@ -41,7 +41,7 @@ const CommandInput = React.forwardRef<
     <div
       cmdk-input-wrapper=""
       className={cn(
-        "group flex w-full rounded-xl border-2 border-slate-200 bg-white text-slate-900 transition-colors has-[input:disabled]:pointer-events-none has-[input:focus-visible]:border-slate-900 has-[input:disabled]:bg-slate-100 has-[input:disabled]:text-slate-400 has-[input:disabled]:opacity-70 [&_input]:placeholder:text-slate-400 [&_svg]:text-slate-500",
+        "group flex w-full rounded-xl border-2 border-slate-200 bg-white text-slate-900 transition has-[input:disabled]:pointer-events-none has-[input:focus-visible]:border-slate-900 has-[input:disabled]:bg-slate-100 has-[input:disabled]:text-slate-400 has-[input:disabled]:opacity-70 has-[input:active]:ring-2 has-[input:active]:ring-slate-300 [&_input]:placeholder:text-slate-400 [&_svg]:text-slate-500",
         large ? "h-16 [&_svg]:size-7" : "h-12 [&_svg]:size-5",
         className,
       )}
@@ -104,7 +104,7 @@ const CommandList = React.forwardRef<
   <CommandPrimitive.List
     ref={ref}
     className={cn(
-      "relative flex size-full max-h-96 scroll-py-2 flex-col overflow-hidden overflow-y-auto overflow-x-hidden rounded-xl border-2 border-slate-200 bg-white text-slate-900 shadow-md",
+      "relative flex size-full max-h-96 scroll-py-2 flex-col overflow-hidden overflow-y-auto overflow-x-hidden rounded-xl border-2 border-slate-200 bg-white p-2 text-slate-900 shadow-md",
       className,
     )}
     {...props}
@@ -148,7 +148,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden p-2 text-slate-900 [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-slate-500",
+      "overflow-hidden text-slate-900 [&_[cmdk-group-heading]]:mb-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-slate-500",
       className,
     )}
     {...props}

@@ -1,8 +1,8 @@
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-
-import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import Providers from "./providers";
 
 const generalSans = localFont({
   src: [
@@ -35,8 +35,10 @@ export default function RootLayout({
       className={`${generalSans.variable} ${clashDisplay.variable} antialiased`}
     >
       <body className="bg-zinc-50">
-        {children}
-        <Toaster />
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );

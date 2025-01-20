@@ -16,7 +16,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div
         className={cn(
-          "flex w-full rounded-xl border-2 border-slate-200 bg-white text-slate-900 transition-colors has-[input:disabled]:pointer-events-none has-[input:focus-visible]:border-slate-900 has-[input:disabled]:bg-slate-100 has-[input:disabled]:text-slate-400 has-[input:disabled]:opacity-70 [&_input]:placeholder:text-slate-400 [&_svg]:text-slate-500",
+          "flex w-full rounded-xl border-2 border-slate-200 bg-white text-slate-900 transition has-[input:disabled]:pointer-events-none has-[input:focus-visible]:border-slate-900 has-[input:disabled]:bg-slate-100 has-[input:disabled]:text-slate-400 has-[input:disabled]:opacity-70 has-[input:active]:ring-2 has-[input:active]:ring-slate-300 [&_input]:placeholder:text-slate-400 [&_svg]:text-slate-500",
           large ? "h-16 [&_svg]:size-7" : "h-12 [&_svg]:size-5",
           className,
         )}
