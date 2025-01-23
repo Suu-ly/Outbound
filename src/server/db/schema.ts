@@ -93,10 +93,13 @@ export type InsertResetLink = typeof resetLink.$inferInsert;
 export type SelectResetLink = typeof resetLink.$inferSelect;
 
 export const location = pgTable("location", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   coverImg: text("cover_img").notNull(),
   coverImgSmall: text("cover_img_small").notNull(),
+  bounds: integer("bounds").array(2).array(2).notNull(),
+  windowXStep: integer("window_x_step").notNull(),
+  windowYStep: integer("window_y_step").notNull(),
 });
 
 export type InsertLocation = typeof location.$inferInsert;
@@ -199,7 +202,7 @@ export const trip = pgTable("trip", {
     })
     .notNull(),
   // Location ID foreign key
-  locationId: integer("location_id")
+  locationId: text("location_id")
     .references(() => location.id)
     .notNull(),
   name: text("name").notNull(),
@@ -207,7 +210,9 @@ export const trip = pgTable("trip", {
   endDate: date("end_date").notNull(),
   private: boolean("private").notNull().default(true),
   roundUpTime: boolean("round_up_time").notNull().default(true),
-  nextPageToken: text("next_page_token"),
+  currentXWindow: integer("current_X_window").default(1),
+  currentYWindow: integer("current_Y_window").default(1),
+  nextPageToken: text("next_page_token").array(),
   startTime: varchar("start_time", { length: 4 }).notNull().default("0900"),
   endTime: varchar("end_time", { length: 4 }).notNull().default("2100"),
   updatedAt: timestamp("updated_at", {

@@ -15,6 +15,13 @@
       "when": 1736845922288,
       "tag": "0001_productive_roxanne_simpson",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1737618945556,
+      "tag": "0002_massive_klaw",
+      "breakpoints": true
     }
   ]
 }
