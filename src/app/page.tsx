@@ -4,7 +4,7 @@ import SignOutButton from "@/components/sign-out-button";
 import Tester from "@/components/tester";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import PrimaryLink from "@/components/ui/button-link";
+import ButtonLink from "@/components/ui/button-link";
 import {
   Dialog,
   DialogClose,
@@ -67,8 +67,7 @@ export default async function Home() {
         )}
         <SignOutButton />
         <Separator />
-        <div className="grid h-full max-w-6xl grid-cols-3 items-center justify-items-start gap-4 md:grid-cols-6">
-          <PrimaryLink href="/login">Login</PrimaryLink>
+        <div className="grid h-full max-w-6xl grid-cols-2 items-center justify-items-start gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           <Dialog>
             <DialogTrigger asChild>
               <Button size={"large"}>Open Dialog</Button>
@@ -113,15 +112,15 @@ export default async function Home() {
           </Drawer>
           <Button size={"small"}>
             <IconArrowLeft />
-            Hello
+            Small
           </Button>
           <Button>
             <IconArrowLeft />
-            Hello
+            Default
           </Button>
           <Button size={"large"}>
             <IconArrowLeft />
-            Hello
+            Large
           </Button>
           <Button size={"large"} variant={"outline"}>
             <IconArrowLeft size={20} />
@@ -130,9 +129,6 @@ export default async function Home() {
           <Button size={"large"} variant={"outline"}>
             <IconArrowLeft />
             Size 20 CSS
-          </Button>
-          <Button variant={"secondary"} iconOnly>
-            <IconArrowLeft />
           </Button>
           <Button variant={"secondary"} size="large" iconOnly>
             <IconArrowLeft />
@@ -176,6 +172,13 @@ export default async function Home() {
             }
           />
           <Tester />
+        </div>
+        <Separator />
+        <div className="grid h-full max-w-6xl grid-cols-2 items-center justify-items-start gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          <ButtonLink href="/login">Login</ButtonLink>
+          <ButtonLink href="/new" size="large">
+            New Trip
+          </ButtonLink>
         </div>
       </main>
       <Footer />

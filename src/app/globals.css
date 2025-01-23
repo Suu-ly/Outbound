@@ -22,9 +22,9 @@
 
 @layer utilities {
   .clip-0 {
-    clip-path: inset(0% 0% 0% 0%);
+    clip-path: inset(-1px -1px -1px -1px);
   }
   .clip-100 {
-    clip-path: inset(100% 0% 0% 0%);
+    clip-path: inset(100% -1px -1px -1px);
   }
 }

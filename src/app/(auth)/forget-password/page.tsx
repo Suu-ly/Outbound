@@ -1,6 +1,7 @@
 "use client";
 import AuthLayout from "@/components/auth-layout";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import ButtonLink from "@/components/ui/button-link";
 import {
   Form,
   FormControl,
@@ -57,12 +58,9 @@ const LoginForm = () => {
         header="Email sent"
         subtitle="We've sent a password reset link to your email. Please check your spam folder if it does not show up!"
       >
-        <Link
-          href="/"
-          className={buttonVariants({ size: "large", className: "w-full" })}
-        >
+        <ButtonLink href="/" className="w-full" size="large">
           Back to Home
-        </Link>
+        </ButtonLink>
       </AuthLayout>
     );
 

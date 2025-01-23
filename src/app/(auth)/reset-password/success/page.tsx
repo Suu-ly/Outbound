@@ -1,6 +1,5 @@
 import AuthLayout from "@/components/auth-layout";
-import { buttonVariants } from "@/components/ui/button";
-import Link from "next/link";
+import ButtonLink from "@/components/ui/button-link";
 
 export default function Login() {
   return (
@@ -8,12 +7,9 @@ export default function Login() {
       header="Password Reset Successfully"
       subtitle="Please use this new password for your future logins!"
     >
-      <Link
-        href="/login"
-        className={buttonVariants({ size: "large", className: "w-full" })}
-      >
+      <ButtonLink href="/login" size="large" className="w-full">
         Go to Login
-      </Link>
+      </ButtonLink>
     </AuthLayout>
   );
 }
