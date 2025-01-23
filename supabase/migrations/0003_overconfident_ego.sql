@@ -1,0 +1,1 @@
+ALTER TABLE "location" ALTER COLUMN "bounds" SET DATA TYPE numeric(8)[2][2];

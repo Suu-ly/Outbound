@@ -4,6 +4,7 @@ import {
   date,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   real,
@@ -97,7 +98,10 @@ export const location = pgTable("location", {
   name: varchar("name", { length: 255 }).notNull(),
   coverImg: text("cover_img").notNull(),
   coverImgSmall: text("cover_img_small").notNull(),
-  bounds: integer("bounds").array(2).array(2).notNull(),
+  bounds: numeric("bounds", { precision: 13, scale: 10 })
+    .array(2)
+    .array(2)
+    .notNull(),
   windowXStep: integer("window_x_step").notNull(),
   windowYStep: integer("window_y_step").notNull(),
 });

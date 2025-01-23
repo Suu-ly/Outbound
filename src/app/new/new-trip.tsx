@@ -11,7 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import useDebouncedFunction from "@/lib/use-debounced-function";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { ApiResponse, AutocompleteReturn, BoundsReturn } from "@/server/types";
+import { ApiResponse, AutocompleteReturn } from "@/server/types";
 import { IconCalendarWeek, IconWorldSearch } from "@tabler/icons-react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -27,7 +27,7 @@ export default function NewTrip() {
 
   const [value, setValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
-  const [selectedId, setSelectedId] = useState<string>("");
+  const [selectedId, setSelectedId] = useState<AutocompleteReturn>();
   const [error, setError] = useState<{ search?: string; calendar?: string }>(
     {},
   );
@@ -59,14 +59,19 @@ export default function NewTrip() {
     enabled: debouncedValue !== "",
   });
 
-  const getLocationData = async (selectedId: string) => {
+  const getLocationData = async (
+    selectedId: AutocompleteReturn | undefined,
+  ) => {
+    if (!selectedId) return undefined;
     const urlParams = new URLSearchParams([
-      ["id", selectedId],
+      ["id", selectedId.id],
+      ["name", selectedId.label],
       ["session", session.current],
     ]);
+    if (selectedId.subtitle) urlParams.set("country", selectedId.subtitle);
     const data = await fetch(`/api/places/location?${urlParams.toString()}`)
       .then((response) => response.json())
-      .then((data) => data as ApiResponse<BoundsReturn>);
+      .then((data) => data as ApiResponse<string>);
     if (data.status === "error") {
       throw new Error(data.message);
     }
@@ -78,7 +83,7 @@ export default function NewTrip() {
   };
 
   const { isFetching, data: selected } = useQuery({
-    queryKey: ["selected", selectedId],
+    queryKey: ["selected", selectedId?.id],
     queryFn: () => getLocationData(selectedId),
     enabled: !!selectedId,
   });
@@ -135,7 +140,7 @@ export default function NewTrip() {
             debounce(() => setDebouncedValue(string));
           }}
           onSelectItem={(data) => {
-            setSelectedId(data.id);
+            setSelectedId(data);
             setError((prev) => ({ calendar: prev.calendar }));
           }}
           inputLarge={true}

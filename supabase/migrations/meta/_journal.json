@@ -22,6 +22,20 @@
       "when": 1737618945556,
       "tag": "0002_massive_klaw",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1737642769801,
+      "tag": "0003_overconfident_ego",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1737645872118,
+      "tag": "0004_workable_pyro",
+      "breakpoints": true
     }
   ]
 }
