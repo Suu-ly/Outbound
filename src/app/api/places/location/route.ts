@@ -28,7 +28,7 @@ type BoundsResponse =
 
 export async function GET(request: NextRequest) {
   if (!process.env.GOOGLE_SECRET || !process.env.BING_SECRET) {
-    throw new Error("Google API Key is not set");
+    throw new Error("API Keys are not set");
   }
   const userSession = await auth.api
     .getSession({
@@ -167,11 +167,20 @@ export async function GET(request: NextRequest) {
     name: bounds.displayName.text,
     coverImg: images.data.image,
     coverImgSmall: images.data.thumbnail,
+    // Visualise https://www.desmos.com/calculator/ldhs15ostc
     windowXStep: Math.ceil(
-      bounds.viewport.high.longitude - bounds.viewport.low.longitude,
+      1.5 *
+        Math.log2(
+          bounds.viewport.high.longitude - bounds.viewport.low.longitude + 1,
+        ) +
+        0.5,
     ),
     windowYStep: Math.ceil(
-      bounds.viewport.high.latitude - bounds.viewport.low.latitude,
+      1.5 *
+        Math.log2(
+          bounds.viewport.high.latitude - bounds.viewport.low.latitude + 1,
+        ) +
+        0.5,
     ),
   };
   // Insert information into database
