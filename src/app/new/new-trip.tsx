@@ -11,14 +11,16 @@ import {
 import { Separator } from "@/components/ui/separator";
 import useDebouncedFunction from "@/lib/use-debounced-function";
 import { useMediaQuery } from "@/lib/use-media-query";
+import { addNewTrip } from "@/server/actions";
 import { ApiResponse, AutocompleteReturn } from "@/server/types";
 import { IconCalendarWeek, IconWorldSearch } from "@tabler/icons-react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { DateRange } from "react-day-picker";
+import { toast } from "sonner";
 import { v4 } from "uuid";
 
-export default function NewTrip() {
+export default function NewTrip({ userId }: { userId: string }) {
   const [date, setDate] = useState<DateRange | undefined>(undefined);
   const isLarge = useMediaQuery("(min-width: 768px)");
 
@@ -71,7 +73,7 @@ export default function NewTrip() {
     if (selectedId.subtitle) urlParams.set("country", selectedId.subtitle);
     const data = await fetch(`/api/places/location?${urlParams.toString()}`)
       .then((response) => response.json())
-      .then((data) => data as ApiResponse<string>);
+      .then((data) => data as ApiResponse<AutocompleteReturn>);
     if (data.status === "error") {
       throw new Error(data.message);
     }
@@ -88,7 +90,7 @@ export default function NewTrip() {
     enabled: !!selectedId,
   });
 
-  const validateTrip = () => {
+  const validateTrip = async () => {
     if (!date)
       setError((prev) => ({
         ...prev,
@@ -105,18 +107,34 @@ export default function NewTrip() {
     }
     if (selected && date) {
       setIsLoading(true);
-      // TODO start new trip
+      const res = await addNewTrip(selected.id, selected.label, userId, date);
+      if (res) {
+        setIsLoading(false);
+        toast.error(res.message);
+      }
     }
   };
 
   useEffect(() => {
     // Once fetch is completed, if there is a buffered press, start new trip
-    if (bufferedPress.current) {
-      console.log("Buffered");
-      // TODO start new trip
+    const newTrip = async (
+      locationId: string,
+      name: string,
+      userId: string,
+      date: DateRange,
+    ) => {
+      const res = await addNewTrip(locationId, name, userId, date);
+      if (res) {
+        setIsLoading(false);
+        toast.error(res.message);
+      }
+    };
+
+    if (bufferedPress.current && selected && date) {
+      newTrip(selected.id, selected.label, userId, date);
     }
     bufferedPress.current = false;
-  }, [selected]);
+  }, [date, selected, userId]);
 
   return (
     <>

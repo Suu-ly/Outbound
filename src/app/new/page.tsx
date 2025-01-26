@@ -5,7 +5,7 @@ import { auth } from "@/server/auth";
 import { headers } from "next/headers";
 import NewTrip from "./new-trip";
 
-export default async function Home() {
+export default async function NewTripPage() {
   const session = await auth.api
     .getSession({
       headers: await headers(),
@@ -32,7 +32,7 @@ export default async function Home() {
             Get started on your next adventure
           </h3>
         </div>
-        <NewTrip />
+        <NewTrip userId={session!.user.id} />
       </main>
       <Footer />
     </div>

@@ -79,7 +79,11 @@ export async function GET(request: NextRequest) {
 
   if (locationResult.length > 0)
     return Response.json({
-      data: id,
+      data: {
+        id: id,
+        label: name,
+        subtitle: country,
+      },
       status: "success",
     });
 
@@ -187,7 +191,11 @@ export async function GET(request: NextRequest) {
   await db.insert(location).values(insertValue);
 
   return Response.json({
-    data: id,
+    data: {
+      id: id,
+      label: name,
+      subtitle: country,
+    },
     status: "success",
   });
 }
