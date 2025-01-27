@@ -7,6 +7,8 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 
+import { Provider } from "jotai";
+
 function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -43,6 +45,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <Provider>{children}</Provider>
+    </QueryClientProvider>
   );
 }
