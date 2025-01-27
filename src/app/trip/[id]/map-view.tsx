@@ -1,11 +1,10 @@
 "use client";
 import "mapbox-gl/dist/mapbox-gl.css";
-import Map, { NavigationControl } from "react-map-gl";
 
 export default function MapView() {
   return (
-    <div className="size-full sm:w-1/2 lg:w-2/3">
-      <Map
+    <div className="size-full bg-sky-300 sm:w-1/2 lg:w-2/3">
+      {/* <Map
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         initialViewState={{
           longitude: 103.8,
@@ -26,7 +25,7 @@ export default function MapView() {
             borderRadius: "2rem",
           }}
         />
-      </Map>
+      </Map> */}
     </div>
   );
 }

@@ -84,13 +84,12 @@ export default function TripPage() {
                   <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
-                      size="large"
                       className={
-                        "mb-1 rounded-lg bg-white py-2 pl-2 pr-3 [&_svg]:size-6"
+                        "mb-1 rounded-lg bg-white py-2 pr-3 has-[svg]:pl-2 [&_svg]:size-6"
                       }
                     >
                       <IconCalendarWeek />
-                      <div className="w-full text-left text-slate-900">
+                      <div className="text-slate-700">
                         {date && date.from ? (
                           date.from.toLocaleDateString(undefined, {
                             day: "numeric",
@@ -102,7 +101,7 @@ export default function TripPage() {
                         )}
                       </div>
                       -
-                      <div className="w-full text-left text-slate-900">
+                      <div className="text-slate-700">
                         {date && date.to ? (
                           date.to.toLocaleDateString(undefined, {
                             day: "numeric",

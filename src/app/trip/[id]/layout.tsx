@@ -1,7 +1,12 @@
 import Header from "@/components/header";
+import { auth } from "@/server/auth";
+import { db } from "@/server/db";
+import { location, trip, tripDay } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
+import { headers } from "next/headers";
 import MapView from "./map-view";
-import TripDataFetcher from "./trip-data-fetcher";
 import TripHeaderItems from "./trip-header-items";
+import TripProviders from "./trip-providers";
 
 export default async function TripLayout({
   params,
@@ -12,8 +17,20 @@ export default async function TripLayout({
 }>) {
   const id = (await params).id;
 
+  const [userSession, data] = await Promise.all([
+    auth.api.getSession({
+      headers: await headers(),
+    }),
+    db
+      .select()
+      .from(trip)
+      .innerJoin(tripDay, eq(trip.id, tripDay.tripId))
+      .innerJoin(location, eq(location.id, trip.locationId))
+      .where(eq(trip.id, id)),
+  ]);
+
   return (
-    <TripDataFetcher id={id}>
+    <TripProviders data={data} session={userSession}>
       <Header>
         <TripHeaderItems />
       </Header>
@@ -21,6 +38,6 @@ export default async function TripLayout({
         {children}
         <MapView />
       </div>
-    </TripDataFetcher>
+    </TripProviders>
   );
 }
