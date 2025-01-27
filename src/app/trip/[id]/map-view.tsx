@@ -3,7 +3,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 
 export default function MapView() {
   return (
-    <div className="size-full bg-sky-300 sm:w-1/2 lg:w-2/3">
+    <div className="size-full bg-sky-300 sm:w-1/2 xl:w-2/3">
       {/* <Map
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         initialViewState={{
