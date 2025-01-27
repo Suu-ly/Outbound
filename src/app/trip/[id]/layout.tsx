@@ -1,6 +1,7 @@
 import Header from "@/components/header";
 import MapView from "./map-view";
 import TripDataFetcher from "./trip-data-fetcher";
+import TripHeaderItems from "./trip-header-items";
 
 export default async function TripLayout({
   params,
@@ -13,12 +14,12 @@ export default async function TripLayout({
 
   return (
     <TripDataFetcher id={id}>
-      <div className="min-h-dvh">
-        <Header>Hello</Header>
-        <div className="flex h-[calc(100dvh-56px)]">
-          {children}
-          <MapView />
-        </div>
+      <Header>
+        <TripHeaderItems />
+      </Header>
+      <div className="flex h-[calc(100dvh-56px)]">
+        {children}
+        <MapView />
       </div>
     </TripDataFetcher>
   );
