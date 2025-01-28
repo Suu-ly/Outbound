@@ -2,6 +2,7 @@
 
 import { SelectTrip, SelectTripDay } from "@/server/db/schema";
 import { Session, User } from "better-auth";
+import { useHydrateAtoms } from "jotai/utils";
 import { MapProvider } from "react-map-gl";
 
 export default function TripProviders({
@@ -16,5 +17,7 @@ export default function TripProviders({
   session: { session: Session; user: User } | null;
   children: React.ReactNode;
 }>) {
+  useHydrateAtoms();
+
   return <MapProvider>{children}</MapProvider>;
 }
