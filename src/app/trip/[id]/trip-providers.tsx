@@ -1,9 +1,10 @@
 "use client";
 
-import { SelectTrip, SelectTripDay } from "@/server/db/schema";
+import { SelectLocation, SelectTrip, SelectTripDay } from "@/server/db/schema";
 import { Session, User } from "better-auth";
 import { useHydrateAtoms } from "jotai/utils";
 import { MapProvider } from "react-map-gl";
+import { isTripAdminAtom, tripDetailsAtom, tripLocationAtom } from "../atoms";
 
 export default function TripProviders({
   data,
@@ -12,12 +13,44 @@ export default function TripProviders({
 }: Readonly<{
   data: {
     trip: SelectTrip;
-    trip_day: SelectTripDay | null;
+    trip_day: SelectTripDay;
+    location: SelectLocation;
   }[];
   session: { session: Session; user: User } | null;
   children: React.ReactNode;
 }>) {
-  useHydrateAtoms();
+  const firstRow = data[0];
+
+  useHydrateAtoms([
+    [
+      tripDetailsAtom,
+      {
+        name: firstRow.trip.name,
+        coverImg: firstRow.location.coverImg,
+        startDate: firstRow.trip.startDate,
+        endDate: firstRow.trip.endDate,
+        startTime: firstRow.trip.startTime,
+        endTime: firstRow.trip.endTime,
+        private: firstRow.trip.private,
+        roundUpTime: firstRow.trip.roundUpTime,
+      },
+    ],
+    [isTripAdminAtom, firstRow.trip.userId === session?.user.id],
+    [
+      tripLocationAtom,
+      {
+        name: firstRow.location.name,
+        bounds: firstRow.location.bounds.map((coords) =>
+          coords.map((val) => parseFloat(val)),
+        ) as [[number, number], [number, number]],
+        windowXStep: firstRow.location.windowXStep,
+        windowYStep: firstRow.location.windowYStep,
+        currentXWindow: firstRow.trip.currentXWindow,
+        currentYWindow: firstRow.trip.currentYWindow,
+        nextPageToken: firstRow.trip.nextPageToken,
+      },
+    ],
+  ]);
 
   return <MapProvider>{children}</MapProvider>;
 }

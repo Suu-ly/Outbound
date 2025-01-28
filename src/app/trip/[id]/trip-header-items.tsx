@@ -18,22 +18,27 @@ import {
   IconShare,
   IconTrash,
 } from "@tabler/icons-react";
+import { useAtomValue } from "jotai";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
+import { isTripAdminAtom } from "../atoms";
+
+const discoverRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/discover`);
+const skipRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/skipped`);
 
 export default function TripSwipePage() {
   const path = usePathname();
   const [, copyToClipboard] = useCopyToClipboard();
 
-  const basePath = path.substring(0, 17);
+  const basePath = path.substring(0, 18);
 
-  const isPlan = /\/trip\/[a-z0-9]{12}\/plan/.test(path);
+  const isDiscover = discoverRegex.test(path);
 
-  const isSkip = /\/trip\/[a-z0-9]{12}\/skipped/.test(path);
+  const isSkip = skipRegex.test(path);
 
-  const isAdmin = true;
+  const isAdmin = useAtomValue(isTripAdminAtom);
 
   const onCopy = useCallback(() => {
     copyToClipboard(window.location.origin + basePath);
@@ -49,7 +54,7 @@ export default function TripSwipePage() {
         variant="ghost"
         iconOnly
         aria-label="Share"
-        className={!isPlan ? "hidden sm:inline-flex" : undefined}
+        className={!isDiscover ? "hidden sm:inline-flex" : undefined}
         onClick={onCopy}
       >
         <IconShare />
@@ -62,12 +67,12 @@ export default function TripSwipePage() {
             variant="ghost"
             iconOnly
             aria-label="Settings"
-            className={!isPlan ? "hidden sm:inline-flex" : undefined}
+            className={!isDiscover ? "hidden sm:inline-flex" : undefined}
           >
             <IconSettings />
           </ButtonLink>
-          {!isPlan && (
-            <ButtonLink href={`${basePath}/plan`} size="small">
+          {!isDiscover && (
+            <ButtonLink href={`${basePath}/discover`} size="small">
               <IconMapPinSearch />
               Discover Places
             </ButtonLink>
@@ -80,14 +85,14 @@ export default function TripSwipePage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                className={!isPlan ? "sm:hidden" : undefined}
+                className={!isDiscover ? "sm:hidden" : "hidden"}
                 onClick={onCopy}
               >
                 <IconShare />
                 Share
               </DropdownMenuItem>
               <DropdownMenuItem
-                className={!isPlan ? "sm:hidden" : undefined}
+                className={!isDiscover ? "sm:hidden" : "hidden"}
                 asChild
               >
                 <Link href={`${basePath}/settings`}>

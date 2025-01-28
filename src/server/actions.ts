@@ -77,5 +77,5 @@ export async function addNewTrip(
   if (!result)
     return { message: "Required information are not set!", status: "error" };
 
-  redirect(`/trip/${result}/plan`);
+  redirect(`/trip/${result}/discover`);
 }
