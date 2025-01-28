@@ -27,6 +27,7 @@ export const isTripAdminAtom = atom<boolean>(false);
 //
 export const mapActiveMarkerAtom = atom<{
   position: [number, number];
+  bounds: [[number, number], [number, number]];
   type: "skipped" | "saved" | "undecided";
 }>();
 
