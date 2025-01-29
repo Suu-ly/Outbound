@@ -1,10 +1,11 @@
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { InsertLocation, location } from "@/server/db/schema";
-import { BingImageResponse, type GoogleError } from "@/server/types";
+import { type GoogleError } from "@/server/types";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
+import getBingImage from "../get-bing-image";
 
 type BoundsResponse =
   | {
@@ -27,8 +28,8 @@ type BoundsResponse =
   | GoogleError;
 
 export async function GET(request: NextRequest) {
-  if (!process.env.GOOGLE_SECRET || !process.env.BING_SECRET) {
-    throw new Error("API Keys are not set");
+  if (!process.env.GOOGLE_SECRET) {
+    throw new Error("Google API Key is not set");
   }
   const userSession = await auth.api
     .getSession({
@@ -87,12 +88,8 @@ export async function GET(request: NextRequest) {
       status: "success",
     });
 
-  const nameURL = new URLSearchParams([
+  const queryUrl = new URLSearchParams([
     ["q", `${name}${country ? " " + country : ""} visit`],
-    ["safeSearch", "moderate"],
-    ["imageType", "photo"],
-    ["size", "large"],
-    ["count", "5"],
   ]);
 
   const [bounds, images] = await Promise.all([
@@ -109,37 +106,7 @@ export async function GET(request: NextRequest) {
     )
       .then((response) => response.json())
       .then((data) => data as BoundsResponse),
-    fetch(
-      `https://api.bing.microsoft.com/v7.0/images/search?${nameURL.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          "Ocp-Apim-Subscription-Key": process.env.BING_SECRET,
-          Accept: "application/json",
-        },
-      },
-    )
-      .then((response) => response.json())
-      .then((data: BingImageResponse) => {
-        if (data._type === "ErrorResponse")
-          return { error: data.errors, type: "error" };
-        if (data.value.length === 0)
-          // TODO return a better empty value, although this is unlikely to happen
-          return {
-            data: {
-              image: "",
-              thumbnail: "",
-            },
-            type: "success",
-          };
-        return {
-          data: {
-            image: data.value[0].contentUrl,
-            thumbnail: data.value[0].thumbnailUrl,
-          },
-          type: "success",
-        };
-      }),
+    getBingImage(queryUrl.toString()),
   ]);
 
   if ("error" in bounds) {

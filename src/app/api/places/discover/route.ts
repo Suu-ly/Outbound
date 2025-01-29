@@ -4,6 +4,7 @@ import { InsertPlace, place } from "@/server/db/schema";
 import { type GoogleError } from "@/server/types";
 import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
+import getBingImage from "../get-bing-image";
 
 const typeColorLookup = {
   "#FF9E67": "#EA580C",
@@ -181,7 +182,7 @@ export async function GET(request: NextRequest) {
   const nextPageToken = searchParams.get("nextPageToken");
   const bounds = searchParams.getAll("bounds");
 
-  if ((!location && !nextPageToken) || bounds.length !== 4) {
+  if (!location || bounds.length !== 4) {
     return Response.json(
       {
         status: "error",
@@ -208,6 +209,8 @@ export async function GET(request: NextRequest) {
         textQuery: `Tourist attractions in ${location}`,
         includedType: "tourist_attraction",
         includePureServiceAreaBusinesses: false,
+        pageSize: 10,
+        pageToken: nextPageToken ?? undefined,
         locationRestriction: {
           rectangle: {
             low: {
@@ -234,9 +237,29 @@ export async function GET(request: NextRequest) {
   }
 
   if ("places" in places) {
+    // Fetch cover images from Bing
+    const imageQueries = [];
+    for (let i = 0; i < places.places.length; i++) {
+      const queryUrl = new URLSearchParams([
+        ["q", `${places.places[i].displayName.text} ${location}`],
+      ]);
+      imageQueries.push(getBingImage(queryUrl.toString()));
+    }
+    const placeCoverImages = await Promise.all(imageQueries);
+
     const response: InsertPlace[] = [];
     for (let i = 0; i < places.places.length; i++) {
       const place = places.places[i];
+      const placeCoverImage = placeCoverImages[i];
+      const images = placeCoverImage.data
+        ? {
+            coverImg: placeCoverImage.data.image,
+            coverImgSmall: placeCoverImage.data.thumbnail,
+          }
+        : {
+            coverImg: "",
+            coverImgSmall: "",
+          };
       response.push({
         id: place.id,
         name: place.name,
@@ -274,6 +297,7 @@ export async function GET(request: NextRequest) {
         liveMusic: place.liveMusic || null,
         outdoorSeating: place.outdoorSeating || null,
         restroom: place.restroom || null,
+        ...images,
       });
     }
 
