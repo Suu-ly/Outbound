@@ -28,7 +28,7 @@ import { isTripAdminAtom } from "../atoms";
 const discoverRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/discover`);
 const skipRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/skipped`);
 
-export default function TripSwipePage() {
+export default function TripHeaderItems() {
   const path = usePathname();
   const [, copyToClipboard] = useCopyToClipboard();
 
