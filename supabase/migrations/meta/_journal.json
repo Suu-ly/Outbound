@@ -36,6 +36,20 @@
       "when": 1737645872118,
       "tag": "0004_workable_pyro",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1738142065261,
+      "tag": "0005_soft_silhouette",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1738142878257,
+      "tag": "0006_moaning_lester",
+      "breakpoints": true
     }
   ]
 }

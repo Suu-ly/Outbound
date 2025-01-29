@@ -128,6 +128,8 @@ export const place = pgTable("place", {
     low: { latitude: number; longitude: number };
     high: { latitude: number; longitude: number };
   }>(),
+  coverImg: text("cover_img").notNull(),
+  coverImgSmall: text("cover_img_small").notNull(),
   rating: real("rating"),
   ratingCount: integer("rating_count"),
   reviews: jsonb("reviews").$type<
