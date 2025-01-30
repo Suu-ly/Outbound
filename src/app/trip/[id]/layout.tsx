@@ -18,10 +18,11 @@ export default async function TripLayout({
   children: React.ReactNode;
 }>) {
   const id = (await params).id;
+  const header = await headers();
 
   const [userSession, data] = await Promise.all([
     auth.api.getSession({
-      headers: await headers(),
+      headers: header,
     }),
     db
       .select()
@@ -74,7 +75,7 @@ export default async function TripLayout({
       </Header>
       <div className="flex h-[calc(100dvh-56px)]">
         {children}
-        <MapView />
+        <MapView initialBounds={data[0].location.bounds} />
       </div>
     </TripProviders>
   );

@@ -6,7 +6,13 @@ import { customAlphabet } from "nanoid";
 import { redirect } from "next/navigation";
 import { type DateRange } from "react-day-picker";
 import { db } from "./db";
-import { InsertTrip, InsertTripDay, trip, tripDay } from "./db/schema";
+import {
+  InsertTrip,
+  InsertTripDay,
+  SelectTrip,
+  trip,
+  tripDay,
+} from "./db/schema";
 
 const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const ID_LENGTH = 12;
@@ -78,4 +84,21 @@ export async function addNewTrip(
     return { message: "Required information are not set!", status: "error" };
 
   redirect(`/trip/${result}/discover`);
+}
+
+export async function updateTripWindows(
+  newWindows: Pick<
+    SelectTrip,
+    "currentXWindow" | "currentYWindow" | "nextPageToken"
+  >,
+  id: string,
+) {
+  await db
+    .update(trip)
+    .set({
+      currentXWindow: newWindows.currentXWindow,
+      currentYWindow: newWindows.currentYWindow,
+      nextPageToken: newWindows.nextPageToken,
+    })
+    .where(eq(trip.id, id));
 }

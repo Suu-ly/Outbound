@@ -2,6 +2,7 @@
 
 import { SelectLocation, SelectTrip, SelectTripDay } from "@/server/db/schema";
 import { Session, User } from "better-auth";
+import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { MapProvider } from "react-map-gl";
 import { isTripAdminAtom, tripDetailsAtom, tripLocationAtom } from "../atoms";
@@ -19,12 +20,34 @@ export default function TripProviders({
   session: { session: Session; user: User } | null;
   children: React.ReactNode;
 }>) {
+  return (
+    <MapProvider>
+      <Provider>
+        <HydrateAtoms data={data} session={session} />
+        {children}
+      </Provider>
+    </MapProvider>
+  );
+}
+
+const HydrateAtoms = ({
+  data,
+  session,
+}: Readonly<{
+  data: {
+    trip: SelectTrip;
+    trip_day: SelectTripDay;
+    location: SelectLocation;
+  }[];
+  session: { session: Session; user: User } | null;
+}>) => {
   const firstRow = data[0];
 
   useHydrateAtoms([
     [
       tripDetailsAtom,
       {
+        id: firstRow.trip.id,
         name: firstRow.trip.name,
         coverImg: firstRow.location.coverImg,
         startDate: firstRow.trip.startDate,
@@ -51,6 +74,5 @@ export default function TripProviders({
       },
     ],
   ]);
-
-  return <MapProvider>{children}</MapProvider>;
-}
+  return null;
+};

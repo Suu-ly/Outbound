@@ -1,7 +1,11 @@
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { InsertPlace, place } from "@/server/db/schema";
-import { type GoogleError } from "@/server/types";
+import { InsertTripPlace, place, tripPlace } from "@/server/db/schema";
+import {
+  TripPlaceDetails,
+  type GoogleError,
+  type PlacesResult,
+} from "@/server/types";
 import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
 import getBingImage from "../get-bing-image";
@@ -17,142 +21,7 @@ const typeColorLookup = {
   "#F88181": "#db2777",
 };
 
-type PlaceDiscoverResponse =
-  | {
-      places: {
-        name: string;
-        id: string;
-        types: string[];
-        internationalPhoneNumber?: string;
-        location: {
-          latitude: number;
-          longitude: number;
-        };
-        viewport: {
-          low: {
-            latitude: number;
-            longitude: number;
-          };
-          high: {
-            latitude: number;
-            longitude: number;
-          };
-        };
-        rating: number;
-        userRatingCount: number;
-        googleMapsUri: string;
-        websiteUri?: string;
-        regularOpeningHours?: {
-          openNow: boolean;
-          periods: {
-            open: {
-              day: number;
-              hour: number;
-              minute: number;
-            };
-            close: {
-              day: number;
-              hour: number;
-              minute: number;
-            };
-          }[];
-          weekdayDescriptions: string[];
-          nextOpenTime: string;
-        };
-        iconBackgroundColor: keyof typeof typeColorLookup;
-        displayName: {
-          text: string;
-          languageCode: string;
-        };
-        primaryTypeDisplayName?: {
-          text: string;
-          languageCode: string;
-        };
-        primaryType?: string;
-        shortFormattedAddress: string;
-        editorialSummary?: {
-          text: string;
-          languageCode: string;
-        };
-        reviews?: {
-          name: string;
-          relativePublishTimeDescription: string;
-          rating: number;
-          text: {
-            text: string;
-            languageCode: string;
-          };
-          originalText: {
-            text: string;
-            languageCode: string;
-          };
-          authorAttribution: {
-            displayName: string;
-            uri: string;
-            photoUri: string;
-          };
-          publishTime: string;
-          flagContentUri: string;
-          googleMapsUri: string;
-        }[];
-        photos?: {
-          name: string;
-          widthPx: number;
-          heightPx: number;
-          authorAttributions: [
-            {
-              displayName: string;
-              uri: string;
-              photoUri: string;
-            },
-          ];
-          flagContentUri: string;
-          googleMapsUri: string;
-        }[];
-        paymentOptions?: {
-          acceptsCreditCards?: boolean;
-          acceptsDebitCards?: boolean;
-          acceptsCashOnly?: boolean;
-          acceptsNfc?: boolean;
-        };
-        parkingOptions: {
-          freeParkingLot?: boolean;
-          paidParkingLot?: boolean;
-          freeStreetParking?: boolean;
-          paidStreetParking?: boolean;
-          valetParking?: boolean;
-          freeGarageParking?: boolean;
-          paidGarageParking?: boolean;
-        };
-        accessibilityOptions: {
-          wheelchairAccessibleParking?: boolean;
-          wheelchairAccessibleEntrance?: boolean;
-          wheelchairAccessibleRestroom?: boolean;
-          wheelchairAccessibleSeating?: boolean;
-        };
-        outdoorSeating: boolean;
-        liveMusic: boolean;
-        goodForChildren: boolean;
-        allowsDogs: boolean;
-        restroom: boolean;
-        goodForGroups: boolean;
-        goodForWatchingSports: boolean;
-      }[];
-      contextualContents: {
-        justifications: [
-          {
-            reviewJustification: {
-              highlightedText: {
-                text: string;
-              };
-            };
-          },
-          Record<never, never>,
-        ];
-      }[];
-    }
-  | Record<never, never>
-  | GoogleError;
+type PlaceDiscoverResponse = PlacesResult | Record<never, never> | GoogleError;
 
 export async function GET(request: NextRequest) {
   if (!process.env.GOOGLE_SECRET) {
@@ -180,9 +49,10 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const location = searchParams.get("location");
   const nextPageToken = searchParams.get("nextPageToken");
+  const id = searchParams.get("id");
   const bounds = searchParams.getAll("bounds");
 
-  if (!location || bounds.length !== 4) {
+  if (!location || bounds.length !== 4 || !id) {
     return Response.json(
       {
         status: "error",
@@ -200,7 +70,7 @@ export async function GET(request: NextRequest) {
       method: "POST",
       headers: {
         "X-Goog-FieldMask":
-          "contextualContents.justifications.reviewJustification.highlightedText.text,places.id,places.name,nextPageToken,places.googleMapsUri,places.accessibilityOptions,places.shortFormattedAddress,places.displayName,places.iconBackgroundColor,places.location,places.photos,places.primaryType,places.primaryTypeDisplayName,places.types,places.viewport,places.regularOpeningHours,places.userRatingCount,places.websiteUri,places.rating,places.internationalPhoneNumber,places.allowsDogs,places.editorialSummary,places.goodForChildren,places.goodForGroups,places.goodForWatchingSports,places.liveMusic,places.parkingOptions,places.paymentOptions,places.outdoorSeating,places.restroom,places.reviews",
+          "contextualContents.justifications.reviewJustification.highlightedText.text,places.id,places.name,nextPageToken,places.googleMapsUri,places.accessibilityOptions,places.shortFormattedAddress,places.formattedAddress,places.displayName,places.iconBackgroundColor,places.location,places.photos,places.primaryType,places.primaryTypeDisplayName,places.types,places.viewport,places.regularOpeningHours,places.userRatingCount,places.websiteUri,places.rating,places.internationalPhoneNumber,places.allowsDogs,places.editorialSummary,places.goodForChildren,places.goodForGroups,places.goodForWatchingSports,places.liveMusic,places.parkingOptions,places.paymentOptions,places.outdoorSeating,places.restroom,places.reviews",
         "X-Goog-Api-Key": process.env.GOOGLE_SECRET,
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -214,12 +84,12 @@ export async function GET(request: NextRequest) {
         locationRestriction: {
           rectangle: {
             low: {
-              latitude: bounds[1],
-              longitude: bounds[0],
+              latitude: parseFloat(bounds[1]),
+              longitude: parseFloat(bounds[0]),
             },
             high: {
-              latitude: bounds[3],
-              longitude: bounds[2],
+              latitude: parseFloat(bounds[3]),
+              longitude: parseFloat(bounds[2]),
             },
           },
         },
@@ -247,7 +117,9 @@ export async function GET(request: NextRequest) {
     }
     const placeCoverImages = await Promise.all(imageQueries);
 
-    const response: InsertPlace[] = [];
+    const response: TripPlaceDetails[] = [];
+    const tripPlaceInsert: InsertTripPlace[] = [];
+
     for (let i = 0; i < places.places.length; i++) {
       const place = places.places[i];
       const placeCoverImage = placeCoverImages[i];
@@ -267,17 +139,19 @@ export async function GET(request: NextRequest) {
         types: place.types,
         primaryTypeDisplayName:
           place.primaryTypeDisplayName?.text ?? "Tourist Attraction",
-        address: place.shortFormattedAddress,
+        address: place.shortFormattedAddress ?? place.formattedAddress,
         typeColor: typeColorLookup[place.iconBackgroundColor] || "#0891b2",
         phone: place.internationalPhoneNumber ?? null,
         location: place.location,
         viewport: place.viewport,
         rating: place.rating,
         ratingCount: place.userRatingCount,
-        reviews: place.reviews,
-        reviewHighlight:
-          places.contextualContents[i].justifications[0].reviewJustification
-            .highlightedText.text,
+        reviews: place.reviews ?? null,
+        reviewHighlight: places.contextualContents[i].justifications
+          ? places.contextualContents[i].justifications![0].reviewJustification
+              .highlightedText.text
+          : null,
+        photos: place.photos,
         website: place.websiteUri ?? null,
         googleMapsLink: place.googleMapsUri,
         description: place.editorialSummary?.text ?? null,
@@ -299,11 +173,31 @@ export async function GET(request: NextRequest) {
         restroom: place.restroom || null,
         ...images,
       });
+
+      tripPlaceInsert.push({
+        placeId: place.id,
+        tripId: id,
+      });
     }
 
-    await db.insert(place).values(response).onConflictDoNothing();
+    await db
+      .insert(place)
+      .values(
+        response.map((place) => {
+          delete place.photos;
+          return place;
+        }),
+      )
+      .onConflictDoNothing();
+    await db.insert(tripPlace).values(tripPlaceInsert).onConflictDoNothing();
 
-    return Response.json({ data: response, status: "success" });
+    return Response.json({
+      data: { places: response, nextPageToken: places.nextPageToken ?? null },
+      status: "success",
+    });
   }
-  return Response.json({ data: [], status: "success" });
+  return Response.json({
+    data: { places: [], nextPageToken: null },
+    status: "success",
+  });
 }

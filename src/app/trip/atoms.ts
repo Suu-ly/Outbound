@@ -1,7 +1,10 @@
+import { SelectPlace, SelectTripPlace } from "@/server/db/schema";
+import { TripPlaceDetails } from "@/server/types";
 import { atom } from "jotai";
 
 // Trip settings atom
 export const tripDetailsAtom = atom<{
+  id: string;
   name: string;
   startDate: Date;
   endDate: Date;
@@ -11,6 +14,7 @@ export const tripDetailsAtom = atom<{
   endTime: string;
   coverImg: string;
 }>({
+  id: "",
   name: "",
   startDate: new Date(),
   endDate: new Date(),
@@ -51,3 +55,11 @@ export const tripLocationAtom = atom<{
   currentYWindow: 1,
   nextPageToken: null,
 });
+
+export const tripPlacesAtom = atom<
+  Record<string, (SelectTripPlace & SelectPlace)[]>
+>({});
+
+export const discoverPlacesAtom = atom<TripPlaceDetails[]>([]);
+
+export const activePlaceIndexAtom = atom<number>(0);

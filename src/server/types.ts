@@ -1,3 +1,5 @@
+import { SelectPlace } from "./db/schema";
+
 export type ApiResponse<T> =
   | {
       data: T;
@@ -95,3 +97,156 @@ type BingError = {
 };
 
 export type BingImageResponse = BingImageAnswer | BingError;
+
+export type PlacesResult = {
+  places: {
+    name: string;
+    id: string;
+    types: string[];
+    internationalPhoneNumber?: string;
+    location: {
+      latitude: number;
+      longitude: number;
+    };
+    viewport: {
+      low: {
+        latitude: number;
+        longitude: number;
+      };
+      high: {
+        latitude: number;
+        longitude: number;
+      };
+    };
+    rating: number;
+    userRatingCount: number;
+    googleMapsUri: string;
+    websiteUri?: string;
+    regularOpeningHours?: {
+      openNow: boolean;
+      periods: {
+        open: {
+          day: number;
+          hour: number;
+          minute: number;
+        };
+        close: {
+          day: number;
+          hour: number;
+          minute: number;
+        };
+      }[];
+      weekdayDescriptions: string[];
+      nextOpenTime: string;
+    };
+    iconBackgroundColor:
+      | "#FF9E67"
+      | "#4B96F3"
+      | "#909CE1"
+      | "#13B5C7"
+      | "#10BDFF"
+      | "#7B9EB0"
+      | "#4DB546"
+      | "#F88181";
+    displayName: {
+      text: string;
+      languageCode: string;
+    };
+    primaryTypeDisplayName?: {
+      text: string;
+      languageCode: string;
+    };
+    primaryType?: string;
+    formattedAddress: string;
+    shortFormattedAddress?: string;
+    editorialSummary?: {
+      text: string;
+      languageCode: string;
+    };
+    reviews?: {
+      name: string;
+      relativePublishTimeDescription: string;
+      rating: number;
+      text: {
+        text: string;
+        languageCode: string;
+      };
+      originalText: {
+        text: string;
+        languageCode: string;
+      };
+      authorAttribution: {
+        displayName: string;
+        uri: string;
+        photoUri: string;
+      };
+      publishTime: string;
+      flagContentUri: string;
+      googleMapsUri: string;
+    }[];
+    photos?: {
+      name: string;
+      widthPx: number;
+      heightPx: number;
+      authorAttributions: [
+        {
+          displayName: string;
+          uri: string;
+          photoUri: string;
+        },
+      ];
+      flagContentUri: string;
+      googleMapsUri: string;
+    }[];
+    paymentOptions?: {
+      acceptsCreditCards?: boolean;
+      acceptsDebitCards?: boolean;
+      acceptsCashOnly?: boolean;
+      acceptsNfc?: boolean;
+    };
+    parkingOptions: {
+      freeParkingLot?: boolean;
+      paidParkingLot?: boolean;
+      freeStreetParking?: boolean;
+      paidStreetParking?: boolean;
+      valetParking?: boolean;
+      freeGarageParking?: boolean;
+      paidGarageParking?: boolean;
+    };
+    accessibilityOptions: {
+      wheelchairAccessibleParking?: boolean;
+      wheelchairAccessibleEntrance?: boolean;
+      wheelchairAccessibleRestroom?: boolean;
+      wheelchairAccessibleSeating?: boolean;
+    };
+    outdoorSeating: boolean;
+    liveMusic: boolean;
+    goodForChildren: boolean;
+    allowsDogs: boolean;
+    restroom: boolean;
+    goodForGroups: boolean;
+    goodForWatchingSports: boolean;
+  }[];
+  contextualContents: {
+    justifications?: [
+      {
+        reviewJustification: {
+          highlightedText: {
+            text: string;
+          };
+        };
+      },
+      Record<never, never>,
+    ];
+  }[];
+  nextPageToken?: string;
+};
+
+export type TripPlaceDetails = SelectPlace & {
+  photos: PlacesResult["places"][number]["photos"];
+};
+
+export type DiscoverReturn = {
+  places: TripPlaceDetails[];
+  nextPageToken: string | null;
+};

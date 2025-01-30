@@ -8,7 +8,6 @@ export default function getBingImage(urlQuery: string) {
     ["safeSearch", "moderate"],
     ["imageType", "photo"],
     ["size", "large"],
-    ["count", "5"],
   ]);
 
   return fetch(
@@ -25,7 +24,7 @@ export default function getBingImage(urlQuery: string) {
     .then((data: BingImageResponse) => {
       if (data._type === "ErrorResponse")
         return { error: data.errors, type: "error" };
-      if (data.value.length === 0)
+      if (!data.value || data.value.length === 0)
         // TODO return a better empty value, although this is unlikely to happen
         return {
           data: {

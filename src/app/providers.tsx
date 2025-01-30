@@ -3,11 +3,12 @@
 // Since QueryClientProvider relies on useContext under the hood, we have to put 'use client' on top
 import {
   isServer,
+  QueryCache,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
 
-import { Provider } from "jotai";
+import { toast } from "sonner";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -18,6 +19,11 @@ function makeQueryClient() {
         staleTime: 60 * 1000,
       },
     },
+    queryCache: new QueryCache({
+      onError: (error) => {
+        toast.error(error.message, { id: error.name });
+      },
+    }),
   });
 }
 
@@ -45,8 +51,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Provider>{children}</Provider>
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }

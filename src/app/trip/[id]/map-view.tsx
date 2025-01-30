@@ -1,15 +1,19 @@
 "use client";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-export default function MapView() {
+export default function MapView({
+  initialBounds,
+}: {
+  initialBounds: string[][];
+}) {
   return (
     <div className="size-full bg-sky-300 sm:w-1/2 xl:w-2/3">
       {/* <Map
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         initialViewState={{
-          longitude: 103.8,
-          latitude: 1.36,
-          zoom: 10,
+          bounds: initialBounds.map((lowHigh) =>
+            lowHigh.map((coord) => parseFloat(coord)),
+          ),
         }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
         reuseMaps
