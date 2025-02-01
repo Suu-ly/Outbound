@@ -18,9 +18,9 @@ const buttonVariants = cva(
           "text-slate-700 active:ring-slate-200 hover:bg-slate-100 hover:text-slate-900",
       },
       size: {
-        default: "h-10 px-5 has-[svg]:pl-4",
-        small: "h-8 px-3 has-[svg]:pl-2",
-        large: "h-12 px-6 has-[svg]:pl-4",
+        default: "h-10 px-5 has-[>div>svg]:pl-4",
+        small: "h-8 px-3 has-[>div>svg]:pl-2",
+        large: "h-12 px-6 has-[>div>svg]:pl-4",
       },
       iconOnly: {
         false: null,
@@ -31,17 +31,17 @@ const buttonVariants = cva(
       {
         size: "default",
         iconOnly: true,
-        className: "size-10 px-0 [&_svg]:size-6 has-[svg]:pl-0",
+        className: "size-10 px-0 [&_svg]:size-6 has-[>div>svg]:pl-0",
       },
       {
         size: "small",
         iconOnly: true,
-        className: "size-8 px-0 has-[svg]:pl-0",
+        className: "size-8 px-0 has-[>div>svg]:pl-0",
       },
       {
         size: "large",
         iconOnly: true,
-        className: "size-12 px-0 [&_svg]:size-6 has-[svg]:pl-0",
+        className: "size-12 px-0 [&_svg]:size-6 has-[>div>svg]:pl-0",
       },
     ],
     defaultVariants: {

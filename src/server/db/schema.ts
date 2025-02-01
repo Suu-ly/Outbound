@@ -11,6 +11,7 @@ import {
   serial,
   text,
   timestamp,
+  unique,
   varchar,
 } from "drizzle-orm/pg-core";
 
@@ -257,22 +258,32 @@ export const tripPlaceTypeEnum = pgEnum("trip_place_type_enum", [
   "undecided",
 ]);
 
-export const tripPlace = pgTable("trip_place", {
-  id: serial("id").primaryKey(),
-  tripId: varchar("trip_id", { length: 12 })
-    .references(() => trip.id, { onDelete: "cascade" })
-    .notNull(),
-  placeId: text("place_id")
-    .references(() => place.id)
-    .notNull(),
-  dayId: integer("day_id").references(() => tripDay.id, {
-    onDelete: "set null",
-  }),
-  note: text("note"),
-  type: tripPlaceTypeEnum("type").default("undecided").notNull(),
-  prevPlace: integer("prev_place").references((): AnyPgColumn => tripPlace.id),
-  nextPlace: integer("next_place").references((): AnyPgColumn => tripPlace.id),
-});
+export const tripPlace = pgTable(
+  "trip_place",
+  {
+    id: serial("id").primaryKey(),
+    tripId: varchar("trip_id", { length: 12 })
+      .references(() => trip.id, { onDelete: "cascade" })
+      .notNull(),
+    placeId: text("place_id")
+      .references(() => place.id)
+      .notNull(),
+    dayId: integer("day_id").references(() => tripDay.id, {
+      onDelete: "set null",
+    }),
+    note: text("note"),
+    type: tripPlaceTypeEnum("type").default("undecided").notNull(),
+    prevPlace: integer("prev_place").references(
+      (): AnyPgColumn => tripPlace.id,
+    ),
+    nextPlace: integer("next_place").references(
+      (): AnyPgColumn => tripPlace.id,
+    ),
+  },
+  (table) => {
+    return [unique("composite").on(table.tripId, table.placeId)];
+  },
+);
 
 export type InsertTripPlace = typeof tripPlace.$inferInsert;
 export type SelectTripPlace = typeof tripPlace.$inferSelect;

@@ -230,7 +230,7 @@ export type PlacesResult = {
   contextualContents: {
     justifications?: [
       {
-        reviewJustification: {
+        reviewJustification?: {
           highlightedText: {
             text: string;
           };

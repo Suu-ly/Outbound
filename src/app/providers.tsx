@@ -16,12 +16,15 @@ function makeQueryClient() {
       queries: {
         // With SSR, we usually want to set some default staleTime
         // above 0 to avoid refetching immediately on the client
-        staleTime: 60 * 1000,
+        staleTime: Infinity,
       },
     },
     queryCache: new QueryCache({
-      onError: (error) => {
-        toast.error(error.message, { id: error.name });
+      onError: (error, query) => {
+        if (query.meta?.errorMessage)
+          toast.error(`Something went wrong: ${query.meta.errorMessage}`, {
+            id: error.name,
+          });
       },
     }),
   });

@@ -1,6 +1,7 @@
+import { redis } from "@/server/cache";
 import { BingImageResponse } from "@/server/types";
 
-export default function getBingImage(urlQuery: string) {
+export default async function getBingImage(urlQuery: string) {
   if (!process.env.BING_SECRET) {
     throw new Error("Bing API Key is not set");
   }
@@ -8,7 +9,16 @@ export default function getBingImage(urlQuery: string) {
     ["safeSearch", "moderate"],
     ["imageType", "photo"],
     ["size", "large"],
+    ["count", "5"],
   ]);
+
+  const data = await redis.get(urlQuery);
+
+  if (data)
+    return data as {
+      data: { image: string; thumbnail: string };
+      status: "success";
+    };
 
   return fetch(
     `https://api.bing.microsoft.com/v7.0/images/search?${nameURL.toString()}&${urlQuery}`,
@@ -24,6 +34,10 @@ export default function getBingImage(urlQuery: string) {
     .then((data: BingImageResponse) => {
       if (data._type === "ErrorResponse")
         return { error: data.errors, type: "error" };
+      if (!data.value) {
+        console.error(urlQuery);
+        console.error(JSON.stringify(data));
+      }
       if (!data.value || data.value.length === 0)
         // TODO return a better empty value, although this is unlikely to happen
         return {

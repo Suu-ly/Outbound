@@ -59,6 +59,9 @@ export default function NewTrip({ userId }: { userId: string }) {
     queryFn: () => getAutocompleteData(debouncedValue),
     placeholderData: keepPreviousData,
     enabled: debouncedValue !== "",
+    meta: {
+      errorMessage: "Unable to autocomplete query",
+    },
   });
 
   const getLocationData = async (
@@ -88,6 +91,9 @@ export default function NewTrip({ userId }: { userId: string }) {
     queryKey: ["selected", selectedId?.id],
     queryFn: () => getLocationData(selectedId),
     enabled: !!selectedId,
+    meta: {
+      errorMessage: "Unable to fetch data for selected location",
+    },
   });
 
   const validateTrip = async () => {

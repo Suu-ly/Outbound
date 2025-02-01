@@ -11,7 +11,7 @@ const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(
           aria-hidden="true"
           ref={ref}
           className={cn(
-            "inline size-4 animate-spin fill-slate-50 text-slate-400",
+            "inline size-4 animate-spin fill-zinc-50 text-slate-400",
             className,
           )}
           viewBox="0 0 100 101"

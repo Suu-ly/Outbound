@@ -13,6 +13,7 @@ import {
   trip,
   tripDay,
 } from "./db/schema";
+import { ApiResponse } from "./types";
 
 const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const ID_LENGTH = 12;
@@ -63,19 +64,21 @@ export async function addNewTrip(
       .values(days)
       .returning({ id: tripDay.id });
 
-    const queries = [];
-    for (let i = 0; i < newDays.length; i++) {
-      queries.push(
-        tx
-          .update(tripDay)
-          .set({
-            prevDay: i === 0 ? undefined : newDays[i - 1].id,
-            nextDay: i === newDays.length - 1 ? undefined : newDays[i + 1].id,
-          })
-          .where(eq(tripDay.id, newDays[i].id)),
-      );
+    if (newDays.length > 1) {
+      const queries = [];
+      for (let i = 0; i < newDays.length; i++) {
+        queries.push(
+          tx
+            .update(tripDay)
+            .set({
+              prevDay: i === 0 ? undefined : newDays[i - 1].id,
+              nextDay: i === newDays.length - 1 ? undefined : newDays[i + 1].id,
+            })
+            .where(eq(tripDay.id, newDays[i].id)),
+        );
+      }
+      await Promise.all(queries);
     }
-    await Promise.all(queries);
 
     return validId;
   });
@@ -92,13 +95,24 @@ export async function updateTripWindows(
     "currentXWindow" | "currentYWindow" | "nextPageToken"
   >,
   id: string,
-) {
-  await db
-    .update(trip)
-    .set({
-      currentXWindow: newWindows.currentXWindow,
-      currentYWindow: newWindows.currentYWindow,
-      nextPageToken: newWindows.nextPageToken,
-    })
-    .where(eq(trip.id, id));
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(trip)
+      .set({
+        currentXWindow: newWindows.currentXWindow,
+        currentYWindow: newWindows.currentYWindow,
+        nextPageToken: newWindows.nextPageToken,
+      })
+      .where(eq(trip.id, id));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update search windows",
+    };
+  }
 }

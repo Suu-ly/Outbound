@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
         textQuery: `Tourist attractions in ${location}`,
         includedType: "tourist_attraction",
         includePureServiceAreaBusinesses: false,
-        pageSize: 10,
+        pageSize: 1,
         pageToken: nextPageToken ?? undefined,
         locationRestriction: {
           rectangle: {
@@ -147,10 +147,12 @@ export async function GET(request: NextRequest) {
         rating: place.rating,
         ratingCount: place.userRatingCount,
         reviews: place.reviews ?? null,
-        reviewHighlight: places.contextualContents[i].justifications
-          ? places.contextualContents[i].justifications![0].reviewJustification
-              .highlightedText.text
-          : null,
+        reviewHighlight:
+          places.contextualContents[i].justifications &&
+          places.contextualContents[i].justifications![0].reviewJustification
+            ? places.contextualContents[i].justifications![0]
+                .reviewJustification!.highlightedText.text
+            : null,
         photos: place.photos,
         website: place.websiteUri ?? null,
         googleMapsLink: place.googleMapsUri,
@@ -180,16 +182,18 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    await db
-      .insert(place)
-      .values(
-        response.map((place) => {
-          delete place.photos;
-          return place;
-        }),
-      )
-      .onConflictDoNothing();
-    await db.insert(tripPlace).values(tripPlaceInsert).onConflictDoNothing();
+    await Promise.all([
+      db
+        .insert(place)
+        .values(
+          response.map((place) => {
+            delete place.photos;
+            return place;
+          }),
+        )
+        .onConflictDoNothing(),
+      db.insert(tripPlace).values(tripPlaceInsert).onConflictDoNothing(),
+    ]);
 
     return Response.json({
       data: { places: response, nextPageToken: places.nextPageToken ?? null },

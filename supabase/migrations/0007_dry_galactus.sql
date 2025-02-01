@@ -1,0 +1,1 @@
+ALTER TABLE "trip_place" ADD CONSTRAINT "composite" UNIQUE("trip_id","place_id");

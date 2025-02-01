@@ -3,10 +3,12 @@
 import { useMediaQuery } from "@/lib/use-media-query";
 import { updateTripWindows } from "@/server/actions";
 import { ApiResponse, DiscoverReturn } from "@/server/types";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { IconX } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { redirect, useParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   activePlaceIndexAtom,
   discoverPlacesAtom,
@@ -17,6 +19,15 @@ import {
 
 const NO_TOKEN_STRING = "none";
 
+type QueryValue = {
+  query: string;
+  currentXWindow: number;
+  currentYWindow: number;
+  windowXStep: number;
+  windowYStep: number;
+  nextPageToken: string[] | null;
+};
+
 export function DiscoverManager() {
   const path = usePathname();
   const isAdmin = useAtomValue(isTripAdminAtom);
@@ -25,7 +36,16 @@ export function DiscoverManager() {
   const [tripLocation, setTripLocation] = useAtom(tripLocationAtom);
   const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
   const activePlaceIndex = useAtomValue(activePlaceIndexAtom);
-  const [queryString, setQueryString] = useState("");
+
+  const [queryValue, setQueryValue] = useState<QueryValue>({
+    query: "",
+    currentXWindow: tripLocation.currentXWindow,
+    currentYWindow: tripLocation.currentYWindow,
+    windowXStep: tripLocation.windowXStep,
+    windowYStep: tripLocation.windowYStep,
+    nextPageToken: tripLocation.nextPageToken,
+  });
+
   const id = useParams<{ id: string }>().id;
 
   const lonStep =
@@ -35,7 +55,7 @@ export function DiscoverManager() {
     (tripLocation.bounds[1][1] - tripLocation.bounds[0][1]) /
     tripLocation.windowYStep;
 
-  const getNextXWindow = useCallback((prev: typeof tripLocation) => {
+  const getNextXWindow = useCallback((prev: QueryValue) => {
     if (prev.currentXWindow < prev.windowXStep) {
       return prev.currentXWindow + 1;
     }
@@ -51,7 +71,7 @@ export function DiscoverManager() {
     return prev.currentXWindow;
   }, []);
 
-  const getNextYWindow = useCallback((prev: typeof tripLocation) => {
+  const getNextYWindow = useCallback((prev: QueryValue) => {
     if (prev.currentXWindow < prev.windowXStep) {
       return prev.currentYWindow;
     }
@@ -71,22 +91,22 @@ export function DiscoverManager() {
     (
       array: string[] | null,
       dimension: number,
-      current: number,
+      index: number,
       token: string | null,
     ) => {
       if (array) {
-        array[current - 1] = token ?? NO_TOKEN_STRING;
+        array[index] = token ?? NO_TOKEN_STRING;
         return [...array];
       }
       const newArray: string[] = new Array(dimension).fill(NO_TOKEN_STRING);
-      newArray[current - 1] = token ?? NO_TOKEN_STRING;
+      newArray[index] = token ?? NO_TOKEN_STRING;
       return newArray;
     },
     [],
   );
 
-  const getDiscoverPlaces = async (queryString: string) => {
-    const data = await fetch(`/api/places/discover?${queryString}`)
+  const getDiscoverPlaces = async (queryValue: QueryValue) => {
+    const data = await fetch(`/api/places/discover?${queryValue.query}`)
       .then((response) => response.json())
       .then((data) => data as ApiResponse<DiscoverReturn>);
     if (data.status === "error") {
@@ -95,31 +115,37 @@ export function DiscoverManager() {
     if (data.status === "success") {
       setDiscoverLocations((prev) => prev.concat(data.data.places));
       const newWindows = {
-        currentXWindow: getNextXWindow(tripLocation),
-        currentYWindow: getNextYWindow(tripLocation),
+        currentXWindow: getNextXWindow(queryValue),
+        currentYWindow: getNextYWindow(queryValue),
         nextPageToken: getNextPageTokenArray(
-          tripLocation.nextPageToken,
-          tripLocation.windowXStep * tripLocation.windowYStep,
-          tripLocation.currentXWindow * tripLocation.currentYWindow,
+          queryValue.nextPageToken,
+          queryValue.windowXStep * queryValue.windowYStep,
+          (queryValue.currentYWindow - 1) * queryValue.windowXStep +
+            queryValue.currentXWindow -
+            1,
           data.data.nextPageToken,
         ),
       };
-      console.log("nextX", getNextXWindow(tripLocation));
-      console.log("nextY", getNextYWindow(tripLocation));
-      setTripLocation((prev) => ({
-        ...prev,
-        ...newWindows,
-      }));
-      updateTripWindows(newWindows, id);
+      const res = await updateTripWindows(newWindows, id);
+      if (res.status === "success") {
+        setTripLocation((prev) => ({
+          ...prev,
+          ...newWindows,
+        }));
+      } else {
+        toast.error(res.message);
+      }
       return data.data;
     }
     return [];
   };
   const { isFetching } = useQuery({
-    queryKey: ["discover", queryString],
-    queryFn: () => getDiscoverPlaces(queryString),
-    placeholderData: keepPreviousData,
-    enabled: queryString !== "",
+    queryKey: ["discover", queryValue.query],
+    queryFn: () => getDiscoverPlaces(queryValue),
+    enabled: queryValue.query !== "",
+    meta: {
+      errorMessage: "Unable to find places",
+    },
   });
 
   useEffect(() => {
@@ -129,7 +155,9 @@ export function DiscoverManager() {
         ["id", id],
       ]);
       const tokenIndex =
-        tripLocation.currentXWindow * tripLocation.currentYWindow - 1;
+        (tripLocation.currentYWindow - 1) * tripLocation.windowXStep +
+        tripLocation.currentXWindow -
+        1;
       if (
         tripLocation.nextPageToken &&
         tripLocation.nextPageToken[tokenIndex] !== NO_TOKEN_STRING
@@ -148,12 +176,20 @@ export function DiscoverManager() {
           tripLocation.bounds[0][1] + tripLocation.currentYWindow * latStep,
         ],
       ];
+      console.log(searchBounds);
       for (let i = 0; i < searchBounds.length; i++) {
         for (let j = 0; j < searchBounds[i].length; j++) {
           queryUrl.append("bounds", searchBounds[i][j].toString());
         }
       }
-      setQueryString(queryUrl.toString());
+      setQueryValue({
+        query: queryUrl.toString(),
+        currentXWindow: tripLocation.currentXWindow,
+        currentYWindow: tripLocation.currentYWindow,
+        windowXStep: tripLocation.windowXStep,
+        windowYStep: tripLocation.windowYStep,
+        nextPageToken: tripLocation.nextPageToken,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePlaceIndex, discoverLocations.length, isFetching]);
@@ -171,13 +207,11 @@ export function SwipeManager() {
     <main className="max-h-full w-full overflow-auto sm:w-1/2 xl:w-1/3">
       {discoverLocations.map((location, index) => {
         return (
-          <div key={index}>
-            {Object.entries(location).map(([key, val], index) => (
-              <div key={`${val}${index}`}>
-                <span className="font-semibold">{key}: </span>
-                {val?.toString()}
-              </div>
-            ))}
+          <div key={location.id}>
+            <h1 className="font-display text-2xl font-semibold">
+              {location.displayName}
+            </h1>
+            <IconX />
           </div>
         );
       })}
