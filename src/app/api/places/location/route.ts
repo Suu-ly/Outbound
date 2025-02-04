@@ -116,9 +116,9 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if ("error" in images) {
+  if (images.status === "error") {
     return Response.json(
-      { message: images.error, status: "error" },
+      { message: images.message, status: "error" },
       { status: 500 },
     );
   }

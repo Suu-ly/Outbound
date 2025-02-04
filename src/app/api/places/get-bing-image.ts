@@ -1,7 +1,9 @@
 import { redis } from "@/server/cache";
-import { BingImageResponse } from "@/server/types";
+import { ApiResponse, BingImageResponse, BingReturn } from "@/server/types";
 
-export default async function getBingImage(urlQuery: string) {
+export default async function getBingImage(
+  urlQuery: string,
+): Promise<ApiResponse<BingReturn>> {
   if (!process.env.BING_SECRET) {
     throw new Error("Bing API Key is not set");
   }
@@ -12,15 +14,15 @@ export default async function getBingImage(urlQuery: string) {
     ["count", "5"],
   ]);
 
-  const data = await redis.get(urlQuery);
+  const redisData = await redis.get(urlQuery);
 
-  if (data)
-    return data as {
+  if (redisData)
+    return redisData as {
       data: { image: string; thumbnail: string };
       status: "success";
     };
 
-  return fetch(
+  const data = await fetch(
     `https://api.bing.microsoft.com/v7.0/images/search?${nameURL.toString()}&${urlQuery}`,
     {
       method: "GET",
@@ -31,28 +33,36 @@ export default async function getBingImage(urlQuery: string) {
     },
   )
     .then((response) => response.json())
-    .then((data: BingImageResponse) => {
-      if (data._type === "ErrorResponse")
-        return { error: data.errors, type: "error" };
-      if (!data.value) {
-        console.error(urlQuery);
-        console.error(JSON.stringify(data));
-      }
-      if (!data.value || data.value.length === 0)
-        // TODO return a better empty value, although this is unlikely to happen
-        return {
-          data: {
-            image: "",
-            thumbnail: "",
-          },
-          type: "success",
-        };
-      return {
-        data: {
-          image: data.value[0].contentUrl,
-          thumbnail: data.value[0].thumbnailUrl,
-        },
-        type: "success",
-      };
-    });
+    .then((data) => data as BingImageResponse);
+
+  if (data._type === "ErrorResponse")
+    return {
+      message: data.errors[0] ? data.errors[0].message : "Something went wrong",
+      status: "error",
+    };
+  if (!data.value) {
+    console.error(urlQuery);
+    console.error(JSON.stringify(data));
+  }
+  if (!data.value || data.value.length === 0)
+    // TODO return a better empty value, although this is unlikely to happen
+    return {
+      data: {
+        image: "",
+        thumbnail: "",
+      },
+      status: "success",
+    };
+
+  const result = {
+    data: {
+      image: data.value[0].contentUrl,
+      thumbnail: data.value[0].thumbnailUrl,
+    },
+    status: "success" as const,
+  };
+
+  await redis.set(urlQuery, result);
+
+  return result;
 }

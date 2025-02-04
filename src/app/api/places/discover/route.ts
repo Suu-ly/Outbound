@@ -1,4 +1,5 @@
 import { auth } from "@/server/auth";
+import { redis } from "@/server/cache";
 import { db } from "@/server/db";
 import { InsertTripPlace, place, tripPlace } from "@/server/db/schema";
 import {
@@ -64,6 +65,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const data = await redis.get(location + bounds.toString() + nextPageToken);
+
+  if (data) return Response.json(data);
+
   const places = await fetch(
     "https://places.googleapis.com/v1/places:searchText",
     {
@@ -79,7 +84,7 @@ export async function GET(request: NextRequest) {
         textQuery: `Tourist attractions in ${location}`,
         includedType: "tourist_attraction",
         includePureServiceAreaBusinesses: false,
-        pageSize: 1,
+        pageSize: 10,
         pageToken: nextPageToken ?? undefined,
         locationRestriction: {
           rectangle: {
@@ -123,15 +128,16 @@ export async function GET(request: NextRequest) {
     for (let i = 0; i < places.places.length; i++) {
       const place = places.places[i];
       const placeCoverImage = placeCoverImages[i];
-      const images = placeCoverImage.data
-        ? {
-            coverImg: placeCoverImage.data.image,
-            coverImgSmall: placeCoverImage.data.thumbnail,
-          }
-        : {
-            coverImg: "",
-            coverImgSmall: "",
-          };
+      const images =
+        placeCoverImage.status === "success"
+          ? {
+              coverImg: placeCoverImage.data.image,
+              coverImgSmall: placeCoverImage.data.thumbnail,
+            }
+          : {
+              coverImg: "",
+              coverImgSmall: "",
+            };
       response.push({
         id: place.id,
         name: place.name,
@@ -182,17 +188,23 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    //Ensure the place is inserted first
+    await db
+      .insert(place)
+      .values(
+        response.map((place) => {
+          delete place.photos;
+          return place;
+        }),
+      )
+      .onConflictDoNothing();
+
     await Promise.all([
-      db
-        .insert(place)
-        .values(
-          response.map((place) => {
-            delete place.photos;
-            return place;
-          }),
-        )
-        .onConflictDoNothing(),
       db.insert(tripPlace).values(tripPlaceInsert).onConflictDoNothing(),
+      redis.set(location + bounds.toString() + nextPageToken, {
+        data: { places: response, nextPageToken: places.nextPageToken ?? null },
+        status: "success",
+      }),
     ]);
 
     return Response.json({
