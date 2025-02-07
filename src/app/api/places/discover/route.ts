@@ -172,13 +172,17 @@ export async function GET(request: NextRequest) {
         accessibilityOptions: place.accessibilityOptions ?? null,
         parkingOptions: place.parkingOptions ?? null,
         paymentOptions: place.paymentOptions ?? null,
-        allowsDogs: place.allowsDogs || null,
-        goodForChildren: place.goodForChildren || null,
-        goodForGroups: place.goodForGroups || null,
-        goodForWatchingSports: place.goodForWatchingSports || null,
-        liveMusic: place.liveMusic || null,
-        outdoorSeating: place.outdoorSeating || null,
-        restroom: place.restroom || null,
+        amenities: {
+          outdoorSeating: place.outdoorSeating,
+          restroom: place.restroom,
+        },
+        additionalInfo: {
+          allowsDogs: place.allowsDogs,
+          goodForChildren: place.goodForChildren,
+          goodForGroups: place.goodForGroups,
+          goodForWatchingSports: place.goodForWatchingSports,
+          liveMusic: place.liveMusic,
+        },
         ...images,
       });
 
@@ -201,10 +205,17 @@ export async function GET(request: NextRequest) {
 
     await Promise.all([
       db.insert(tripPlace).values(tripPlaceInsert).onConflictDoNothing(),
-      redis.set(location + bounds.toString() + nextPageToken, {
-        data: { places: response, nextPageToken: places.nextPageToken ?? null },
-        status: "success",
-      }),
+      redis.set(
+        location + bounds.toString() + nextPageToken,
+        {
+          data: {
+            places: response,
+            nextPageToken: places.nextPageToken ?? null,
+          },
+          status: "success",
+        },
+        { ex: 604800 },
+      ),
     ]);
 
     return Response.json({

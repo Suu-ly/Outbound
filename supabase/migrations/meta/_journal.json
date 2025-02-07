@@ -57,6 +57,13 @@
       "when": 1738314216955,
       "tag": "0007_dry_galactus",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1738761755132,
+      "tag": "0008_easy_epoch",
+      "breakpoints": true
     }
   ]
 }

@@ -188,13 +188,17 @@ export const place = pgTable("place", {
     acceptsCashOnly?: boolean;
     acceptsNfc?: boolean;
   }>(),
-  allowsDogs: boolean("allows_dogs"),
-  goodForChildren: boolean("good_for_children"),
-  goodForGroups: boolean("good_for_groups"),
-  goodForWatchingSports: boolean("good_for_watching_sports"),
-  liveMusic: boolean("live_music"),
-  outdoorSeating: boolean("outdoor_seating"),
-  restroom: boolean("restroom"),
+  amenities: jsonb("amenities").$type<{
+    outdoorSeating?: boolean;
+    restroom?: boolean;
+  }>(),
+  additionalInfo: jsonb("additional_info").$type<{
+    allowsDogs?: boolean;
+    goodForChildren?: boolean;
+    goodForGroups?: boolean;
+    goodForWatchingSports?: boolean;
+    liveMusic?: boolean;
+  }>(),
 });
 
 export type InsertPlace = typeof place.$inferInsert;

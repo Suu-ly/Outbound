@@ -206,7 +206,7 @@ export type PlacesResult = {
       acceptsCashOnly?: boolean;
       acceptsNfc?: boolean;
     };
-    parkingOptions: {
+    parkingOptions?: {
       freeParkingLot?: boolean;
       paidParkingLot?: boolean;
       freeStreetParking?: boolean;
@@ -221,13 +221,13 @@ export type PlacesResult = {
       wheelchairAccessibleRestroom?: boolean;
       wheelchairAccessibleSeating?: boolean;
     };
-    outdoorSeating: boolean;
-    liveMusic: boolean;
-    goodForChildren: boolean;
-    allowsDogs: boolean;
-    restroom: boolean;
-    goodForGroups: boolean;
-    goodForWatchingSports: boolean;
+    outdoorSeating?: boolean;
+    liveMusic?: boolean;
+    goodForChildren?: boolean;
+    allowsDogs?: boolean;
+    restroom?: boolean;
+    goodForGroups?: boolean;
+    goodForWatchingSports?: boolean;
   }[];
   contextualContents: {
     justifications?: [
