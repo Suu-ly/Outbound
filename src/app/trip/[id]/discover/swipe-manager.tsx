@@ -3,9 +3,9 @@
 import { useMediaQuery } from "@/lib/use-media-query";
 import { updateTripWindows } from "@/server/actions";
 import { ApiResponse, DiscoverReturn } from "@/server/types";
-import { IconX } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useSpring } from "motion/react";
 import { redirect, useParams, usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import {
   mapActiveMarkerAtom,
   tripLocationAtom,
 } from "../../atoms";
+import Card from "./swipe-card";
 
 const NO_TOKEN_STRING = "none";
 
@@ -203,16 +204,58 @@ export function SwipeManager() {
   const setActiveLocation = useSetAtom(mapActiveMarkerAtom);
   const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
 
+  const [activePlaceIndex, setActivePlaceIndex] = useAtom(activePlaceIndexAtom);
+
+  const bootX = useSpring(0, { damping: 20 });
+  const bootY = useSpring(0, { damping: 20 });
+
+  const bounceBootX = useCallback(
+    (x: number) => {
+      bootX.set(x);
+    },
+    [bootX],
+  );
+
+  const bounceBootY = useCallback(
+    (y: number) => {
+      bootY.set(y);
+    },
+    [bootY],
+  );
+
+  const onDecision = useCallback(
+    (id: string, accepted: boolean) => {
+      setActivePlaceIndex((prev) => prev + 1);
+    },
+    [setActivePlaceIndex],
+  );
+
+  const onRemove = useCallback(
+    (id: string) => {
+      setDiscoverLocations((prevs) => prevs.filter((prev) => prev.id !== id));
+      setActivePlaceIndex((prev) => prev - 1);
+    },
+    [setActivePlaceIndex, setDiscoverLocations],
+  );
+
+  console.log(discoverLocations);
+
   return (
-    <main className="max-h-full w-full overflow-auto sm:w-1/2 xl:w-1/3">
+    <main className="max-h-full w-full sm:w-1/2 xl:w-1/3">
       {discoverLocations.map((location, index) => {
+        // Only render the currently active card and the card below it for better performance
+        if (index > 1) return;
         return (
-          <div key={location.id}>
-            <h1 className="font-display text-2xl font-semibold">
-              {location.displayName}
-            </h1>
-            <IconX />
-          </div>
+          <Card
+            key={location.id}
+            data={location}
+            index={index}
+            active={index === activePlaceIndex}
+            magnetFunctionX={bounceBootX}
+            magnetFunctionY={bounceBootY}
+            onDecision={onDecision}
+            onRemove={onRemove}
+          />
         );
       })}
     </main>

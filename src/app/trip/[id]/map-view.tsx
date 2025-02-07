@@ -1,5 +1,6 @@
 "use client";
 import "mapbox-gl/dist/mapbox-gl.css";
+// import { Map, NavigationControl } from "react-map-gl";
 
 export default function MapView({
   initialBounds,
@@ -13,7 +14,7 @@ export default function MapView({
         initialViewState={{
           bounds: initialBounds.map((lowHigh) =>
             lowHigh.map((coord) => parseFloat(coord)),
-          ),
+          ) as [[number, number], [number, number]],
         }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
         reuseMaps

@@ -37,9 +37,15 @@ export default {
           "0%,70%,100%": { opacity: "1" },
           "20%,50%": { opacity: "0" },
         },
+        activate: {
+          to: {
+            pointerEvents: "auto",
+          },
+        },
       },
       animation: {
         "caret-blink": "caret-blink 1.25s ease-out infinite",
+        activate: "activate 0s 500ms linear forwards",
       },
       transitionTimingFunction: {
         snap: "cubic-bezier(0.8, 0, 0.2, 1)",
