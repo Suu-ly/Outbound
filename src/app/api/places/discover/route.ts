@@ -172,17 +172,27 @@ export async function GET(request: NextRequest) {
         accessibilityOptions: place.accessibilityOptions ?? null,
         parkingOptions: place.parkingOptions ?? null,
         paymentOptions: place.paymentOptions ?? null,
-        amenities: {
-          outdoorSeating: place.outdoorSeating,
-          restroom: place.restroom,
-        },
-        additionalInfo: {
-          allowsDogs: place.allowsDogs,
-          goodForChildren: place.goodForChildren,
-          goodForGroups: place.goodForGroups,
-          goodForWatchingSports: place.goodForWatchingSports,
-          liveMusic: place.liveMusic,
-        },
+        amenities:
+          place.outdoorSeating || place.restroom
+            ? {
+                outdoorSeating: place.outdoorSeating,
+                restroom: place.restroom,
+              }
+            : null,
+        additionalInfo:
+          place.allowsDogs ||
+          place.goodForChildren ||
+          place.goodForGroups ||
+          place.goodForWatchingSports ||
+          place.liveMusic
+            ? {
+                allowsDogs: place.allowsDogs,
+                goodForChildren: place.goodForChildren,
+                goodForGroups: place.goodForGroups,
+                goodForWatchingSports: place.goodForWatchingSports,
+                liveMusic: place.liveMusic,
+              }
+            : null,
         ...images,
       });
 

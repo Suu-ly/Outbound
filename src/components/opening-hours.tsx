@@ -21,6 +21,8 @@ export default function OpeningHours({
 }: OpeningHoursProps) {
   const [value, setValue] = useState("");
 
+  const dayIndex = (((highligtedDay - 1) % 7) + 7) % 7; //For negative numbers
+
   if (!hours)
     return (
       <div className="space-x-3 px-4 py-2 hover:bg-slate-100">
@@ -41,7 +43,7 @@ export default function OpeningHours({
         <AccordionTrigger className="gap-3 font-normal">
           <div className="flex gap-3">
             <IconClock size={20} className="shrink-0 text-slate-600" />
-            {value ? "Opening Hours" : hours[highligtedDay].split(": ")[1]}
+            {value ? "Opening Hours" : hours[dayIndex].split(": ")[1]}
           </div>
         </AccordionTrigger>
         <AccordionContent className="pb-2 pl-12 pr-4 pt-1 text-sm text-slate-700">
@@ -53,7 +55,7 @@ export default function OpeningHours({
                   key={index}
                   className={cn(
                     "flex gap-4",
-                    highligtedDay === index && "font-medium text-slate-900",
+                    dayIndex === index && "font-medium text-slate-900",
                   )}
                 >
                   <div className="w-20">{splitDay[0]}</div>

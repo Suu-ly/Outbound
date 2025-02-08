@@ -27,6 +27,7 @@ import {
   IconMapPin,
   IconPhone,
   IconWorld,
+  IconX,
 } from "@tabler/icons-react";
 import {
   animate,
@@ -174,7 +175,7 @@ const Review = ({ review }: { review: PlacesReview }) => {
         </p>
         {isOverflowing && (
           <button
-            className="-m-2 p-2 text-xs font-medium text-slate-900 hover:underline"
+            className="-m-2 p-2 text-xs font-medium text-brand-600 hover:underline"
             aria-expanded={expanded}
             aria-controls={review.name}
             onClick={handleOnClick}
@@ -248,13 +249,18 @@ const InfoGrid = ({
       <span className="text-sm font-medium text-slate-900">{header}</span>
       <div className="grid grid-cols-2 gap-3">
         {Object.entries(info).map(([key, value]) => {
-          if (!value) return;
+          if (!check && !value) return;
           return (
             <div
               key={key}
               className="inline-flex items-center gap-2 text-sm text-slate-700"
             >
-              {check && <IconCheck size={20} className="text-slate-600" />}
+              {check &&
+                (value ? (
+                  <IconCheck size={20} className="text-slate-600" />
+                ) : (
+                  <IconX size={20} className="text-slate-600" />
+                ))}
               {keyLookup[key as keyof typeof info]}
             </div>
           );
@@ -384,7 +390,7 @@ export default function Card({
   return (
     <motion.div
       className={cn(
-        "pointer-events-none absolute left-0 top-14 z-[--index] h-[calc(100dvh-56px)] w-full touch-none select-none overflow-hidden transition-colors will-change-transform sm:w-1/2 xl:w-1/3",
+        "pointer-events-none absolute left-0 top-0 z-[--index] h-[calc(100dvh-56px)] w-full touch-none select-none transition-colors will-change-transform sm:w-1/2 xl:w-1/3",
         status === "none"
           ? "bg-zinc-50"
           : status === "reject"
@@ -398,7 +404,6 @@ export default function Card({
         cursor: "grabbing",
         clipPath: "inset(0% 0% 0% 0% round 2rem)",
         scale: 0.97,
-        boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.25)",
       }}
       animate={
         status === "accept" && {
@@ -412,7 +417,15 @@ export default function Card({
       }
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      style={{ x, y, rotateZ: rotate, "--index": 3 - index } as MotionStyle}
+      style={
+        {
+          x,
+          y,
+          rotateZ: rotate,
+          "--index": 3 - index,
+          clipPath: "inset(0% 0% 0% 0% round 0rem)",
+        } as MotionStyle
+      }
       onPanStart={handlePanStart}
       dragControls={controls}
     >
@@ -435,17 +448,43 @@ export default function Card({
           {data.photos && (
             <Carousel
               orientation="vertical"
-              className="mx-4 overflow-hidden rounded-xl bg-white"
+              className={cn("mx-4", isDragging && "pointer-events-none")}
+              disabled={isDragging}
             >
-              <CarouselContent className="mt-0 h-[400px] w-full">
-                {data.photos.map((_, index) => (
-                  <CarouselItem key={index} className="size-full pt-0">
-                    <div className="flex size-full items-center justify-center bg-slate-300 p-1">
-                      {index}
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
+              <div className="overflow-hidden rounded-xl bg-white transition-transform active:scale-[0.985]">
+                <CarouselContent className="mt-0 h-[400px] w-full">
+                  {data.photos.map((photo, index) => (
+                    <CarouselItem
+                      key={index}
+                      className="relative size-full bg-slate-300 pt-0"
+                    >
+                      <div className="absolute bottom-2 right-2 flex gap-3 rounded-lg bg-slate-950/70 p-1.5 backdrop-blur">
+                        {photo.authorAttributions.map((author) => (
+                          <div
+                            key={author.uri}
+                            className="flex items-center gap-1.5"
+                          >
+                            <Avatar className="size-5">
+                              <AvatarImage
+                                src={author.photoUri}
+                                alt={author.displayName}
+                                loading="lazy"
+                                referrerPolicy="no-referrer"
+                              />
+                              <AvatarFallback>
+                                {author.displayName.substring(0, 2)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="text-xs text-slate-200">
+                              {author.displayName}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </div>
               <CarouselIndicator />
             </Carousel>
           )}
@@ -504,7 +543,7 @@ export default function Card({
                 {data.address}
               </InfoWithCopy>
               <OpeningHours
-                highligtedDay={(new Date().getDay() - 1) % 7}
+                highligtedDay={new Date().getDay()}
                 hours={data.openingHours?.text}
               />
               {data.website && (

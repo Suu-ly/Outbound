@@ -73,7 +73,7 @@ export default async function TripLayout({
       <Header>
         <TripHeaderItems />
       </Header>
-      <div className="flex h-[calc(100dvh-56px)]">
+      <div className="relative flex h-[calc(100dvh-56px)] overflow-hidden">
         {children}
         <MapView initialBounds={data[0].location.bounds} />
       </div>

@@ -238,6 +238,10 @@ export function SwipeManager() {
     [setActivePlaceIndex, setDiscoverLocations],
   );
 
+  // useEffect(() => {
+  //   setActiveLocation()
+  // }, [activePlaceIndex, discoverLocations]);
+
   console.log(discoverLocations);
 
   return (

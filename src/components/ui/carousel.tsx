@@ -46,7 +46,7 @@ function useCarousel() {
 
 const Carousel = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & CarouselProps
+  React.HTMLAttributes<HTMLDivElement> & CarouselProps & { disabled?: boolean }
 >(
   (
     {
@@ -56,6 +56,7 @@ const Carousel = React.forwardRef<
       plugins,
       className,
       children,
+      disabled,
       ...props
     },
     ref,
@@ -120,7 +121,6 @@ const Carousel = React.forwardRef<
       if (!api) {
         return;
       }
-
       onSelect(api);
       api.on("reInit", onSelect);
       api.on("select", onSelect);
@@ -129,6 +129,12 @@ const Carousel = React.forwardRef<
         api?.off("select", onSelect);
       };
     }, [api, onSelect]);
+
+    React.useEffect(() => {
+      if (!api) return;
+      if (disabled) api.reInit({ watchDrag: false });
+      else api.reInit({ watchDrag: true });
+    }, [api, disabled]);
 
     return (
       <CarouselContext.Provider
@@ -190,18 +196,23 @@ const CarouselItem = React.forwardRef<
   const { orientation, scrollPrev, scrollNext, canScrollNext, canScrollPrev } =
     useCarousel();
 
-  const handleSlideClick = (
-    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
-  ) => {
-    const target = e.currentTarget.getBoundingClientRect();
-    const hit = e.clientY - target.top;
-    if (target.height / 2 >= hit && canScrollPrev) {
-      scrollPrev(true);
-    }
-    if (hit > target.height / 2 && canScrollNext) {
-      scrollNext(true);
-    }
-  };
+  const handleSlideClick = React.useCallback(
+    (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+      const target = e.currentTarget.getBoundingClientRect();
+      const hit =
+        orientation === "vertical"
+          ? e.clientY - target.top
+          : e.clientX - target.left;
+      const size = orientation === "vertical" ? target.height : target.width;
+      if (size / 2 >= hit && canScrollPrev) {
+        scrollPrev(true);
+      }
+      if (hit > size / 2 && canScrollNext) {
+        scrollNext(true);
+      }
+    },
+    [canScrollNext, canScrollPrev, orientation, scrollNext, scrollPrev],
+  );
 
   return (
     <div
@@ -330,11 +341,16 @@ const CarouselIndicator = React.forwardRef<
 >(({ className, ...props }, ref) => {
   const { orientation, carouselLength, api } = useCarousel();
 
+  const trackLength = (carouselLength - 1) * 10 + 32; // 10 = dot size + gap
+
   const scrollProgress = useSpring(0, { stiffness: 700, damping: 50 });
   const translate = useTransform(
     scrollProgress,
     [0, 1],
-    [carouselLength * 10 - 32, -(carouselLength * 10 - 32)], // 10 = dot size + gap
+    [
+      Math.min(trackLength / 2 - 16, 20), // translate 20 to center first dot at max width of 84px, 84 - 4(border) - 8(padding) / 2 = 36 - 16 = 20
+      -trackLength + Math.min(52, trackLength / 2 + 16), // translate 52 to center last dot at max width of 84px, 84 - 4(border) - 8(padding) / 2 = 36 + 16 = 52
+    ],
   );
 
   const onScroll = React.useCallback(
@@ -364,8 +380,8 @@ const CarouselIndicator = React.forwardRef<
       className={cn(
         "absolute overflow-hidden rounded-full border-2 border-slate-200 bg-white p-1 shadow-md",
         orientation === "vertical"
-          ? "left-2 top-1/2 max-h-20 -translate-y-1/2"
-          : "bottom-2 left-1/2 max-w-20 -translate-x-1/2",
+          ? "left-2 top-1/2 max-h-[84px] -translate-y-1/2"
+          : "bottom-2 left-1/2 max-w-[84px] -translate-x-1/2",
         className,
       )}
       {...props}
