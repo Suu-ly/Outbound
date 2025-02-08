@@ -196,10 +196,10 @@ export async function GET(request: NextRequest) {
     await db
       .insert(place)
       .values(
-        response.map((place) => {
-          delete place.photos;
-          return place;
-        }),
+        response.map((place) => ({
+          ...place,
+          photos: undefined,
+        })),
       )
       .onConflictDoNothing();
 

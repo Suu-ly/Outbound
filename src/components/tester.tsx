@@ -2,6 +2,12 @@
 
 import { toast } from "sonner";
 import { Button } from "./ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselIndicator,
+  CarouselItem,
+} from "./ui/carousel";
 import DrawerDialog from "./ui/drawer-dialog";
 
 const Tester = () => {
@@ -48,6 +54,18 @@ const Tester = () => {
       >
         <Button size="large">Open Drawer Dialog</Button>
       </DrawerDialog>
+      <Carousel>
+        <CarouselContent className="max-h-32">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <CarouselItem key={index} className="h-32">
+              <div className="flex size-full items-center justify-center rounded-xl border-2 p-1">
+                {index}
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselIndicator />
+      </Carousel>
     </>
   );
 };

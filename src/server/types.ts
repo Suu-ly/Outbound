@@ -100,6 +100,43 @@ export type BingImageResponse = BingImageAnswer | BingError;
 
 export type BingReturn = { image: string; thumbnail: string };
 
+export type PlacesReview = {
+  name: string;
+  relativePublishTimeDescription: string;
+  rating: number;
+  text: {
+    text: string;
+    languageCode: string;
+  };
+  originalText: {
+    text: string;
+    languageCode: string;
+  };
+  authorAttribution: {
+    displayName: string;
+    uri: string;
+    photoUri: string;
+  };
+  publishTime: string;
+  flagContentUri: string;
+  googleMapsUri: string;
+};
+
+export type PlacesPhoto = {
+  name: string;
+  widthPx: number;
+  heightPx: number;
+  authorAttributions: [
+    {
+      displayName: string;
+      uri: string;
+      photoUri: string;
+    },
+  ];
+  flagContentUri: string;
+  googleMapsUri: string;
+};
+
 export type PlacesResult = {
   places: {
     name: string;
@@ -165,41 +202,8 @@ export type PlacesResult = {
       text: string;
       languageCode: string;
     };
-    reviews?: {
-      name: string;
-      relativePublishTimeDescription: string;
-      rating: number;
-      text: {
-        text: string;
-        languageCode: string;
-      };
-      originalText: {
-        text: string;
-        languageCode: string;
-      };
-      authorAttribution: {
-        displayName: string;
-        uri: string;
-        photoUri: string;
-      };
-      publishTime: string;
-      flagContentUri: string;
-      googleMapsUri: string;
-    }[];
-    photos?: {
-      name: string;
-      widthPx: number;
-      heightPx: number;
-      authorAttributions: [
-        {
-          displayName: string;
-          uri: string;
-          photoUri: string;
-        },
-      ];
-      flagContentUri: string;
-      googleMapsUri: string;
-    }[];
+    reviews?: PlacesReview[];
+    photos?: PlacesPhoto[];
     paymentOptions?: {
       acceptsCreditCards?: boolean;
       acceptsDebitCards?: boolean;

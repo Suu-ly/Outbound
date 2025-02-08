@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import useCopyToClipboard from "@/lib/use-copy-to-clipboard";
 import {
+  IconCheck,
   IconDotsVertical,
   IconEdit,
   IconMapPinSearch,
@@ -30,7 +31,7 @@ const skipRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/skipped`);
 
 export default function TripHeaderItems() {
   const path = usePathname();
-  const [, copyToClipboard] = useCopyToClipboard();
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const basePath = path.substring(0, 18);
 
@@ -57,7 +58,7 @@ export default function TripHeaderItems() {
         className={!isDiscover ? "hidden sm:inline-flex" : undefined}
         onClick={onCopy}
       >
-        <IconShare />
+        {copied ? <IconCheck /> : <IconShare />}
       </Button>
       {isAdmin && (
         <>

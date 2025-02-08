@@ -1,7 +1,14 @@
 "use client";
 
+import OpeningHours from "@/components/opening-hours";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselIndicator,
+  CarouselItem,
+} from "@/components/ui/carousel";
 import Rating from "@/components/ui/rating";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -12,7 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import useCopyToClipboard from "@/lib/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
-import { TripPlaceDetails } from "@/server/types";
+import { PlacesReview, TripPlaceDetails } from "@/server/types";
 import { Slot } from "@radix-ui/react-slot";
 import {
   IconCheck,
@@ -33,7 +40,15 @@ import {
   useVelocity,
 } from "framer-motion";
 import Link from "next/link";
-import { PointerEvent, ReactNode, useCallback, useRef, useState } from "react";
+import {
+  CSSProperties,
+  PointerEvent,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 type CardProps = {
@@ -64,7 +79,7 @@ const InfoWithCopy = ({
   asChild?: boolean;
   children: ReactNode;
 }) => {
-  const [, copyToClipboard] = useCopyToClipboard();
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const onCopy = useCallback(() => {
     copyToClipboard(copy);
@@ -77,7 +92,7 @@ const InfoWithCopy = ({
 
   return (
     <div className="group relative">
-      <Comp className="inline-flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 [&_svg]:size-5 [&_svg]:text-slate-600">
+      <Comp className="inline-flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 [&_svg]:size-5 [&_svg]:text-slate-600">
         {children}
       </Comp>
       <Tooltip>
@@ -89,11 +104,101 @@ const InfoWithCopy = ({
             size="small"
             className="absolute right-4 top-0.5 hidden bg-slate-100 group-hover:inline-flex"
           >
-            <IconCopy />
+            {copied ? <IconCheck /> : <IconCopy />}
           </Button>
         </TooltipTrigger>
         <TooltipContent>{tooltipLabel}</TooltipContent>
       </Tooltip>
+    </div>
+  );
+};
+
+const Review = ({ review }: { review: PlacesReview }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [scrollHeight, setScrollHeight] = useState(72);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const textNode = useRef<HTMLDivElement>(null);
+
+  const handleOnClick = useCallback(() => {
+    setExpanded((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (textNode.current) {
+        setScrollHeight(textNode.current.scrollHeight);
+        setIsOverflowing(textNode.current.scrollHeight > 72);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return (
+    <div className="rounded-xl bg-white p-4">
+      <div className="mb-4 flex gap-1.5">
+        <span className="text-xs font-medium text-slate-700">
+          {review.rating.toFixed(1)}
+        </span>
+        <Rating rating={review.rating} size={16} className="text-amber-400" />
+        <span className="text-xs text-slate-500">
+          {review.relativePublishTimeDescription}
+        </span>
+      </div>
+      <div className="mb-6" id={review.name}>
+        <p
+          className={cn(
+            "mb-1 overflow-hidden whitespace-pre-line text-slate-700",
+            isOverflowing && !expanded && "line-clamp-3",
+            isOverflowing &&
+              "data-[expanded=false]:animate-minimise data-[expanded=true]:animate-expand",
+          )}
+          style={
+            {
+              "--content-height": `${scrollHeight}px`,
+              "--content-closed": "4.5rem",
+            } as CSSProperties
+          }
+          data-expanded={expanded}
+          ref={textNode}
+        >
+          {review.text
+            ? review.text.text
+            : review.originalText
+              ? review.originalText.text
+              : ""}
+        </p>
+        {isOverflowing && (
+          <button
+            className="-m-2 p-2 text-xs font-medium text-slate-900 hover:underline"
+            aria-expanded={expanded}
+            aria-controls={review.name}
+            onClick={handleOnClick}
+          >
+            {expanded ? "Read less" : "Read more"}
+          </button>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <Avatar className="rounded-none">
+          <AvatarImage
+            src={review.authorAttribution.photoUri}
+            alt={review.authorAttribution.displayName}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+          />
+          <AvatarFallback>
+            {review.authorAttribution.displayName.substring(0, 2)}
+          </AvatarFallback>
+        </Avatar>
+        <span className="text-xs font-medium text-slate-700">
+          {review.authorAttribution.displayName}
+        </span>
+      </div>
     </div>
   );
 };
@@ -326,7 +431,24 @@ export default function Card({
             !active && status === "none" ? "opacity-50" : "opacity-0",
           )}
         ></div>
-        <div className="flex flex-col gap-6 pb-20">
+        <div className="flex flex-col gap-6 pb-20 pt-4">
+          {data.photos && (
+            <Carousel
+              orientation="vertical"
+              className="mx-4 overflow-hidden rounded-xl bg-white"
+            >
+              <CarouselContent className="mt-0 h-[400px] w-full">
+                {data.photos.map((_, index) => (
+                  <CarouselItem key={index} className="size-full pt-0">
+                    <div className="flex size-full items-center justify-center bg-slate-300 p-1">
+                      {index}
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselIndicator />
+            </Carousel>
+          )}
           <div className="space-x-1 px-4">
             <h1 className="font-display text-2xl font-medium text-slate-900">
               {data.displayName}
@@ -338,11 +460,13 @@ export default function Card({
               {data.primaryTypeDisplayName}
             </p>
           </div>
-          <div className="px-4 text-slate-700">{data.description}</div>
+          {data.description && (
+            <div className="px-4 text-slate-700">{data.description}</div>
+          )}
           {data.rating !== null && (
             <div className="space-y-3 px-4">
               <div className="flex flex-col gap-3 xl:flex-row">
-                <div className="flex w-full flex-col items-center justify-center gap-3 rounded-xl bg-amber-300 py-4 text-center">
+                <div className="flex w-full flex-col items-center justify-center gap-3 rounded-xl bg-amber-300 p-4 text-center">
                   <div>
                     <h3 className="font-display text-6xl font-medium text-slate-900">
                       {data.rating?.toFixed(1)}
@@ -365,45 +489,7 @@ export default function Card({
                 )}
               </div>
               {data.reviews?.map((review) => (
-                <div className="rounded-xl bg-white p-4" key={review.name}>
-                  <div className="mb-4 flex gap-1.5">
-                    <span className="text-xs font-medium text-slate-700">
-                      {review.rating.toFixed(1)}
-                    </span>
-                    <Rating
-                      rating={review.rating}
-                      size={16}
-                      className="text-amber-400"
-                    />
-                    <span className="text-xs text-slate-500">
-                      {review.relativePublishTimeDescription}
-                    </span>
-                  </div>
-                  <div className="mb-6">
-                    <div className="mb-2 line-clamp-3 text-slate-700">
-                      {review.originalText.text}
-                    </div>
-                    <button className="text-xs font-medium text-slate-900 hover:underline">
-                      Read more
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="rounded-none">
-                      <AvatarImage
-                        src={review.authorAttribution.photoUri}
-                        alt={review.authorAttribution.displayName}
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                      />
-                      <AvatarFallback>
-                        {review.authorAttribution.displayName.substring(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs font-medium text-slate-700">
-                      {review.authorAttribution.displayName}
-                    </span>
-                  </div>
-                </div>
+                <Review review={review} key={review.name} />
               ))}
             </div>
           )}
@@ -417,6 +503,10 @@ export default function Card({
                 <IconMapPin />
                 {data.address}
               </InfoWithCopy>
+              <OpeningHours
+                highligtedDay={(new Date().getDay() - 1) % 7}
+                hours={data.openingHours?.text}
+              />
               {data.website && (
                 <InfoWithCopy
                   copy={data.website}
@@ -442,7 +532,11 @@ export default function Card({
               )}
             </TooltipProvider>
           </div>
-          <Separator />
+          {(data.accessibilityOptions ||
+            data.parkingOptions ||
+            data.paymentOptions ||
+            data.amenities ||
+            data.additionalInfo) && <Separator />}
           <InfoGrid
             info={data.accessibilityOptions}
             header="Wheelchair Accessibility"

@@ -14,6 +14,7 @@ import {
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
+import { PlacesReview } from "../types";
 
 export const loginTypeEnum = pgEnum("login_type_enum", [
   "gmail",
@@ -133,29 +134,7 @@ export const place = pgTable("place", {
   coverImgSmall: text("cover_img_small").notNull(),
   rating: real("rating"),
   ratingCount: integer("rating_count"),
-  reviews: jsonb("reviews").$type<
-    {
-      name: string;
-      relativePublishTimeDescription: string;
-      text: {
-        text: string;
-        languageCode: string;
-      };
-      originalText: {
-        text: string;
-        languageCode: string;
-      };
-      rating: number;
-      authorAttribution: {
-        displayName: string;
-        uri: string;
-        photoUri: string;
-      };
-      publishTime: string;
-      flagContentUri: string;
-      googleMapsUri: string;
-    }[]
-  >(),
+  reviews: jsonb("reviews").$type<PlacesReview[]>(),
   reviewHighlight: text("review_highlight"),
   website: text("website"),
   googleMapsLink: text("google_maps_link").notNull(),

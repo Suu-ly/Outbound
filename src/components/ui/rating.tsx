@@ -20,7 +20,12 @@ const Rating = forwardRef<HTMLDivElement, RatingProps>(
     const emptyStars = maxRating - fullStars - halfStars;
 
     return (
-      <div ref={ref} className={cn("flex", className)}>
+      <div
+        ref={ref}
+        className={cn("flex", className)}
+        role="img"
+        aria-label={`${rating.toFixed(1)} stars`}
+      >
         {[...Array(fullStars)].map((_, index) => (
           <IconStarFilled key={index} size={size} />
         ))}
