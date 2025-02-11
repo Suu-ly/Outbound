@@ -22,8 +22,10 @@ AccordionItem.displayName = "AccordionItem";
 
 const AccordionTrigger = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & {
+    collapsible?: boolean;
+  }
+>(({ className, children, collapsible = true, ...props }, ref) => (
   <AccordionPrimitive.Header className="flex">
     <AccordionPrimitive.Trigger
       ref={ref}
@@ -34,10 +36,12 @@ const AccordionTrigger = React.forwardRef<
       {...props}
     >
       {children}
-      <IconChevronDown
-        size={20}
-        className="shrink-0 text-slate-600 transition-transform duration-300 group-data-[state=open]:rotate-180"
-      />
+      {collapsible && (
+        <IconChevronDown
+          size={20}
+          className="shrink-0 text-slate-600 transition-transform duration-300 group-data-[state=open]:rotate-180"
+        />
+      )}
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ));
@@ -49,7 +53,7 @@ const AccordionContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
-    className="data-[state=closed]:animate-minimise data-[state=open]:animate-expand overflow-hidden text-sm transition-[height]"
+    className="overflow-hidden text-sm transition-[height] data-[state=closed]:animate-minimise data-[state=open]:animate-expand"
     style={
       {
         "--content-closed": "0px",
