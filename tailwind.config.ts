@@ -62,15 +62,27 @@ export default {
             height: "var(--content-closed)",
           },
         },
+        spinner: {
+          "0%": { strokeDasharray: "0 150", strokeDashoffset: "0" },
+          "47.5%": { strokeDasharray: "42 150", strokeDashoffset: "-16" },
+          "95%,100%": {
+            strokeDasharray: "42 150",
+            strokeDashoffset: "-59",
+          },
+        },
       },
       animation: {
         "caret-blink": "caret-blink 1.25s ease-out infinite",
         activate: "activate 0s 500ms linear forwards",
         expand: "expand 0.3s cubic-bezier(0.8, 0, 0.2, 1)",
         minimise: "minimise 0.3s cubic-bezier(0.8, 0, 0.2, 1)",
+        spinner: "spinner 1.5s ease-in-out infinite",
       },
       transitionTimingFunction: {
         snap: "cubic-bezier(0.8, 0, 0.2, 1)",
+      },
+      animationDuration: {
+        "3s": "3s",
       },
     },
   },
