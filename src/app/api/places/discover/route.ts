@@ -150,8 +150,8 @@ export async function GET(request: NextRequest) {
         phone: place.internationalPhoneNumber ?? null,
         location: place.location,
         viewport: place.viewport,
-        rating: place.rating,
-        ratingCount: place.userRatingCount,
+        rating: place.rating ?? null,
+        ratingCount: place.userRatingCount ?? null,
         reviews: place.reviews ?? null,
         reviewHighlight:
           places.contextualContents[i].justifications &&

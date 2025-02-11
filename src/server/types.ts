@@ -157,8 +157,8 @@ export type PlacesResult = {
         longitude: number;
       };
     };
-    rating: number;
-    userRatingCount: number;
+    rating?: number;
+    userRatingCount?: number;
     googleMapsUri: string;
     websiteUri?: string;
     regularOpeningHours?: {

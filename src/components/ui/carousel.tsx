@@ -2,13 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ApiResponse, PlacesPhoto } from "@/server/types";
 import { IconArrowLeft, IconArrowRight } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
 import { EmblaCarouselType } from "embla-carousel";
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
 import { motion, MotionValue, useSpring, useTransform } from "motion/react";
 import * as React from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+import Spinner from "./spinner";
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
@@ -30,6 +34,7 @@ type CarouselContextProps = {
   canScrollPrev: boolean;
   canScrollNext: boolean;
   carouselLength: number;
+  slidesInView: number[];
 } & CarouselProps;
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null);
@@ -71,6 +76,23 @@ const Carousel = React.forwardRef<
     const [canScrollPrev, setCanScrollPrev] = React.useState(false);
     const [canScrollNext, setCanScrollNext] = React.useState(false);
     const [carouselLength, setCarouselLength] = React.useState(0);
+    const [slidesInView, setSlidesInView] = React.useState<number[]>([]);
+
+    const updateSlidesInView = React.useCallback(
+      (emblaApi: EmblaCarouselType) => {
+        setSlidesInView((slidesInView) => {
+          if (slidesInView.length === emblaApi.slideNodes().length) {
+            // All slides viewed before, no longer need to keep track of slides in view
+            emblaApi.off("slidesInView", updateSlidesInView);
+          }
+          const inView = emblaApi
+            .slidesInView()
+            .filter((index) => !slidesInView.includes(index));
+          return slidesInView.concat(inView);
+        });
+      },
+      [],
+    );
 
     const onSelect = React.useCallback((api: CarouselApi) => {
       if (!api) {
@@ -122,13 +144,15 @@ const Carousel = React.forwardRef<
         return;
       }
       onSelect(api);
+      updateSlidesInView(api);
       api.on("reInit", onSelect);
       api.on("select", onSelect);
+      api.on("slidesInView", updateSlidesInView);
 
       return () => {
         api?.off("select", onSelect);
       };
-    }, [api, onSelect]);
+    }, [api, onSelect, updateSlidesInView]);
 
     React.useEffect(() => {
       if (!api) return;
@@ -149,6 +173,7 @@ const Carousel = React.forwardRef<
           canScrollPrev,
           canScrollNext,
           carouselLength,
+          slidesInView,
         }}
       >
         <div
@@ -189,12 +214,47 @@ const CarouselContent = React.forwardRef<
 });
 CarouselContent.displayName = "CarouselContent";
 
-const CarouselItem = React.forwardRef<
+const PLACEHOLDER_SRC =
+  "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D";
+
+const CarouselGoogleImage = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-  const { orientation, scrollPrev, scrollNext, canScrollNext, canScrollPrev } =
-    useCarousel();
+  React.HTMLAttributes<HTMLDivElement> & {
+    photo: PlacesPhoto;
+    index: number;
+    alt: string;
+  }
+>(({ className, photo, index, alt, ...props }, ref) => {
+  const {
+    orientation,
+    scrollPrev,
+    scrollNext,
+    canScrollNext,
+    canScrollPrev,
+    slidesInView,
+  } = useCarousel();
+  const [loaded, setLoaded] = React.useState(false);
+  const inView = slidesInView.includes(index);
+
+  const getGoogleImage = async (name: string) => {
+    const urlParams = new URLSearchParams([["name", name]]);
+    const data = await fetch(`/api/places/image?${urlParams.toString()}`)
+      .then((response) => response.json())
+      .then((data) => data as ApiResponse<string>);
+    if (data.status === "error") {
+      throw new Error(data.message);
+    }
+    return data.data;
+  };
+
+  const { data } = useQuery({
+    queryKey: ["google_image", photo.name],
+    queryFn: () => getGoogleImage(photo.name),
+    enabled: inView,
+    meta: {
+      errorMessage: "Unable to load image",
+    },
+  });
 
   const handleSlideClick = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -220,6 +280,55 @@ const CarouselItem = React.forwardRef<
       role="group"
       aria-roledescription="slide"
       onClick={handleSlideClick}
+      className={cn(
+        "relative size-full min-w-0 shrink-0 grow-0 basis-full bg-slate-100",
+        className,
+      )}
+      {...props}
+    >
+      {!loaded && <Spinner className="absolute inset-0 m-auto size-8" />}
+      <img
+        className={`size-full object-cover ${loaded ? "opacity-100" : "opacity-0"} transition-opacity duration-200`}
+        onLoad={() => {
+          if (data) setLoaded(true);
+        }}
+        src={data ? data : PLACEHOLDER_SRC}
+        alt={alt}
+      />
+      <div className="absolute bottom-2 right-2 flex gap-3 rounded-lg bg-slate-950/70 p-1.5 backdrop-blur">
+        {photo.authorAttributions.map((author) => (
+          <div key={author.uri} className="flex items-center gap-1.5">
+            <Avatar className="size-5">
+              <AvatarImage
+                src={author.photoUri}
+                alt={author.displayName}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
+              <AvatarFallback>
+                {author.displayName.substring(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-xs text-slate-200">{author.displayName}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
+CarouselGoogleImage.displayName = "CarouselItem";
+
+const CarouselItem = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  const { orientation } = useCarousel();
+
+  return (
+    <div
+      ref={ref}
+      role="group"
+      aria-roledescription="slide"
       className={cn(
         "min-w-0 shrink-0 grow-0 basis-full",
         orientation === "horizontal" ? "pl-4" : "pt-4",
@@ -410,6 +519,7 @@ CarouselIndicator.displayName = "CarouselIndicator";
 export {
   Carousel,
   CarouselContent,
+  CarouselGoogleImage,
   CarouselIndicator,
   CarouselItem,
   CarouselNext,

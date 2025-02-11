@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import {
   Carousel,
   CarouselContent,
+  CarouselGoogleImage,
   CarouselIndicator,
-  CarouselItem,
 } from "@/components/ui/carousel";
 import Rating from "@/components/ui/rating";
 import { Separator } from "@/components/ui/separator";
@@ -454,34 +454,12 @@ export default function Card({
               <div className="overflow-hidden rounded-xl bg-white transition-transform active:scale-[0.985]">
                 <CarouselContent className="mt-0 h-[400px] w-full">
                   {data.photos.map((photo, index) => (
-                    <CarouselItem
-                      key={index}
-                      className="relative size-full bg-slate-300 pt-0"
-                    >
-                      <div className="absolute bottom-2 right-2 flex gap-3 rounded-lg bg-slate-950/70 p-1.5 backdrop-blur">
-                        {photo.authorAttributions.map((author) => (
-                          <div
-                            key={author.uri}
-                            className="flex items-center gap-1.5"
-                          >
-                            <Avatar className="size-5">
-                              <AvatarImage
-                                src={author.photoUri}
-                                alt={author.displayName}
-                                loading="lazy"
-                                referrerPolicy="no-referrer"
-                              />
-                              <AvatarFallback>
-                                {author.displayName.substring(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="text-xs text-slate-200">
-                              {author.displayName}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CarouselItem>
+                    <CarouselGoogleImage
+                      key={photo.name}
+                      alt={data.displayName}
+                      index={index}
+                      photo={photo}
+                    />
                   ))}
                 </CarouselContent>
               </div>
