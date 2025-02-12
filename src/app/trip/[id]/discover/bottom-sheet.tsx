@@ -160,10 +160,12 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
   return (
     <motion.div
       ref={dragContainerRef}
+      initial={{ bottom: -320 }}
+      animate={{ bottom: 64 }}
       role={"dialog"}
       transition={{
         duration: 0.5,
-        ease: [0.2, 0, 0, 1.0],
+        ease: [0, 0, 0, 1.0],
       }}
       style={{ y: drawerY }}
       dragListener={false}
@@ -181,7 +183,7 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
         dragStartPos.current = e.clientY;
       }}
       className={cn(
-        "absolute bottom-16 z-10 h-[calc(100%+24px-64px)] w-full touch-none select-none rounded-t-2xl bg-zinc-50 pt-4",
+        "absolute bottom-16 z-10 flex h-[calc(100%+24px-64px)] w-full touch-none select-none flex-col rounded-t-2xl bg-zinc-50 pt-4",
         className,
       )}
       {...rest}

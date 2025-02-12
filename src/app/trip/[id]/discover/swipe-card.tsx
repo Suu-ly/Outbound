@@ -563,7 +563,7 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
             !active && status === "none" ? "opacity-50" : "opacity-0",
           )}
         ></div>
-        <div className="pb-36 pt-2 sm:pb-20">
+        <div className="pb-20 pt-2 sm:pb-20">
           <motion.div
             role="presentation"
             style={
