@@ -23,10 +23,11 @@ type BottomSheetProps = HTMLMotionProps<"div"> & {
 };
 
 const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
+  const [minimised, setMinimised] = useAtom(drawerMinimisedAtom);
   const [finalPosition, setFinalPosition] = useState(
     window.innerHeight - 56 + 24 - 64 - 104,
   ); // 56 header size, 24 excess height, 64 bottom bar height, 104 = size of visible elements + 12px padding
-  const drawerY = useMotionValue(0);
+  const drawerY = useMotionValue(minimised ? finalPosition : 0);
   const drawerControls = useDragControls();
   const dragContainerRef = useRef<HTMLDivElement>(null);
 
@@ -42,8 +43,6 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
   const scrolledToTop = useAtomValue(scrolledToTopAtom);
   const setDrawerProgress = useSetAtom(drawerDragProgressAtom);
   const dragStartPos = useRef(0);
-
-  const [minimised, setMinimised] = useAtom(drawerMinimisedAtom);
 
   const handlePanStart = useCallback(
     (event: globalThis.PointerEvent, info: PanInfo) => {
@@ -94,7 +93,7 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
       info.point.y + 0.15 * info.velocity.y >
       window.innerHeight * 0.45
     ) {
-      minimiseDrawer(info.velocity.y);
+      minimiseDrawer(minimised ? 0 : info.velocity.y);
     }
   };
 
@@ -170,8 +169,8 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
       dragListener={false}
       drag="y"
       dragControls={drawerControls}
-      dragConstraints={{ top: 0 }}
-      dragElastic={0}
+      dragConstraints={{ top: 0, bottom: finalPosition }}
+      dragElastic={{ bottom: 0.05 }}
       onPanStart={handlePanStart}
       onDragEnd={onDrawerDragEnd}
       whileDrag={{

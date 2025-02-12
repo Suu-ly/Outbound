@@ -70,6 +70,7 @@ type CardProps = {
   magnetFunctionY: (y: number) => void;
   onDecision: (id: string, accepted: boolean) => void;
   onRemove: (id: string) => void;
+  draggable?: boolean;
   mobile?: boolean;
 };
 
@@ -289,6 +290,7 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
     magnetFunctionY,
     onDecision,
     onRemove,
+    draggable = true,
     mobile,
   },
   ref,
@@ -297,11 +299,12 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
   const [isDragging, setIsDragging] = useState(false);
   const controls = useDragControls();
 
-  const minimised = useAtomValue(drawerMinimisedAtom);
+  const rawMinimised = useAtomValue(drawerMinimisedAtom);
+  const minimised = rawMinimised && mobile;
 
   const drawerProgress = useAtomValue(drawerDragProgressAtom);
   const imageHeight = useTransform(() => drawerProgress?.get() * 400);
-  const spacer = useTransform(() => drawerProgress?.get() * 24);
+  const spacer = useTransform(() => drawerProgress?.get() * 12);
 
   const setScrolledToTop = useSetAtom(scrolledToTopAtom);
 
@@ -498,7 +501,7 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
         "pointer-events-none absolute left-0 top-0 z-[--index] size-full touch-none select-none will-change-transform sm:w-1/2 xl:w-1/3",
         active && "animate-activate",
       )}
-      drag
+      drag={draggable}
       dragListener={false}
       whileDrag={{
         boxShadow:
@@ -560,38 +563,43 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
             !active && status === "none" ? "opacity-50" : "opacity-0",
           )}
         ></div>
-        <div className="pb-36 pt-4 sm:pb-20">
-          {data.photos && (
-            <Carousel
-              orientation="vertical"
-              className={cn("mx-4", isDragging && "pointer-events-none")}
-              disabled={true}
-            >
-              <motion.div
-                style={{ height: imageHeight }}
-                className="relative overflow-hidden rounded-xl bg-white transition-transform active:scale-[0.985]"
-              >
-                <CarouselContent className="mt-0 h-[400px] w-full">
-                  {data.photos.map((photo, index) => (
-                    <CarouselGoogleImage
-                      key={photo.name}
-                      alt={data.displayName}
-                      index={index}
-                      photo={photo}
-                    />
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious absolute />
-                <CarouselNext absolute />
-                <CarouselIndicator />
-              </motion.div>
-            </Carousel>
-          )}
+        <div className="pb-36 pt-2 sm:pb-20">
           <motion.div
             role="presentation"
-            style={{ height: spacer }}
-          ></motion.div>
-          <div className="flex flex-col gap-6">
+            style={
+              mobile
+                ? { paddingTop: spacer, paddingBottom: spacer }
+                : { paddingTop: 12, paddingBottom: 12 }
+            }
+          >
+            {data.photos && (
+              <Carousel
+                orientation="vertical"
+                className={cn("mx-4", isDragging && "pointer-events-none")}
+                disabled={true}
+              >
+                <motion.div
+                  style={mobile ? { height: imageHeight } : undefined}
+                  className="relative overflow-hidden rounded-xl bg-white transition-transform active:scale-[0.985]"
+                >
+                  <CarouselContent className="mt-0 h-[400px] w-full">
+                    {data.photos.map((photo, index) => (
+                      <CarouselGoogleImage
+                        key={photo.name}
+                        alt={data.displayName}
+                        index={index}
+                        photo={photo}
+                      />
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious absolute />
+                  <CarouselNext absolute />
+                  <CarouselIndicator />
+                </motion.div>
+              </Carousel>
+            )}
+          </motion.div>
+          <div className="flex flex-col gap-6 pt-2">
             <div className="space-x-1 px-4">
               <h1 className="font-display text-2xl font-medium text-slate-900">
                 {data.displayName}
