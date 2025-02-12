@@ -1,6 +1,7 @@
 import { SelectPlace, SelectTripPlace } from "@/server/db/schema";
 import { TripPlaceDetails } from "@/server/types";
 import { atom } from "jotai";
+import { MotionValue } from "motion/react";
 
 // Trip settings atom
 export const tripDetailsAtom = atom<{
@@ -63,3 +64,7 @@ export const tripPlacesAtom = atom<
 export const discoverPlacesAtom = atom<TripPlaceDetails[]>([]);
 
 export const activePlaceIndexAtom = atom<number>(0);
+
+export const scrolledToTopAtom = atom<boolean>(true);
+export const drawerMinimisedAtom = atom<boolean>(false);
+export const drawerDragProgressAtom = atom<MotionValue>();

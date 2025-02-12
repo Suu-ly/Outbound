@@ -8,6 +8,8 @@ import {
   CarouselContent,
   CarouselGoogleImage,
   CarouselIndicator,
+  CarouselNext,
+  CarouselPrevious,
 } from "@/components/ui/carousel";
 import Rating from "@/components/ui/rating";
 import { Separator } from "@/components/ui/separator";
@@ -29,6 +31,7 @@ import {
   IconWorld,
   IconX,
 } from "@tabler/icons-react";
+import { useAtomValue, useSetAtom } from "jotai";
 import {
   animate,
   motion,
@@ -39,18 +42,25 @@ import {
   useSpring,
   useTransform,
   useVelocity,
-} from "framer-motion";
+} from "motion/react";
 import Link from "next/link";
 import {
   CSSProperties,
+  forwardRef,
   PointerEvent,
   ReactNode,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
+import {
+  drawerDragProgressAtom,
+  drawerMinimisedAtom,
+  scrolledToTopAtom,
+} from "../../atoms";
 
 type CardProps = {
   data: TripPlaceDetails;
@@ -60,7 +70,7 @@ type CardProps = {
   magnetFunctionY: (y: number) => void;
   onDecision: (id: string, accepted: boolean) => void;
   onRemove: (id: string) => void;
-  minimised?: boolean;
+  mobile?: boolean;
 };
 
 const DRAG_THRESHOLD = 200;
@@ -270,20 +280,32 @@ const InfoGrid = ({
   );
 };
 
-export default function Card({
-  data,
-  index,
-  active,
-  magnetFunctionX,
-  magnetFunctionY,
-  onDecision,
-  onRemove,
-  minimised,
-}: CardProps) {
+export default forwardRef<Record<string, () => void>, CardProps>(function Card(
+  {
+    data,
+    index,
+    active,
+    magnetFunctionX,
+    magnetFunctionY,
+    onDecision,
+    onRemove,
+    mobile,
+  },
+  ref,
+) {
   const [status, setStatus] = useState<"none" | "reject" | "accept">("none");
   const [isDragging, setIsDragging] = useState(false);
   const controls = useDragControls();
 
+  const minimised = useAtomValue(drawerMinimisedAtom);
+
+  const drawerProgress = useAtomValue(drawerDragProgressAtom);
+  const imageHeight = useTransform(() => drawerProgress?.get() * 400);
+  const spacer = useTransform(() => drawerProgress?.get() * 24);
+
+  const setScrolledToTop = useSetAtom(scrolledToTopAtom);
+
+  const activeTime = useRef<number>(Infinity);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handlePanStart = useCallback(
@@ -310,6 +332,103 @@ export default function Card({
     clamp: true,
   });
 
+  const acceptPlace = useCallback(
+    (info?: PanInfo) => {
+      setStatus("accept");
+      onDecision(data.id, true);
+
+      const containerDims = scrollContainerRef.current!.getBoundingClientRect();
+
+      const width = isDragging
+        ? containerDims.width / 2 / 0.97
+        : containerDims.width / 2;
+      const height = isDragging
+        ? containerDims.height / 2 / 0.97
+        : containerDims.height / 2;
+
+      const targetX = mobile
+        ? window.innerWidth - width - 8 - 58
+        : window.innerWidth - width - 8 - 128;
+      const targetY = mobile
+        ? window.innerHeight - 56 - height - 4 - 24
+        : window.innerHeight - 56 - height - 16 - 26;
+      animate(x, targetX, {
+        type: "spring",
+        damping: 16,
+        velocity: info ? info.velocity.x : 0,
+        onUpdate(latest) {
+          if (
+            latest > targetX - TARGET_WINDOW &&
+            latest < targetX + TARGET_WINDOW
+          )
+            magnetFunctionX(-(latest - targetX) * 0.2);
+        },
+      });
+      animate(y, targetY, {
+        type: "spring",
+        damping: 16,
+        velocity: info ? info.velocity.y : 0,
+        onUpdate(latest) {
+          if (
+            latest > targetY - TARGET_WINDOW &&
+            latest < targetY + TARGET_WINDOW
+          ) {
+            magnetFunctionY(-(latest - targetY) * 0.2);
+          }
+        },
+      }).then(() => onRemove(data.id));
+    },
+    [
+      data.id,
+      isDragging,
+      magnetFunctionX,
+      magnetFunctionY,
+      mobile,
+      onDecision,
+      onRemove,
+      x,
+      y,
+    ],
+  );
+
+  const rejectPlace = useCallback(
+    (info?: PanInfo) => {
+      setStatus("reject");
+      onDecision(data.id, false);
+
+      if (!info) {
+        animate(x, -480, {
+          duration: 0.6,
+          ease: [0.11, 0, 0.5, 0],
+        });
+        animate(y, window.innerHeight - 56, {
+          duration: 0.6,
+          ease: [0.4, 0.02, 0.66, -0.36],
+        }).then(() => onRemove(data.id));
+      } else {
+        animate(y, window.innerHeight - 56, {
+          duration: 0.6,
+          ease: [0.4, 0.0, 0.2, 1],
+          velocity: info ? info.velocity.y : 0,
+        }).then(() => onRemove(data.id));
+      }
+    },
+    [data.id, onDecision, onRemove, x, y],
+  );
+
+  useImperativeHandle(ref, () => {
+    return {
+      triggerAccept() {
+        if (Date.now() - activeTime.current < 500) return;
+        acceptPlace();
+      },
+      triggerReject() {
+        if (Date.now() - activeTime.current < 500) return;
+        rejectPlace();
+      },
+    };
+  }, [acceptPlace, rejectPlace]);
+
   const handleDragStart = useCallback(() => {
     setIsDragging(true);
   }, []);
@@ -323,56 +442,42 @@ export default function Card({
       (info.offset.x <= -DRAG_THRESHOLD && info.velocity.x <= 0) ||
       (info.velocity.x < -VELOCITY_THRESHOLD && info.offset.x < 0)
     ) {
-      onDecision(data.id, false);
-      setStatus("reject");
-      animate(y, window.innerHeight, {
-        duration: 0.5,
-        ease: [0.4, 0.0, 0.2, 1],
-        velocity: info.velocity.y,
-      }).then(() => onRemove(data.id));
+      rejectPlace(info);
     } else if (
       (info.offset.x >= DRAG_THRESHOLD && info.velocity.x >= 0) ||
       (info.velocity.x > VELOCITY_THRESHOLD && info.offset.x > 0)
     ) {
-      onDecision(data.id, true);
-      setStatus("accept");
-      // const targetX = window.innerWidth - 16 - 32 - 128;
-      // const targetY = window.innerHeight - 64 - 32;
-
-      const containerDims = scrollContainerRef.current!.getBoundingClientRect();
-      const targetX =
-        window.innerWidth - containerDims.width / 2 - 4 - 16 - 128;
-      const targetY = window.innerHeight - containerDims.height / 2 - 16 - 64;
-      animate(x, targetX, {
-        type: "spring",
-        damping: 16,
-        velocity: info.velocity.x,
-        onUpdate(latest) {
-          if (
-            latest > targetX - TARGET_WINDOW &&
-            latest < targetX + TARGET_WINDOW
-          )
-            magnetFunctionX(-(latest - targetX) * 0.2);
-        },
-      });
-      animate(y, targetY, {
-        type: "spring",
-        damping: 16,
-        velocity: info.velocity.y,
-        onUpdate(latest) {
-          if (
-            latest > targetY - TARGET_WINDOW &&
-            latest < targetY + TARGET_WINDOW
-          ) {
-            magnetFunctionY(-(latest - targetY) * 0.2);
-          }
-        },
-      }).then(() => onRemove(data.id));
+      acceptPlace(info);
     } else {
       animate(x, 0);
       animate(y, 0);
     }
   };
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    const scrollContainer = scrollContainerRef.current;
+    const handleTopScroll = (e: Event) => {
+      const target = e.target as HTMLDivElement;
+      if (target.scrollTop === 0) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => setScrolledToTop(true), 300);
+      } else {
+        clearTimeout(timeout);
+        setScrolledToTop(false);
+      }
+    };
+
+    if (active) {
+      setScrolledToTop(true);
+      activeTime.current = Date.now();
+      if (scrollContainer) {
+        scrollContainer.addEventListener("scroll", handleTopScroll);
+      }
+    }
+    return () =>
+      scrollContainer?.removeEventListener("scroll", handleTopScroll);
+  }, [active, setScrolledToTop]);
 
   //Prevent layout shift due to hiding of scrollbar
   // useLayoutEffect(() => {
@@ -390,31 +495,18 @@ export default function Card({
   return (
     <motion.div
       className={cn(
-        "pointer-events-none absolute left-0 top-0 z-[--index] h-[calc(100dvh-56px)] w-full touch-none select-none transition-colors will-change-transform sm:w-1/2 xl:w-1/3",
-        status === "none"
-          ? "bg-zinc-50"
-          : status === "reject"
-            ? "bg-red-600"
-            : "bg-emerald-500",
+        "pointer-events-none absolute left-0 top-0 z-[--index] size-full touch-none select-none will-change-transform sm:w-1/2 xl:w-1/3",
         active && "animate-activate",
       )}
       drag
       dragListener={false}
       whileDrag={{
+        boxShadow:
+          "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
         cursor: "grabbing",
-        clipPath: "inset(0% 0% 0% 0% round 2rem)",
         scale: 0.97,
+        borderRadius: "2rem",
       }}
-      animate={
-        status === "accept" && {
-          clipPath:
-            "inset(calc(50% - 32px) calc(50% - 32px) calc(50% - 32px) calc(50% - 32px) round 24rem)",
-          transition: {
-            duration: 0.5,
-            ease: [0.4, 0, 0.2, 1],
-          },
-        }
-      }
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       style={
@@ -423,19 +515,43 @@ export default function Card({
           y,
           rotateZ: rotate,
           "--index": 3 - index,
-          clipPath: "inset(0% 0% 0% 0% round 0rem)",
         } as MotionStyle
       }
       onPanStart={handlePanStart}
       dragControls={controls}
     >
-      <div
+      <motion.div
         ref={scrollContainerRef}
         // Set opacity here so it's not laggy on firefox opacity-[98.99%]
-        className={`relative size-full overscroll-y-none ${isDragging || minimised ? "touch-none" : "touch-pan-y"} overflow-x-hidden ${hideScroll ? "overflow-y-hidden" : "overflow-y-auto"}`}
+        className={cn(
+          "relative size-full overflow-x-hidden overscroll-y-none transition-colors",
+          status === "none"
+            ? "bg-zinc-50"
+            : status === "reject"
+              ? "bg-red-600"
+              : "bg-emerald-500",
+          hideScroll ? "overflow-y-hidden" : "overflow-y-auto",
+          isDragging || minimised ? "touch-none" : "touch-pan-y",
+        )}
         // style={{
         //   paddingRight: hideScroll ? `${scrollbarWidth}px` : undefined,
         // }}
+        animate={
+          status === "accept"
+            ? {
+                clipPath:
+                  "inset(calc(50% - 16px) calc(50% - 16px) calc(50% - 16px) calc(50% - 16px) round 16rem)",
+                transition: {
+                  duration: 0.5,
+                  ease: [0.4, 0, 0.2, 1],
+                },
+              }
+            : isDragging || status === "reject"
+              ? {
+                  clipPath: "inset(0% 0% 0% 0% round 2rem)",
+                }
+              : { clipPath: "inset(0%)" }
+        }
       >
         <div
           aria-hidden={true}
@@ -444,14 +560,17 @@ export default function Card({
             !active && status === "none" ? "opacity-50" : "opacity-0",
           )}
         ></div>
-        <div className="flex flex-col gap-6 pb-20 pt-4">
+        <div className="pb-36 pt-4 sm:pb-20">
           {data.photos && (
             <Carousel
               orientation="vertical"
               className={cn("mx-4", isDragging && "pointer-events-none")}
-              disabled={isDragging}
+              disabled={true}
             >
-              <div className="overflow-hidden rounded-xl bg-white transition-transform active:scale-[0.985]">
+              <motion.div
+                style={{ height: imageHeight }}
+                className="relative overflow-hidden rounded-xl bg-white transition-transform active:scale-[0.985]"
+              >
                 <CarouselContent className="mt-0 h-[400px] w-full">
                   {data.photos.map((photo, index) => (
                     <CarouselGoogleImage
@@ -462,112 +581,120 @@ export default function Card({
                     />
                   ))}
                 </CarouselContent>
-              </div>
-              <CarouselIndicator />
+                <CarouselPrevious absolute />
+                <CarouselNext absolute />
+                <CarouselIndicator />
+              </motion.div>
             </Carousel>
           )}
-          <div className="space-x-1 px-4">
-            <h1 className="font-display text-2xl font-medium text-slate-900">
-              {data.displayName}
-            </h1>
-            <p
-              className="text-sm font-medium"
-              style={{ color: data.typeColor }}
-            >
-              {data.primaryTypeDisplayName}
-            </p>
-          </div>
-          {data.description && (
-            <div className="px-4 text-slate-700">{data.description}</div>
-          )}
-          {data.rating !== null && (
-            <div className="space-y-3 px-4">
-              <div className="flex flex-col gap-3 xl:flex-row">
-                <div className="flex w-full flex-col items-center justify-center gap-3 rounded-xl bg-amber-300 p-4 text-center">
-                  <div>
-                    <h3 className="font-display text-6xl font-medium text-slate-900">
-                      {data.rating?.toFixed(1)}
-                    </h3>
-                    <Rating rating={data.rating} className="text-slate-900" />
-                  </div>
-                  <p className="text-lg text-amber-900">
-                    based on {data.ratingCount} reviews
-                  </p>
-                </div>
-                {data.reviewHighlight && (
-                  <div className="w-full space-y-2 rounded-xl bg-violet-100 p-4">
-                    <p className="font-medium text-indigo-700">
-                      What people say
-                    </p>
-                    <h3 className="font-display text-2xl font-medium text-indigo-900">
-                      {data.reviewHighlight}
-                    </h3>
-                  </div>
-                )}
-              </div>
-              {data.reviews?.map((review) => (
-                <Review review={review} key={review.name} />
-              ))}
-            </div>
-          )}
-          <div>
-            <TooltipProvider delayDuration={300}>
-              <InfoWithCopy
-                copy={data.address}
-                tooltipLabel="Copy address"
-                successMessage="Address copied to clipboard!"
+          <motion.div
+            role="presentation"
+            style={{ height: spacer }}
+          ></motion.div>
+          <div className="flex flex-col gap-6">
+            <div className="space-x-1 px-4">
+              <h1 className="font-display text-2xl font-medium text-slate-900">
+                {data.displayName}
+              </h1>
+              <p
+                className="text-sm font-medium"
+                style={{ color: data.typeColor }}
               >
-                <IconMapPin />
-                {data.address}
-              </InfoWithCopy>
-              <OpeningHours
-                highligtedDay={new Date().getDay()}
-                hours={data.openingHours?.text}
-              />
-              {data.website && (
+                {data.primaryTypeDisplayName}
+              </p>
+            </div>
+            {data.description && (
+              <div className="px-4 text-slate-700">{data.description}</div>
+            )}
+            {data.rating !== null && (
+              <div className="space-y-3 px-4">
+                <div className="flex flex-col gap-3 xl:flex-row">
+                  <div className="flex w-full flex-col items-center justify-center gap-3 rounded-xl bg-amber-300 p-4 text-center">
+                    <div>
+                      <h3 className="font-display text-6xl font-medium text-slate-900">
+                        {data.rating?.toFixed(1)}
+                      </h3>
+                      <Rating rating={data.rating} className="text-slate-900" />
+                    </div>
+                    <p className="text-lg text-amber-900">
+                      based on {data.ratingCount} reviews
+                    </p>
+                  </div>
+                  {data.reviewHighlight && (
+                    <div className="w-full space-y-2 rounded-xl bg-violet-100 p-4">
+                      <p className="font-medium text-indigo-700">
+                        What people say
+                      </p>
+                      <h3 className="font-display text-2xl font-medium text-indigo-900">
+                        {data.reviewHighlight}
+                      </h3>
+                    </div>
+                  )}
+                </div>
+                {data.reviews?.map((review) => (
+                  <Review review={review} key={review.name} />
+                ))}
+              </div>
+            )}
+            <div>
+              <TooltipProvider delayDuration={300}>
                 <InfoWithCopy
-                  copy={data.website}
-                  tooltipLabel="Copy website URL"
-                  successMessage="Website URL copied to clipboard!"
-                  asChild
+                  copy={data.address}
+                  tooltipLabel="Copy address"
+                  successMessage="Address copied to clipboard!"
                 >
-                  <Link href={data.website} target="_blank">
-                    <IconWorld />
-                    {data.website}
-                  </Link>
+                  <IconMapPin className="shrink-0" />
+                  {data.address}
                 </InfoWithCopy>
-              )}
-              {data.phone && (
-                <InfoWithCopy
-                  copy={data.phone}
-                  tooltipLabel="Copy phone number"
-                  successMessage="Phone number copied to clipboard!"
-                >
-                  <IconPhone />
-                  {data.phone}
-                </InfoWithCopy>
-              )}
-            </TooltipProvider>
+                <OpeningHours
+                  highligtedDay={new Date().getDay()}
+                  hours={data.openingHours?.text}
+                />
+                {data.website && (
+                  <InfoWithCopy
+                    copy={data.website}
+                    tooltipLabel="Copy website URL"
+                    successMessage="Website URL copied to clipboard!"
+                    asChild
+                  >
+                    <Link href={data.website} target="_blank">
+                      <IconWorld className="shrink-0" />
+                      {data.website}
+                    </Link>
+                  </InfoWithCopy>
+                )}
+                {data.phone && (
+                  <InfoWithCopy
+                    copy={data.phone}
+                    tooltipLabel="Copy phone number"
+                    successMessage="Phone number copied to clipboard!"
+                  >
+                    <IconPhone className="shrink-0" />
+                    {data.phone}
+                  </InfoWithCopy>
+                )}
+              </TooltipProvider>
+            </div>
+            {(data.accessibilityOptions ||
+              data.parkingOptions ||
+              data.paymentOptions ||
+              data.amenities ||
+              data.additionalInfo) && <Separator />}
+            <InfoGrid
+              info={data.accessibilityOptions}
+              header="Wheelchair Accessibility"
+            />
+            <InfoGrid info={data.paymentOptions} header="Payment Options" />
+            <InfoGrid info={data.parkingOptions} header="Parking Options" />
+            <InfoGrid info={data.amenities} header="Amenities" check={false} />
+            <InfoGrid
+              info={data.additionalInfo}
+              header="Additional Info"
+              check={false}
+            />
           </div>
-          {(data.accessibilityOptions ||
-            data.parkingOptions ||
-            data.paymentOptions ||
-            data.amenities ||
-            data.additionalInfo) && <Separator />}
-          <InfoGrid
-            info={data.accessibilityOptions}
-            header="Wheelchair Accessibility"
-          />
-          <InfoGrid info={data.paymentOptions} header="Payment Options" />
-          <InfoGrid info={data.parkingOptions} header="Parking Options" />
-          <InfoGrid info={data.amenities} header="Amenities" check={false} />
-          <InfoGrid
-            info={data.additionalInfo}
-            header="Additional Info"
-            check={false}
-          />
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
-}
+});

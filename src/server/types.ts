@@ -126,13 +126,11 @@ export type PlacesPhoto = {
   name: string;
   widthPx: number;
   heightPx: number;
-  authorAttributions: [
-    {
-      displayName: string;
-      uri: string;
-      photoUri: string;
-    },
-  ];
+  authorAttributions: {
+    displayName: string;
+    uri: string;
+    photoUri: string;
+  }[];
   flagContentUri: string;
   googleMapsUri: string;
 };
@@ -169,7 +167,7 @@ export type PlacesResult = {
           hour: number;
           minute: number;
         };
-        close: {
+        close?: {
           day: number;
           hour: number;
           minute: number;

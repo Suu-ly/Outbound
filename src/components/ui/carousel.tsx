@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ApiResponse, PlacesPhoto } from "@/server/types";
+import { PlacesPhoto } from "@/server/types";
 import { IconArrowLeft, IconArrowRight } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { EmblaCarouselType } from "embla-carousel";
@@ -70,6 +70,7 @@ const Carousel = React.forwardRef<
       {
         ...opts,
         axis: orientation === "horizontal" ? "x" : "y",
+        watchDrag: disabled,
       },
       plugins,
     );
@@ -226,25 +227,26 @@ const CarouselGoogleImage = React.forwardRef<
   }
 >(({ className, photo, index, alt, ...props }, ref) => {
   const {
-    orientation,
-    scrollPrev,
-    scrollNext,
-    canScrollNext,
-    canScrollPrev,
+    // orientation,
+    // scrollPrev,
+    // scrollNext,
+    // canScrollNext,
+    // canScrollPrev,
     slidesInView,
   } = useCarousel();
   const [loaded, setLoaded] = React.useState(false);
   const inView = slidesInView.includes(index);
 
   const getGoogleImage = async (name: string) => {
-    const urlParams = new URLSearchParams([["name", name]]);
-    const data = await fetch(`/api/places/image?${urlParams.toString()}`)
-      .then((response) => response.json())
-      .then((data) => data as ApiResponse<string>);
-    if (data.status === "error") {
-      throw new Error(data.message);
-    }
-    return data.data;
+    return "";
+    // const urlParams = new URLSearchParams([["name", name]]);
+    // const data = await fetch(`/api/places/image?${urlParams.toString()}`)
+    //   .then((response) => response.json())
+    //   .then((data) => data as ApiResponse<string>);
+    // if (data.status === "error") {
+    //   throw new Error(data.message);
+    // }
+    // return data.data;
   };
 
   const { data } = useQuery({
@@ -256,32 +258,13 @@ const CarouselGoogleImage = React.forwardRef<
     },
   });
 
-  const handleSlideClick = React.useCallback(
-    (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-      const target = e.currentTarget.getBoundingClientRect();
-      const hit =
-        orientation === "vertical"
-          ? e.clientY - target.top
-          : e.clientX - target.left;
-      const size = orientation === "vertical" ? target.height : target.width;
-      if (size / 2 >= hit && canScrollPrev) {
-        scrollPrev(true);
-      }
-      if (hit > size / 2 && canScrollNext) {
-        scrollNext(true);
-      }
-    },
-    [canScrollNext, canScrollPrev, orientation, scrollNext, scrollPrev],
-  );
-
   return (
     <div
       ref={ref}
       role="group"
       aria-roledescription="slide"
-      onClick={handleSlideClick}
       className={cn(
-        "relative size-full min-w-0 shrink-0 grow-0 basis-full bg-slate-100",
+        "relative size-full min-w-0 shrink-0 grow-0 basis-full bg-white",
         className,
       )}
       {...props}
@@ -342,9 +325,26 @@ CarouselItem.displayName = "CarouselItem";
 
 const CarouselPrevious = React.forwardRef<
   HTMLButtonElement,
-  React.ComponentProps<typeof Button>
->(({ className, variant = "outline", ...props }, ref) => {
+  React.ComponentProps<typeof Button> & { absolute?: boolean }
+>(({ className, variant = "outline", absolute = false, ...props }, ref) => {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel();
+
+  if (absolute)
+    return (
+      <button
+        className={
+          orientation === "vertical"
+            ? "absolute inset-x-0 top-0 h-1/2"
+            : "absolute inset-y-0 left-0 w-1/2"
+        }
+        aria-label="Previous slide"
+        onClick={() => {
+          if (canScrollPrev) scrollPrev(true);
+        }}
+      >
+        <span className="sr-only">Previous slide</span>
+      </button>
+    );
 
   return (
     <Button
@@ -370,10 +370,25 @@ CarouselPrevious.displayName = "CarouselPrevious";
 
 const CarouselNext = React.forwardRef<
   HTMLButtonElement,
-  React.ComponentProps<typeof Button>
->(({ className, variant = "outline", ...props }, ref) => {
+  React.ComponentProps<typeof Button> & { absolute?: boolean }
+>(({ className, variant = "outline", absolute = false, ...props }, ref) => {
   const { orientation, scrollNext, canScrollNext } = useCarousel();
-
+  if (absolute)
+    return (
+      <button
+        className={
+          orientation === "vertical"
+            ? "absolute inset-x-0 bottom-0 h-1/2"
+            : "absolute inset-y-0 right-0 w-1/2"
+        }
+        aria-label="Next slide"
+        onClick={() => {
+          if (canScrollNext) scrollNext(true);
+        }}
+      >
+        <span className="sr-only">Next slide</span>
+      </button>
+    );
   return (
     <Button
       ref={ref}

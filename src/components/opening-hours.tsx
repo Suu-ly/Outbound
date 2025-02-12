@@ -42,9 +42,11 @@ export default function OpeningHours({
       onValueChange={setValue}
     >
       <AccordionItem value="hours" className="border-0">
-        <AccordionTrigger className="gap-3 font-normal text-slate-700">
-          <IconClock size={20} className="shrink-0 text-slate-600" />
-          {value ? "Opening Hours" : hours[dayIndex].split(": ")[1]}
+        <AccordionTrigger>
+          <div className="flex gap-3 font-normal text-slate-700">
+            <IconClock size={20} className="shrink-0 text-slate-600" />
+            {value ? "Opening Hours" : hours[dayIndex].split(": ")[1]}
+          </div>
         </AccordionTrigger>
         <AccordionContent className="space-y-2 pb-2 pl-12 pr-4 pt-1 text-sm text-slate-700">
           {hours.map((day, index) => {

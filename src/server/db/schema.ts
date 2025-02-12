@@ -142,7 +142,7 @@ export const place = pgTable("place", {
   openingHours: jsonb("opening_hours").$type<{
     periods: {
       open: { day: number; hour: number; minute: number };
-      close: { day: number; hour: number; minute: number };
+      close?: { day: number; hour: number; minute: number };
     }[];
     text: string[];
   }>(),
