@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 
   if (data) return Response.json(data);
 
-  const places = await fetch(
+  const response = await fetch(
     "https://places.googleapis.com/v1/places:searchText",
     {
       method: "POST",
@@ -100,14 +100,13 @@ export async function GET(request: NextRequest) {
         },
       }),
     },
-  )
-    .then((response) => response.json())
-    .then((data) => data as PlaceDiscoverResponse);
+  );
+  const places = (await response.json()) as PlaceDiscoverResponse;
 
   if ("error" in places) {
     return Response.json(
       { message: places.error.message, status: "error" },
-      { status: 500 },
+      { status: response.status },
     );
   }
 
