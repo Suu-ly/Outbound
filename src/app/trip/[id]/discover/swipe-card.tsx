@@ -331,10 +331,15 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const xVelocity = useVelocity(x);
-  const xSmooth = useSpring(xVelocity, { damping: 15 });
-  const rotate = useTransform(xSmooth, [-3000, 3000], [-2.5, 2.5], {
-    clamp: true,
-  });
+  const xSmooth = useSpring(xVelocity, { damping: 15, mass: 2.5 });
+  const rotate = useTransform(
+    xSmooth,
+    [-4000, -3000, 3000, 4000],
+    [-3, -2.5, 2.5, 3],
+    {
+      clamp: false,
+    },
+  );
 
   const acceptPlace = useCallback(
     (info?: PanInfo) => {
