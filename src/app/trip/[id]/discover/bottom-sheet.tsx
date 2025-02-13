@@ -25,7 +25,7 @@ type BottomSheetProps = HTMLMotionProps<"div"> & {
 const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
   const [minimised, setMinimised] = useAtom(drawerMinimisedAtom);
   const [finalPosition, setFinalPosition] = useState(
-    window.innerHeight - 56 + 24 - 64 - 104,
+    window.innerHeight - 56 + 24 - 64 - 112,
   ); // 56 header size, 24 excess height, 64 bottom bar height, 104 = size of visible elements + 12px padding
   const drawerY = useMotionValue(minimised ? finalPosition : 0);
   const drawerControls = useDragControls();
@@ -124,14 +124,14 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
       }
     };
     const handleWheelDown = (e: WheelEvent) => {
-      if (e.deltaY > 0 && e.clientY > window.innerHeight - 64 - 104) {
+      if (e.deltaY > 0 && e.clientY > window.innerHeight - 64 - 112) {
         maximiseDrawer();
       }
     };
     const setTranslateAmout = () => {
-      setFinalPosition(window.innerHeight - 56 + 24 - 64 - 104);
+      setFinalPosition(window.innerHeight - 56 + 24 - 64 - 112);
       if (minimised) {
-        drawerY.set(window.innerHeight - 56 + 24 - 64 - 104);
+        drawerY.set(window.innerHeight - 56 + 24 - 64 - 112);
       }
     };
 

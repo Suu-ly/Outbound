@@ -121,15 +121,21 @@ const Carousel = React.forwardRef<
 
     const handleKeyDown = React.useCallback(
       (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (event.key === "ArrowLeft") {
+        if (
+          (orientation === "horizontal" && event.key === "ArrowLeft") ||
+          (orientation === "vertical" && event.key === "ArrowUp")
+        ) {
           event.preventDefault();
           scrollPrev();
-        } else if (event.key === "ArrowRight") {
+        } else if (
+          (orientation === "horizontal" && event.key === "ArrowRight") ||
+          (orientation === "vertical" && event.key === "ArrowDown")
+        ) {
           event.preventDefault();
           scrollNext();
         }
       },
-      [scrollPrev, scrollNext],
+      [orientation, scrollPrev, scrollNext],
     );
 
     React.useEffect(() => {
@@ -226,14 +232,7 @@ const CarouselGoogleImage = React.forwardRef<
     alt: string;
   }
 >(({ className, photo, index, alt, ...props }, ref) => {
-  const {
-    // orientation,
-    // scrollPrev,
-    // scrollNext,
-    // canScrollNext,
-    // canScrollPrev,
-    slidesInView,
-  } = useCarousel();
+  const { slidesInView } = useCarousel();
   const [loaded, setLoaded] = React.useState(false);
   const inView = slidesInView.includes(index);
 
@@ -299,7 +298,7 @@ const CarouselGoogleImage = React.forwardRef<
     </div>
   );
 });
-CarouselGoogleImage.displayName = "CarouselItem";
+CarouselGoogleImage.displayName = "CarouselGoogleImage";
 
 const CarouselItem = React.forwardRef<
   HTMLDivElement,
@@ -332,11 +331,11 @@ const CarouselPrevious = React.forwardRef<
   if (absolute)
     return (
       <button
-        className={
+        className={`transition-colors hover:underline focus-visible:bg-slate-900/5 focus-visible:outline-none ${
           orientation === "vertical"
             ? "absolute inset-x-0 top-0 h-1/2"
             : "absolute inset-y-0 left-0 w-1/2"
-        }
+        }`}
         aria-label="Previous slide"
         onClick={() => {
           if (canScrollPrev) scrollPrev(true);
@@ -376,11 +375,11 @@ const CarouselNext = React.forwardRef<
   if (absolute)
     return (
       <button
-        className={
+        className={`transition-colors hover:underline focus-visible:bg-slate-900/5 focus-visible:outline-none ${
           orientation === "vertical"
             ? "absolute inset-x-0 bottom-0 h-1/2"
             : "absolute inset-y-0 right-0 w-1/2"
-        }
+        }`}
         aria-label="Next slide"
         onClick={() => {
           if (canScrollNext) scrollNext(true);
@@ -447,6 +446,7 @@ const CarouselIndicatorButton = React.forwardRef<
         className,
       )}
       aria-label={`Image ${index + 1}`}
+      tabIndex={-1}
       style={
         orientation === "horizontal"
           ? { width: size, backgroundColor }

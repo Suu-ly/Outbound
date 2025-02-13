@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import { useMediaQuery } from "@/lib/use-media-query";
+import { data } from "@/resources/mock-data";
 import { updateTripWindows } from "@/server/actions";
 import { ApiResponse, DiscoverReturn } from "@/server/types";
 import { IconHeart, IconX } from "@tabler/icons-react";
@@ -28,6 +29,7 @@ import {
 } from "../../atoms";
 import BottomSheet from "./bottom-sheet";
 import Card from "./swipe-card";
+import TabDisable from "./tab-disable";
 
 const NO_TOKEN_STRING = "none";
 const NO_MORE_RESULT_TOKEN = "done";
@@ -165,10 +167,10 @@ export function DiscoverManager() {
       ]);
       if (
         tripLocation.nextPageToken &&
-        (tripLocation.nextPageToken[tripLocation.currentSearchIndex] !==
-          NO_TOKEN_STRING ||
-          tripLocation.nextPageToken[tripLocation.currentSearchIndex] !==
-            NO_MORE_RESULT_TOKEN)
+        tripLocation.nextPageToken[tripLocation.currentSearchIndex] !==
+          NO_TOKEN_STRING &&
+        tripLocation.nextPageToken[tripLocation.currentSearchIndex] !==
+          NO_MORE_RESULT_TOKEN
       ) {
         queryUrl.set(
           "nextPageToken",
@@ -212,11 +214,11 @@ export function SwipeManager() {
   }>(null);
 
   const setActiveLocation = useSetAtom(mapActiveMarkerAtom);
-  const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
-  // const [discoverLocations, setDiscoverLocations] = useState([
-  //   ...data,
-  //   ...data,
-  // ]);
+  // const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
+  const [discoverLocations, setDiscoverLocations] = useState([
+    ...data,
+    ...data,
+  ]);
   const drawerProgress = useAtomValue(drawerDragProgressAtom);
   const buttonsY = useTransform(() => 100 - drawerProgress?.get() * 100);
 
@@ -293,31 +295,33 @@ export function SwipeManager() {
             );
           })}
         </BottomSheet>
-        <motion.div
-          className="pointer-events-none fixed bottom-16 left-0 z-50 flex w-full items-center justify-center gap-6 p-4 sm:w-1/2 xl:w-1/3"
-          style={{ y: buttonsY }}
-        >
-          <Button
-            className="pointer-events-auto border-red-400 bg-white text-rose-500 shadow-md active:ring-red-400"
-            primaryBgColor="bg-rose-700"
-            iconOnly
-            onClick={handleRejectClick}
-            size="large"
-            aria-label="Not interested"
+        <TabDisable>
+          <motion.div
+            className="pointer-events-none fixed bottom-16 left-0 z-50 flex w-full items-center justify-center gap-6 p-4 sm:w-1/2 xl:w-1/3"
+            style={{ y: buttonsY }}
           >
-            <IconX />
-          </Button>
-          <Button
-            className="pointer-events-auto border-green-400 bg-white text-emerald-500 shadow-md active:ring-green-400"
-            primaryBgColor="bg-emerald-700"
-            iconOnly
-            onClick={handleAcceptClick}
-            size="large"
-            aria-label="Interested"
-          >
-            <IconHeart />
-          </Button>
-        </motion.div>
+            <Button
+              className="pointer-events-auto border-red-400 bg-white text-rose-500 shadow-md active:ring-red-400"
+              primaryBgColor="bg-rose-700"
+              iconOnly
+              onClick={handleRejectClick}
+              size="large"
+              aria-label="Not interested"
+            >
+              <IconX />
+            </Button>
+            <Button
+              className="pointer-events-auto border-green-400 bg-white text-emerald-500 shadow-md active:ring-green-400"
+              primaryBgColor="bg-emerald-700"
+              iconOnly
+              onClick={handleAcceptClick}
+              size="large"
+              aria-label="Interested"
+            >
+              <IconHeart />
+            </Button>
+          </motion.div>
+        </TabDisable>
         <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between gap-3 border-t-2 border-slate-200 bg-white px-4 py-2">
           <span className="w-28 text-sm text-slate-700">14 Places Saved</span>
           <Magnet x={magnetX} y={magnetY}>

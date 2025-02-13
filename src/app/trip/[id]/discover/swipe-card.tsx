@@ -61,6 +61,7 @@ import {
   drawerMinimisedAtom,
   scrolledToTopAtom,
 } from "../../atoms";
+import TabDisable from "./tab-disable";
 
 type CardProps = {
   data: TripPlaceDetails;
@@ -104,7 +105,7 @@ const InfoWithCopy = ({
 
   return (
     <div className="group relative">
-      <Comp className="inline-flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 [&_svg]:size-5 [&_svg]:text-slate-600">
+      <Comp className="inline-flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100 [&_svg]:size-5 [&_svg]:text-slate-600">
         {children}
       </Comp>
       <Tooltip>
@@ -186,7 +187,7 @@ const Review = ({ review }: { review: PlacesReview }) => {
         </p>
         {isOverflowing && (
           <button
-            className="-m-2 p-2 text-xs font-medium text-brand-600 hover:underline"
+            className="-m-2 rounded-full p-2 text-xs font-medium text-brand-600 ring-offset-zinc-50 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
             aria-expanded={expanded}
             aria-controls={review.name}
             onClick={handleOnClick}
@@ -564,143 +565,155 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
           )}
         ></div>
         <div className="pb-20 pt-2 sm:pb-20">
-          <motion.div
-            role="presentation"
-            style={
-              mobile
-                ? { paddingTop: spacer, paddingBottom: spacer }
-                : { paddingTop: 12, paddingBottom: 12 }
-            }
-          >
-            {data.photos && (
-              <Carousel
-                orientation="vertical"
-                className={cn("mx-4", isDragging && "pointer-events-none")}
-                disabled={true}
-              >
-                <motion.div
-                  style={mobile ? { height: imageHeight } : undefined}
-                  className="relative overflow-hidden rounded-xl bg-white transition-transform active:scale-[0.985]"
+          <TabDisable active={active}>
+            <motion.div
+              style={
+                mobile
+                  ? { paddingTop: spacer, paddingBottom: spacer }
+                  : { paddingTop: 12, paddingBottom: 12 }
+              }
+            >
+              {data.photos && (
+                <Carousel
+                  orientation="vertical"
+                  className={cn("mx-4", isDragging && "pointer-events-none")}
+                  disabled={true}
                 >
-                  <CarouselContent className="mt-0 h-[400px] w-full">
-                    {data.photos.map((photo, index) => (
-                      <CarouselGoogleImage
-                        key={photo.name}
-                        alt={data.displayName}
-                        index={index}
-                        photo={photo}
-                      />
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious absolute />
-                  <CarouselNext absolute />
-                  <CarouselIndicator />
-                </motion.div>
-              </Carousel>
-            )}
-          </motion.div>
-          <div className="flex flex-col gap-6 pt-2">
-            <div className="space-x-1 px-4">
-              <h1 className="font-display text-2xl font-medium text-slate-900">
-                {data.displayName}
-              </h1>
-              <p
-                className="text-sm font-medium"
-                style={{ color: data.typeColor }}
-              >
-                {data.primaryTypeDisplayName}
-              </p>
-            </div>
-            {data.description && (
-              <div className="px-4 text-slate-700">{data.description}</div>
-            )}
-            {data.rating !== null && (
-              <div className="space-y-3 px-4">
-                <div className="flex flex-col gap-3 xl:flex-row">
-                  <div className="flex w-full flex-col items-center justify-center gap-3 rounded-xl bg-amber-300 p-4 text-center">
-                    <div>
-                      <h3 className="font-display text-6xl font-medium text-slate-900">
-                        {data.rating?.toFixed(1)}
-                      </h3>
-                      <Rating rating={data.rating} className="text-slate-900" />
-                    </div>
-                    <p className="text-lg text-amber-900">
-                      based on {data.ratingCount} reviews
-                    </p>
-                  </div>
-                  {data.reviewHighlight && (
-                    <div className="w-full space-y-2 rounded-xl bg-violet-100 p-4">
-                      <p className="font-medium text-indigo-700">
-                        What people say
-                      </p>
-                      <h3 className="font-display text-2xl font-medium text-indigo-900">
-                        {data.reviewHighlight}
-                      </h3>
-                    </div>
-                  )}
-                </div>
-                {data.reviews?.map((review) => (
-                  <Review review={review} key={review.name} />
-                ))}
+                  <motion.div
+                    style={mobile ? { height: imageHeight } : undefined}
+                    className="relative overflow-hidden rounded-xl bg-white transition-transform active:scale-[0.985]"
+                  >
+                    <CarouselContent className="mt-0 h-[400px] w-full">
+                      {data.photos.map((photo, index) => (
+                        <CarouselGoogleImage
+                          key={photo.name}
+                          alt={data.displayName}
+                          index={index}
+                          photo={photo}
+                        />
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious absolute />
+                    <CarouselNext absolute />
+                    <CarouselIndicator />
+                  </motion.div>
+                </Carousel>
+              )}
+            </motion.div>
+            <div className="flex flex-col gap-6 pt-2">
+              <div className="space-y-1 px-4">
+                <h1 className="font-display text-2xl font-medium text-slate-900">
+                  {data.displayName}
+                </h1>
+                <p
+                  className="text-sm font-medium"
+                  style={{ color: data.typeColor }}
+                >
+                  {data.primaryTypeDisplayName}
+                </p>
               </div>
-            )}
-            <div>
-              <TooltipProvider delayDuration={300}>
-                <InfoWithCopy
-                  copy={data.address}
-                  tooltipLabel="Copy address"
-                  successMessage="Address copied to clipboard!"
-                >
-                  <IconMapPin className="shrink-0" />
-                  {data.address}
-                </InfoWithCopy>
-                <OpeningHours
-                  highligtedDay={new Date().getDay()}
-                  hours={data.openingHours?.text}
-                />
-                {data.website && (
+              {data.description && (
+                <div className="px-4 text-slate-700">{data.description}</div>
+              )}
+              {data.rating !== null && (
+                <div className="space-y-3 px-4">
+                  <div className="flex flex-col gap-3 xl:flex-row">
+                    <div className="flex w-full flex-col items-center justify-center gap-3 rounded-xl bg-amber-300 p-4 text-center">
+                      <div>
+                        <h3 className="font-display text-6xl font-medium text-slate-900">
+                          {data.rating?.toFixed(1)}
+                        </h3>
+                        <Rating
+                          rating={data.rating}
+                          className="text-slate-900"
+                        />
+                      </div>
+                      <p className="text-lg text-amber-900">
+                        based on {data.ratingCount} reviews
+                      </p>
+                    </div>
+                    {data.reviewHighlight && (
+                      <div className="w-full space-y-2 rounded-xl bg-violet-100 p-4">
+                        <p className="font-medium text-indigo-700">
+                          What people say
+                        </p>
+                        <h3 className="font-display text-2xl font-medium text-indigo-900">
+                          {data.reviewHighlight}
+                        </h3>
+                      </div>
+                    )}
+                  </div>
+                  {data.reviews?.map((review) => (
+                    <Review review={review} key={review.name} />
+                  ))}
+                </div>
+              )}
+              <div>
+                <TooltipProvider delayDuration={300}>
                   <InfoWithCopy
-                    copy={data.website}
-                    tooltipLabel="Copy website URL"
-                    successMessage="Website URL copied to clipboard!"
-                    asChild
+                    copy={data.address}
+                    tooltipLabel="Copy address"
+                    successMessage="Address copied to clipboard!"
                   >
-                    <Link href={data.website} target="_blank">
-                      <IconWorld className="shrink-0" />
-                      {data.website}
-                    </Link>
+                    <IconMapPin className="shrink-0" />
+                    {data.address}
                   </InfoWithCopy>
-                )}
-                {data.phone && (
-                  <InfoWithCopy
-                    copy={data.phone}
-                    tooltipLabel="Copy phone number"
-                    successMessage="Phone number copied to clipboard!"
-                  >
-                    <IconPhone className="shrink-0" />
-                    {data.phone}
-                  </InfoWithCopy>
-                )}
-              </TooltipProvider>
+                  <OpeningHours
+                    highligtedDay={new Date().getDay()}
+                    hours={data.openingHours?.text}
+                  />
+                  {data.website && (
+                    <InfoWithCopy
+                      copy={data.website}
+                      tooltipLabel="Copy website URL"
+                      successMessage="Website URL copied to clipboard!"
+                      asChild
+                    >
+                      <Link
+                        href={data.website}
+                        target="_blank"
+                        className="ring-offset-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+                      >
+                        <IconWorld className="shrink-0" />
+                        {data.website}
+                      </Link>
+                    </InfoWithCopy>
+                  )}
+                  {data.phone && (
+                    <InfoWithCopy
+                      copy={data.phone}
+                      tooltipLabel="Copy phone number"
+                      successMessage="Phone number copied to clipboard!"
+                    >
+                      <IconPhone className="shrink-0" />
+                      {data.phone}
+                    </InfoWithCopy>
+                  )}
+                </TooltipProvider>
+              </div>
+              {(data.accessibilityOptions ||
+                data.parkingOptions ||
+                data.paymentOptions ||
+                data.amenities ||
+                data.additionalInfo) && <Separator />}
+              <InfoGrid
+                info={data.accessibilityOptions}
+                header="Wheelchair Accessibility"
+              />
+              <InfoGrid info={data.paymentOptions} header="Payment Options" />
+              <InfoGrid info={data.parkingOptions} header="Parking Options" />
+              <InfoGrid
+                info={data.amenities}
+                header="Amenities"
+                check={false}
+              />
+              <InfoGrid
+                info={data.additionalInfo}
+                header="Additional Info"
+                check={false}
+              />
             </div>
-            {(data.accessibilityOptions ||
-              data.parkingOptions ||
-              data.paymentOptions ||
-              data.amenities ||
-              data.additionalInfo) && <Separator />}
-            <InfoGrid
-              info={data.accessibilityOptions}
-              header="Wheelchair Accessibility"
-            />
-            <InfoGrid info={data.paymentOptions} header="Payment Options" />
-            <InfoGrid info={data.parkingOptions} header="Parking Options" />
-            <InfoGrid info={data.amenities} header="Amenities" check={false} />
-            <InfoGrid
-              info={data.additionalInfo}
-              header="Additional Info"
-              check={false}
-            />
-          </div>
+          </TabDisable>
         </div>
       </motion.div>
     </motion.div>

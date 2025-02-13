@@ -13,9 +13,7 @@ export default function MapView({
       {/* <Map
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         initialViewState={{
-          bounds: initialBounds.map((lowHigh) =>
-            lowHigh.map((coord) => parseFloat(coord)),
-          ) as BoundingBox,
+          bounds: initialBounds,
         }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
         reuseMaps
