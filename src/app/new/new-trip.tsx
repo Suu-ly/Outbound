@@ -144,77 +144,81 @@ export default function NewTrip({ userId }: { userId: string }) {
 
   return (
     <>
-      <AutoComplete
-        listItems={autocomplete}
-        listElement={(data) => (
-          <div>
-            {data.label}
-            {data.subtitle && (
-              <div className="text-xs text-slate-500">{data.subtitle}</div>
-            )}
-          </div>
-        )}
-        listValueFunction={(data) => data.id}
-        inputReplaceFunction={(data) => data.label}
-        emptyMessage="No results found!"
-        value={value}
-        setValue={setValue}
-        onUserInput={(string) => {
-          debounce(() => setDebouncedValue(string));
-        }}
-        onSelectItem={(data) => {
-          setSelectedId(data);
-          setError((prev) => ({ calendar: prev.calendar }));
-        }}
-        inputLarge={true}
-        placeholder="Where to?"
-        inputLeft={<IconWorldSearch />}
-      />
-      {!!error.search && (
-        <p className="text-center text-sm font-medium text-red-500">
-          {error.search}
-        </p>
-      )}
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="large"
-            className={
-              "w-full justify-between rounded-xl bg-white py-3 font-normal hover:bg-slate-50 [&_svg]:size-6"
-            }
-          >
-            <IconCalendarWeek />
-            <div className="w-full text-left text-slate-900">
-              {date && date.from ? (
-                date.from.toLocaleDateString(undefined, {
-                  day: "numeric",
-                  month: "short",
-                  year: "2-digit",
-                })
-              ) : (
-                <span className="text-slate-400">Start</span>
+      <div className="w-full space-y-2">
+        <AutoComplete
+          listItems={autocomplete}
+          listElement={(data) => (
+            <div>
+              {data.label}
+              {data.subtitle && (
+                <div className="text-xs text-slate-500">{data.subtitle}</div>
               )}
             </div>
-            <Separator orientation="vertical" className="mx-1" />
-            <div className="w-full text-left text-slate-900">
-              {date && date.to ? (
-                date.to.toLocaleDateString(undefined, {
-                  day: "numeric",
-                  month: "short",
-                  year: "2-digit",
-                })
-              ) : (
-                <span className="text-slate-400">End</span>
-              )}
-            </div>
-          </Button>
-        </PopoverTrigger>
-        {!date && !!error.calendar && (
+          )}
+          listValueFunction={(data) => data.id}
+          inputReplaceFunction={(data) => data.label}
+          emptyMessage="No results found!"
+          value={value}
+          setValue={setValue}
+          onUserInput={(string) => {
+            debounce(() => setDebouncedValue(string));
+          }}
+          onSelectItem={(data) => {
+            setSelectedId(data);
+            setError((prev) => ({ calendar: prev.calendar }));
+          }}
+          inputLarge={true}
+          placeholder="Where to?"
+          inputLeft={<IconWorldSearch />}
+        />
+        {!!error.search && (
           <p className="text-center text-sm font-medium text-red-500">
-            {error.calendar}
+            {error.search}
           </p>
         )}
+      </div>
+      <Popover>
+        <div className="w-full space-y-2">
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="large"
+              className={
+                "w-full justify-between rounded-xl bg-white py-3 font-normal hover:bg-slate-50 [&_svg]:size-6"
+              }
+            >
+              <IconCalendarWeek />
+              <div className="w-full text-left text-slate-900">
+                {date && date.from ? (
+                  date.from.toLocaleDateString(undefined, {
+                    day: "numeric",
+                    month: "short",
+                    year: "2-digit",
+                  })
+                ) : (
+                  <span className="text-slate-400">Start</span>
+                )}
+              </div>
+              <Separator orientation="vertical" className="mx-1" />
+              <div className="w-full text-left text-slate-900">
+                {date && date.to ? (
+                  date.to.toLocaleDateString(undefined, {
+                    day: "numeric",
+                    month: "short",
+                    year: "2-digit",
+                  })
+                ) : (
+                  <span className="text-slate-400">End</span>
+                )}
+              </div>
+            </Button>
+          </PopoverTrigger>
+          {!date && !!error.calendar && (
+            <p className="text-center text-sm font-medium text-red-500">
+              {error.calendar}
+            </p>
+          )}
+        </div>
         <PopoverContent className="w-auto p-0">
           <Calendar
             disabled={{ before: new Date() }}
