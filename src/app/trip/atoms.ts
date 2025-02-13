@@ -1,5 +1,5 @@
 import { SelectPlace, SelectTripPlace } from "@/server/db/schema";
-import { TripPlaceDetails } from "@/server/types";
+import { BoundingBox, TripPlaceDetails } from "@/server/types";
 import { atom } from "jotai";
 import { MotionValue } from "motion/react";
 
@@ -32,28 +32,24 @@ export const isTripAdminAtom = atom<boolean>(false);
 //
 export const mapActiveMarkerAtom = atom<{
   position: [number, number];
-  bounds: [[number, number], [number, number]];
+  bounds: BoundingBox;
   type: "skipped" | "saved" | "undecided";
 }>();
 
 export const tripLocationAtom = atom<{
   name: string;
-  bounds: [[number, number], [number, number]];
-  windowXStep: number;
-  windowYStep: number;
-  currentXWindow: number;
-  currentYWindow: number;
+  viewport: BoundingBox;
+  windows: BoundingBox[];
+  currentSearchIndex: number;
   nextPageToken: string[] | null;
 }>({
   name: "",
-  bounds: [
+  viewport: [
     [0, 0],
     [0, 0],
   ],
-  windowXStep: 1,
-  windowYStep: 1,
-  currentXWindow: 1,
-  currentYWindow: 1,
+  windows: [],
+  currentSearchIndex: 0,
   nextPageToken: null,
 });
 

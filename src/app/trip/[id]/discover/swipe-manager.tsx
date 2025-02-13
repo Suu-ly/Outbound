@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { data } from "@/resources/mock-data";
 import { updateTripWindows } from "@/server/actions";
 import { ApiResponse, DiscoverReturn } from "@/server/types";
 import { IconHeart, IconX } from "@tabler/icons-react";
@@ -35,10 +34,7 @@ const NO_MORE_RESULT_TOKEN = "done";
 
 type QueryValue = {
   query: string;
-  currentXWindow: number;
-  currentYWindow: number;
-  windowXStep: number;
-  windowYStep: number;
+  currentSearchIndex: number;
   nextPageToken: string[] | null;
 };
 
@@ -70,107 +66,53 @@ export function DiscoverManager() {
 
   const [queryValue, setQueryValue] = useState<QueryValue>({
     query: "",
-    currentXWindow: tripLocation.currentXWindow,
-    currentYWindow: tripLocation.currentYWindow,
-    windowXStep: tripLocation.windowXStep,
-    windowYStep: tripLocation.windowYStep,
+    currentSearchIndex: tripLocation.currentSearchIndex,
     nextPageToken: tripLocation.nextPageToken,
   });
 
   const id = useParams<{ id: string }>().id;
 
-  const lonStep =
-    (tripLocation.bounds[1][0] - tripLocation.bounds[0][0]) /
-    tripLocation.windowXStep;
-  const latStep =
-    (tripLocation.bounds[1][1] - tripLocation.bounds[0][1]) /
-    tripLocation.windowYStep;
-
-  const getNextXWindow = useCallback((prev: QueryValue) => {
-    if (!prev.nextPageToken) {
-      if (prev.currentXWindow < prev.windowXStep) {
-        return prev.currentXWindow + 1;
+  const getNextIndex = useCallback(
+    (prev: QueryValue, windowsLength: number) => {
+      if (!prev.nextPageToken) {
+        if (prev.currentSearchIndex < windowsLength - 1) {
+          return prev.currentSearchIndex + 1;
+        }
+        return prev.currentSearchIndex;
       }
-      // X is maximum
-      // reset to X to 1 and Y + 1 or end
-      if (prev.currentYWindow < prev.windowYStep) {
-        return 1;
+
+      const nextLargerToken = prev.nextPageToken.findIndex(
+        (val, index) =>
+          val !== NO_MORE_RESULT_TOKEN && index > prev.currentSearchIndex,
+      );
+      if (nextLargerToken !== -1) {
+        return nextLargerToken;
       }
-      return prev.currentXWindow;
-    }
 
-    const currentIndex =
-      (prev.currentYWindow - 1) * prev.windowXStep + prev.currentXWindow - 1;
-    const nextLargerToken = prev.nextPageToken.findIndex(
-      (val, index) => val !== NO_MORE_RESULT_TOKEN && index > currentIndex,
-    );
-    if (nextLargerToken !== -1) {
-      const indexOfNextSearch = nextLargerToken;
-      return (indexOfNextSearch % prev.windowXStep) + 1;
-    }
-
-    const nextToken = prev.nextPageToken.findIndex(
-      (val) => val !== NO_MORE_RESULT_TOKEN,
-    );
-    if (nextToken !== -1) {
-      const indexOfNextSearch = nextToken;
-      return (indexOfNextSearch % prev.windowXStep) + 1;
-    }
-
-    return prev.currentXWindow;
-  }, []);
-
-  const getNextYWindow = useCallback((prev: QueryValue) => {
-    if (!prev.nextPageToken) {
-      if (prev.currentXWindow < prev.windowXStep) {
-        return prev.currentYWindow;
+      const nextToken = prev.nextPageToken.findIndex(
+        (val) => val !== NO_MORE_RESULT_TOKEN,
+      );
+      if (nextToken !== -1) {
+        return nextToken;
       }
-      // X is maximum
-      // reset to X to 1 and Y + 1 or end
-      if (prev.currentYWindow < prev.windowYStep) {
-        return prev.currentYWindow + 1;
-      }
-      return prev.currentYWindow;
-    }
-
-    const currentIndex =
-      (prev.currentYWindow - 1) * prev.windowXStep + prev.currentXWindow - 1;
-
-    const nextLargerToken = prev.nextPageToken.findIndex(
-      (val, index) => val !== NO_MORE_RESULT_TOKEN && index > currentIndex,
-    );
-    if (nextLargerToken !== -1) {
-      const indexOfNextSearch = nextLargerToken;
-      return Math.floor(indexOfNextSearch / prev.windowXStep) + 1;
-    }
-
-    const nextToken = prev.nextPageToken.findIndex(
-      (val) => val !== NO_MORE_RESULT_TOKEN,
-    );
-    if (nextToken !== -1) {
-      const indexOfNextSearch = nextToken;
-      return Math.floor(indexOfNextSearch / prev.windowXStep) + 1;
-    }
-
-    return prev.currentYWindow;
-  }, []);
+      return prev.currentSearchIndex;
+    },
+    [],
+  );
 
   const getNextPageTokenArray = useCallback(
-    (
-      array: string[] | null,
-      dimension: number,
-      index: number,
-      token: string | null,
-    ) => {
+    (array: string[] | null, index: number, token: string | null) => {
       if (array) {
         array[index] = token ?? NO_MORE_RESULT_TOKEN;
         return [...array];
       }
-      const newArray: string[] = new Array(dimension).fill(NO_TOKEN_STRING);
+      const newArray: string[] = new Array(tripLocation.windows.length).fill(
+        NO_TOKEN_STRING,
+      );
       newArray[index] = token ?? NO_MORE_RESULT_TOKEN;
       return newArray;
     },
-    [],
+    [tripLocation.windows.length],
   );
 
   const getDiscoverPlaces = async (queryValue: QueryValue) => {
@@ -183,14 +125,13 @@ export function DiscoverManager() {
     if (data.status === "success") {
       setDiscoverLocations((prev) => prev.concat(data.data.places));
       const newWindows = {
-        currentXWindow: getNextXWindow(queryValue),
-        currentYWindow: getNextYWindow(queryValue),
+        currentSearchIndex: getNextIndex(
+          queryValue,
+          tripLocation.windows.length,
+        ),
         nextPageToken: getNextPageTokenArray(
           queryValue.nextPageToken,
-          queryValue.windowXStep * queryValue.windowYStep,
-          (queryValue.currentYWindow - 1) * queryValue.windowXStep +
-            queryValue.currentXWindow -
-            1,
+          queryValue.currentSearchIndex,
           data.data.nextPageToken,
         ),
       };
@@ -222,29 +163,28 @@ export function DiscoverManager() {
         ["location", tripLocation.name],
         ["id", id],
       ]);
-      const tokenIndex =
-        (tripLocation.currentYWindow - 1) * tripLocation.windowXStep +
-        tripLocation.currentXWindow -
-        1;
       if (
         tripLocation.nextPageToken &&
-        tripLocation.nextPageToken[tokenIndex] !== NO_TOKEN_STRING
+        (tripLocation.nextPageToken[tripLocation.currentSearchIndex] !==
+          NO_TOKEN_STRING ||
+          tripLocation.nextPageToken[tripLocation.currentSearchIndex] !==
+            NO_MORE_RESULT_TOKEN)
       ) {
-        queryUrl.set("nextPageToken", tripLocation.nextPageToken[tokenIndex]);
+        queryUrl.set(
+          "nextPageToken",
+          tripLocation.nextPageToken[tripLocation.currentSearchIndex],
+        );
       }
       const searchBounds = [
         [
-          tripLocation.bounds[0][0] +
-            (tripLocation.currentXWindow - 1) * lonStep,
-          tripLocation.bounds[0][1] +
-            (tripLocation.currentYWindow - 1) * latStep,
+          tripLocation.windows[tripLocation.currentSearchIndex][0][0],
+          tripLocation.windows[tripLocation.currentSearchIndex][0][1],
         ],
         [
-          tripLocation.bounds[0][0] + tripLocation.currentXWindow * lonStep,
-          tripLocation.bounds[0][1] + tripLocation.currentYWindow * latStep,
+          tripLocation.windows[tripLocation.currentSearchIndex][1][0],
+          tripLocation.windows[tripLocation.currentSearchIndex][1][1],
         ],
       ];
-      console.log(searchBounds);
       for (let i = 0; i < searchBounds.length; i++) {
         for (let j = 0; j < searchBounds[i].length; j++) {
           queryUrl.append("bounds", searchBounds[i][j].toString());
@@ -252,10 +192,7 @@ export function DiscoverManager() {
       }
       setQueryValue({
         query: queryUrl.toString(),
-        currentXWindow: tripLocation.currentXWindow,
-        currentYWindow: tripLocation.currentYWindow,
-        windowXStep: tripLocation.windowXStep,
-        windowYStep: tripLocation.windowYStep,
+        currentSearchIndex: tripLocation.currentSearchIndex,
         nextPageToken: tripLocation.nextPageToken,
       });
     }
@@ -275,8 +212,11 @@ export function SwipeManager() {
   }>(null);
 
   const setActiveLocation = useSetAtom(mapActiveMarkerAtom);
-  // const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
-  const [discoverLocations, setDiscoverLocations] = useState(data);
+  const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
+  // const [discoverLocations, setDiscoverLocations] = useState([
+  //   ...data,
+  //   ...data,
+  // ]);
   const drawerProgress = useAtomValue(drawerDragProgressAtom);
   const buttonsY = useTransform(() => 100 - drawerProgress?.get() * 100);
 
@@ -335,7 +275,7 @@ export function SwipeManager() {
       <>
         <BottomSheet>
           {discoverLocations.map((location, index) => {
-            // Only render the currently active card and the card below it for better performance
+            // Only render the currently active card and the 2 cards below it for better performance
             if (index > 2) return;
             return (
               <Card
@@ -392,7 +332,7 @@ export function SwipeManager() {
   return (
     <main className="max-h-full w-full sm:w-1/2 xl:w-1/3">
       {discoverLocations.map((location, index) => {
-        // Only render the currently active card and the card below it for better performance
+        // Only render the currently active card and the 2 cards below it for better performance
         if (index > 2) return;
         return (
           <Card

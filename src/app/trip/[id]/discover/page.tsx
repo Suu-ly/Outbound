@@ -1,9 +1,9 @@
-import { SwipeManager } from "./swipe-manager";
+import { DiscoverManager, SwipeManager } from "./swipe-manager";
 
 export default async function TripSwipePage() {
   return (
     <>
-      {/* <DiscoverManager /> */}
+      <DiscoverManager />
       <SwipeManager />
     </>
   );

@@ -4,7 +4,6 @@ import {
   date,
   integer,
   jsonb,
-  numeric,
   pgEnum,
   pgTable,
   real,
@@ -14,7 +13,7 @@ import {
   unique,
   varchar,
 } from "drizzle-orm/pg-core";
-import { PlacesReview } from "../types";
+import { BoundingBox, PlacesReview } from "../types";
 
 export const loginTypeEnum = pgEnum("login_type_enum", [
   "gmail",
@@ -100,12 +99,8 @@ export const location = pgTable("location", {
   name: varchar("name", { length: 255 }).notNull(),
   coverImg: text("cover_img").notNull(),
   coverImgSmall: text("cover_img_small").notNull(),
-  bounds: numeric("bounds", { precision: 13, scale: 10 })
-    .array(2)
-    .array(2)
-    .notNull(),
-  windowXStep: integer("window_x_step").notNull(),
-  windowYStep: integer("window_y_step").notNull(),
+  viewport: jsonb("viewport").notNull().$type<BoundingBox>(),
+  windows: jsonb("windows").notNull().$type<BoundingBox[]>(),
 });
 
 export type InsertLocation = typeof location.$inferInsert;
@@ -200,8 +195,7 @@ export const trip = pgTable("trip", {
   endDate: date("end_date", { mode: "date" }).notNull(),
   private: boolean("private").notNull().default(true),
   roundUpTime: boolean("round_up_time").notNull().default(true),
-  currentXWindow: integer("current_X_window").default(1).notNull(),
-  currentYWindow: integer("current_Y_window").default(1).notNull(),
+  currentSearchIndex: integer("current_search_index").default(0).notNull(),
   nextPageToken: text("next_page_token").array(),
   startTime: varchar("start_time", { length: 4 }).notNull().default("0900"),
   endTime: varchar("end_time", { length: 4 }).notNull().default("2100"),

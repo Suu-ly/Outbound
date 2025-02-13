@@ -63,13 +63,9 @@ const HydrateAtoms = ({
       tripLocationAtom,
       {
         name: firstRow.location.name,
-        bounds: firstRow.location.bounds.map((coords) =>
-          coords.map((val) => parseFloat(val)),
-        ) as [[number, number], [number, number]],
-        windowXStep: firstRow.location.windowXStep,
-        windowYStep: firstRow.location.windowYStep,
-        currentXWindow: firstRow.trip.currentXWindow,
-        currentYWindow: firstRow.trip.currentYWindow,
+        viewport: firstRow.location.viewport,
+        windows: firstRow.location.windows,
+        currentSearchIndex: firstRow.trip.currentSearchIndex,
         nextPageToken: firstRow.trip.nextPageToken,
       },
     ],

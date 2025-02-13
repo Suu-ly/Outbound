@@ -75,7 +75,7 @@ export default async function TripLayout({
       </Header>
       <div className="relative flex h-[calc(100dvh-56px)] overflow-hidden">
         {children}
-        <MapView initialBounds={data[0].location.bounds} />
+        <MapView initialBounds={data[0].location.viewport} />
       </div>
     </TripProviders>
   );

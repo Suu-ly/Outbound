@@ -212,8 +212,12 @@ export async function GET(request: NextRequest) {
       )
       .onConflictDoNothing();
 
-    await Promise.all([
-      db.insert(tripPlace).values(tripPlaceInsert).onConflictDoNothing(),
+    const [returnedIds] = await Promise.all([
+      db
+        .insert(tripPlace)
+        .values(tripPlaceInsert)
+        .onConflictDoNothing()
+        .returning({ id: tripPlace.placeId }),
       redis.set(
         location + bounds.toString() + nextPageToken,
         {
@@ -227,8 +231,16 @@ export async function GET(request: NextRequest) {
       ),
     ]);
 
+    const newIds: string[] = [];
+    for (let i = 0; i < returnedIds.length; i++) {
+      newIds.push(returnedIds[i].id);
+    }
+
     return Response.json({
-      data: { places: response, nextPageToken: places.nextPageToken ?? null },
+      data: {
+        places: response.filter((place) => newIds.includes(place.id)),
+        nextPageToken: places.nextPageToken ?? null,
+      },
       status: "success",
     });
   }

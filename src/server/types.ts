@@ -254,3 +254,37 @@ export type DiscoverReturn = {
   places: TripPlaceDetails[];
   nextPageToken: string | null;
 };
+
+type GeoJsonValues =
+  | {
+      type: "Point";
+      coordinates: [number, number];
+    }
+  | {
+      type: "MultiPolygon";
+      coordinates: [[number, number][]][];
+    }
+  | {
+      type: "Polygon";
+      coordinates: [[number, number][]];
+    };
+
+export type NominatimResponse = {
+  place_id: number;
+  licence: string;
+  osm_type: string;
+  osm_id: number;
+  lat: string;
+  lon: string;
+  class: string;
+  type: string;
+  place_rank: number;
+  importance: number;
+  addresstype: string;
+  name: string;
+  display_name: string;
+  boundingbox: [string, string, string, string];
+  geojson: GeoJsonValues;
+}[];
+
+export type BoundingBox = [[number, number], [number, number]];

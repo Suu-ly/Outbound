@@ -90,18 +90,14 @@ export async function addNewTrip(
 }
 
 export async function updateTripWindows(
-  newWindows: Pick<
-    SelectTrip,
-    "currentXWindow" | "currentYWindow" | "nextPageToken"
-  >,
+  newWindows: Pick<SelectTrip, "currentSearchIndex" | "nextPageToken">,
   id: string,
 ): Promise<ApiResponse<true>> {
   try {
     await db
       .update(trip)
       .set({
-        currentXWindow: newWindows.currentXWindow,
-        currentYWindow: newWindows.currentYWindow,
+        currentSearchIndex: newWindows.currentSearchIndex,
         nextPageToken: newWindows.nextPageToken,
       })
       .where(eq(trip.id, id));

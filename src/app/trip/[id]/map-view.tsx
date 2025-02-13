@@ -1,11 +1,12 @@
 "use client";
+import { BoundingBox } from "@/server/types";
 import "mapbox-gl/dist/mapbox-gl.css";
 // import { Map, NavigationControl } from "react-map-gl";
 
 export default function MapView({
   initialBounds,
 }: {
-  initialBounds: string[][];
+  initialBounds: BoundingBox;
 }) {
   return (
     <div className="size-full bg-sky-300 sm:w-1/2 xl:w-2/3">
@@ -14,7 +15,7 @@ export default function MapView({
         initialViewState={{
           bounds: initialBounds.map((lowHigh) =>
             lowHigh.map((coord) => parseFloat(coord)),
-          ) as [[number, number], [number, number]],
+          ) as BoundingBox,
         }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
         reuseMaps
