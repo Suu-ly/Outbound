@@ -49,9 +49,9 @@ const getPlaceSuffix = (
 ) => {
   let country = "",
     city = "";
-  for (let i = components.length - 1; i >= 0; i--) {
-    if (components[i].types.includes("postal_code"))
-      return components[i].longText;
+  for (let i = components.length - 1; i >= 0 || (!city && !country); i--) {
+    // if (components[i].types.includes("postal_code"))
+    //   return components[i].longText;
     if (!country && components[i].types.includes("country"))
       country = components[i].longText;
     if (!city && components[i].types.includes("administrative_area_level_1"))
@@ -66,7 +66,7 @@ const getNumWindows = (high: number, low: number) => {
   return Math.ceil(1.5 * Math.log2(high - low + 1) + 0.5);
 };
 
-const intersects = (
+const polygonIntersects = (
   box: BoundingBox,
   polygon: [number, number][],
   gradients: number[],
@@ -142,7 +142,10 @@ const getSearchWindows = (
         [minLon + xIndex * xStep, minLat + yIndex * yStep],
         [minLon + (xIndex + 1) * xStep, minLat + (yIndex + 1) * yStep],
       ];
-      if (intersects(box, currentPolygon, memoizeGradients)) {
+      if (
+        xWindow * yWindow < 3 ||
+        polygonIntersects(box, currentPolygon, memoizeGradients)
+      ) {
         windows.push(box);
       }
     }
