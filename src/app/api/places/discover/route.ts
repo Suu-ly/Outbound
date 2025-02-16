@@ -3,6 +3,7 @@ import { redis } from "@/server/cache";
 import { db } from "@/server/db";
 import { InsertTripPlace, place, tripPlace } from "@/server/db/schema";
 import {
+  ApiResponse,
   TripPlaceDetails,
   type GoogleError,
   type PlacesResult,
@@ -65,9 +66,41 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const data = await redis.get(location + bounds.toString() + nextPageToken);
+  const data = await redis.get<
+    Extract<
+      ApiResponse<{ places: TripPlaceDetails[]; nextPageToken: string | null }>,
+      { status: "success" }
+    >
+  >(location + bounds.toString() + nextPageToken);
+  if (data) {
+    const tripPlaceInsert: InsertTripPlace[] = [];
+    for (let i = 0; i < data.data.places.length; i++) {
+      tripPlaceInsert.push({
+        placeId: data.data.places[i].id,
+        tripId: id,
+      });
+    }
+    // No need to insert places into db first as places alr exist if redis cache is hit
+    // Insert places into trip place
+    const returnedIds = await db
+      .insert(tripPlace)
+      .values(tripPlaceInsert)
+      .onConflictDoNothing()
+      .returning({ id: tripPlace.placeId });
 
-  if (data) return Response.json(data);
+    const newIds: string[] = [];
+    for (let i = 0; i < returnedIds.length; i++) {
+      newIds.push(returnedIds[i].id);
+    }
+
+    return Response.json({
+      data: {
+        places: data.data.places.filter((place) => newIds.includes(place.id)),
+        nextPageToken: data.data.nextPageToken,
+      },
+      status: "success",
+    });
+  }
 
   const response = await fetch(
     "https://places.googleapis.com/v1/places:searchText",
@@ -244,6 +277,7 @@ export async function GET(request: NextRequest) {
       status: "success",
     });
   }
+  // No places returned
   return Response.json({
     data: { places: [], nextPageToken: null },
     status: "success",

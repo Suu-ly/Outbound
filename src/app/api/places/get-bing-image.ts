@@ -14,13 +14,12 @@ export default async function getBingImage(
     ["count", "5"],
   ]);
 
-  const redisData = await redis.get(urlQuery);
+  const redisData = await redis.get<{
+    data: { image: string; thumbnail: string };
+    status: "success";
+  }>(urlQuery);
 
-  if (redisData)
-    return redisData as {
-      data: { image: string; thumbnail: string };
-      status: "success";
-    };
+  if (redisData) return redisData;
 
   const data = await fetch(
     `https://api.bing.microsoft.com/v7.0/images/search?${nameURL.toString()}&${urlQuery}`,

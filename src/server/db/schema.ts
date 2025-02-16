@@ -5,11 +5,11 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   real,
   serial,
   text,
   timestamp,
-  unique,
   varchar,
 } from "drizzle-orm/pg-core";
 import { BoundingBox, PlacesReview } from "../types";
@@ -199,7 +199,6 @@ export const trip = pgTable("trip", {
   startTime: varchar("start_time", { length: 4 }).notNull().default("0900"),
   endTime: varchar("end_time", { length: 4 }).notNull().default("2100"),
   updatedAt: timestamp("updated_at", {
-    withTimezone: true,
     mode: "date",
     precision: 3,
   })
@@ -236,7 +235,6 @@ export const tripPlaceTypeEnum = pgEnum("trip_place_type_enum", [
 export const tripPlace = pgTable(
   "trip_place",
   {
-    id: serial("id").primaryKey(),
     tripId: varchar("trip_id", { length: 12 })
       .references(() => trip.id, { onDelete: "cascade" })
       .notNull(),
@@ -248,10 +246,21 @@ export const tripPlace = pgTable(
     }),
     note: text("note"),
     type: tripPlaceTypeEnum("type").default("undecided").notNull(),
-    order: text("order").notNull(),
+    order: text("order"),
+    createdAt: timestamp("created_at", {
+      mode: "date",
+      precision: 3,
+    })
+      .defaultNow()
+      .notNull(),
   },
   (table) => {
-    return [unique("composite").on(table.tripId, table.placeId)];
+    return [
+      primaryKey({
+        name: "trip_place_id",
+        columns: [table.tripId, table.placeId],
+      }),
+    ];
   },
 );
 
@@ -266,11 +275,11 @@ export const tripTravelTimeTypeEnum = pgEnum("trip_travel_time_type_enum", [
 
 export const tripTravelTime = pgTable("trip_travel_time", {
   id: serial("id").primaryKey(),
-  from: integer("from")
-    .references(() => tripPlace.id, { onDelete: "cascade" })
+  from: text("from")
+    .references(() => place.id, { onDelete: "cascade" })
     .notNull(),
-  to: integer("to")
-    .references(() => tripPlace.id, { onDelete: "cascade" })
+  to: text("to")
+    .references(() => place.id, { onDelete: "cascade" })
     .notNull(),
   type: tripTravelTimeTypeEnum("type").default("drive").notNull(),
   walk: jsonb("walk").$type<{

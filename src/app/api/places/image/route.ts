@@ -1,6 +1,6 @@
 import { auth } from "@/server/auth";
 import { redis } from "@/server/cache";
-import { type GoogleError } from "@/server/types";
+import { ApiResponse, type GoogleError } from "@/server/types";
 import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
 
@@ -49,7 +49,8 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const data = await redis.get(name);
+  const data =
+    await redis.get<Extract<ApiResponse<string>, { status: "success" }>>(name);
 
   if (data) return Response.json(data);
 
@@ -78,6 +79,15 @@ export async function GET(request: NextRequest) {
       { status: 500 },
     );
   }
+
+  await redis.set(
+    name,
+    {
+      data: image.photoUri,
+      status: "success",
+    },
+    { ex: 259200 }, // 3 days
+  );
 
   return Response.json({
     data: image.photoUri,

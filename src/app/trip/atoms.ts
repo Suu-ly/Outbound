@@ -1,3 +1,4 @@
+import { data } from "@/resources/mock-data";
 import { SelectPlace, SelectTripPlace } from "@/server/db/schema";
 import { BoundingBox, TripPlaceDetails } from "@/server/types";
 import { atom } from "jotai";
@@ -57,7 +58,9 @@ export const tripPlacesAtom = atom<
   Record<string, (SelectTripPlace & SelectPlace)[]>
 >({});
 
-export const discoverPlacesAtom = atom<TripPlaceDetails[]>([]);
+export const discoverPlacesAtom = atom<TripPlaceDetails[]>(
+  process.env.NEXT_PUBLIC_USE_REAL_DATA === "true" ? [] : [...data, ...data],
+);
 
 export const activePlaceIndexAtom = atom<number>(0);
 

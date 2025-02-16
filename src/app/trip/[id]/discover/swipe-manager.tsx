@@ -3,8 +3,11 @@
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { data } from "@/resources/mock-data";
-import { updateTripWindows } from "@/server/actions";
+import {
+  setPlaceAsInterested,
+  setPlaceAsUninterested,
+  updateTripWindows,
+} from "@/server/actions";
 import { ApiResponse, DiscoverReturn } from "@/server/types";
 import { IconHeart, IconX } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
@@ -207,6 +210,7 @@ export function DiscoverManager() {
 export function SwipeManager() {
   const path = usePathname();
   const isLarge = useMediaQuery("(min-width: 640px)");
+  const tripId = useParams<{ id: string }>().id;
 
   const cardRef = useRef<{
     triggerAccept: () => void;
@@ -214,11 +218,8 @@ export function SwipeManager() {
   }>(null);
 
   const setActiveLocation = useSetAtom(mapActiveMarkerAtom);
-  // const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
-  const [discoverLocations, setDiscoverLocations] = useState([
-    ...data,
-    ...data,
-  ]);
+  const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
+
   const drawerProgress = useAtomValue(drawerDragProgressAtom);
   const buttonsY = useTransform(() => 100 - drawerProgress?.get() * 100);
 
@@ -242,10 +243,14 @@ export function SwipeManager() {
   );
 
   const onDecision = useCallback(
-    (id: string, accepted: boolean) => {
+    async (id: string, accepted: boolean) => {
       setActivePlaceIndex((prev) => prev + 1);
+      const res = accepted
+        ? await setPlaceAsInterested(id, tripId)
+        : await setPlaceAsUninterested(id, tripId);
+      if (res.status === "error") toast.error(res.message);
     },
-    [setActivePlaceIndex],
+    [setActivePlaceIndex, tripId],
   );
 
   const onRemove = useCallback(

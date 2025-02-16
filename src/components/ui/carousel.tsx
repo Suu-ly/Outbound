@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PlacesPhoto } from "@/server/types";
+import { ApiResponse, PlacesPhoto } from "@/server/types";
 import { IconArrowLeft, IconArrowRight } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { EmblaCarouselType } from "embla-carousel";
@@ -237,15 +237,15 @@ const CarouselGoogleImage = React.forwardRef<
   const inView = slidesInView.includes(index);
 
   const getGoogleImage = async (name: string) => {
-    return "";
-    // const urlParams = new URLSearchParams([["name", name]]);
-    // const data = await fetch(`/api/places/image?${urlParams.toString()}`)
-    //   .then((response) => response.json())
-    //   .then((data) => data as ApiResponse<string>);
-    // if (data.status === "error") {
-    //   throw new Error(data.message);
-    // }
-    // return data.data;
+    if (process.env.NEXT_PUBLIC_USE_REAL_DATA === "false") return "";
+    const urlParams = new URLSearchParams([["name", name]]);
+    const data = await fetch(`/api/places/image?${urlParams.toString()}`)
+      .then((response) => response.json())
+      .then((data) => data as ApiResponse<string>);
+    if (data.status === "error") {
+      throw new Error(data.message);
+    }
+    return data.data;
   };
 
   const { data } = useQuery({
