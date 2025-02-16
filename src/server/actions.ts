@@ -1,5 +1,6 @@
 "use server";
 
+import { getStartingIndex, insertAfter } from "@/lib/utils";
 import { differenceInCalendarDays } from "date-fns";
 import { eq } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
@@ -49,38 +50,26 @@ export async function addNewTrip(
           });
           validId = tripId;
         } catch {
+          console.log("This ID already exists", tripId);
           // Id already exists
-          if (retries === 1)
+          if (retries === 0)
             throw new Error(`Failed to generate a unique trip ID!`);
           retries -= 1;
         }
       }
 
       const numberOfDays = differenceInCalendarDays(dates.to, dates.from) + 1;
-      const days: InsertTripDay[] = new Array(numberOfDays).fill({
-        tripId: validId,
-      });
-      const newDays = await tx
-        .insert(tripDay)
-        .values(days)
-        .returning({ id: tripDay.id });
-
-      if (newDays.length > 1) {
-        const queries = [];
-        for (let i = 0; i < newDays.length; i++) {
-          queries.push(
-            tx
-              .update(tripDay)
-              .set({
-                prevDay: i === 0 ? undefined : newDays[i - 1].id,
-                nextDay:
-                  i === newDays.length - 1 ? undefined : newDays[i + 1].id,
-              })
-              .where(eq(tripDay.id, newDays[i].id)),
-          );
-        }
-        await Promise.all(queries);
+      const days: InsertTripDay[] = new Array(numberOfDays);
+      let order = getStartingIndex();
+      for (let day = 0; day < numberOfDays; day++) {
+        days[day] = {
+          tripId: validId,
+          order: order,
+        };
+        order = insertAfter(order);
       }
+
+      await tx.insert(tripDay).values(days);
 
       return validId;
     })

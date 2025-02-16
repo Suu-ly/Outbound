@@ -1,5 +1,4 @@
 import {
-  AnyPgColumn,
   boolean,
   date,
   integer,
@@ -218,8 +217,7 @@ export const tripDay = pgTable("trip_day", {
       onDelete: "cascade",
     })
     .notNull(),
-  prevDay: integer("prev_day").references((): AnyPgColumn => tripDay.id),
-  nextDay: integer("next_day").references((): AnyPgColumn => tripDay.id),
+  order: text("order").notNull(),
   startTime: varchar("end_time", { length: 4 })
     .notNull()
     .default("auto")
@@ -250,12 +248,7 @@ export const tripPlace = pgTable(
     }),
     note: text("note"),
     type: tripPlaceTypeEnum("type").default("undecided").notNull(),
-    prevPlace: integer("prev_place").references(
-      (): AnyPgColumn => tripPlace.id,
-    ),
-    nextPlace: integer("next_place").references(
-      (): AnyPgColumn => tripPlace.id,
-    ),
+    order: text("order").notNull(),
   },
   (table) => {
     return [unique("composite").on(table.tripId, table.placeId)];
