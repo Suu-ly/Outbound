@@ -24,9 +24,7 @@ type BottomSheetProps = HTMLMotionProps<"div"> & {
 
 const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
   const [minimised, setMinimised] = useAtom(drawerMinimisedAtom);
-  const [finalPosition, setFinalPosition] = useState(
-    window.innerHeight - 56 + 24 - 64 - 112,
-  ); // 56 header size, 24 excess height, 64 bottom bar height, 104 = size of visible elements + 12px padding
+  const [finalPosition, setFinalPosition] = useState(0); // 56 header size, 24 excess height, 64 bottom bar height, 104 = size of visible elements + 12px padding
   const drawerY = useMotionValue(minimised ? finalPosition : 0);
   const drawerControls = useDragControls();
   const dragContainerRef = useRef<HTMLDivElement>(null);
@@ -103,6 +101,10 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
       if (e.targetTouches[0].clientY - dragStartPos.current > 0 && e.cancelable)
         e.preventDefault();
     };
+
+    if (typeof window !== undefined) {
+      setFinalPosition(window.innerHeight - 56 + 24 - 64 - 112);
+    }
 
     const dragContainer = dragContainerRef.current;
 

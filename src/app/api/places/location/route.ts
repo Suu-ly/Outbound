@@ -39,7 +39,9 @@ type BoundsResponse =
 
 const suffixRegex = new RegExp("/(State of|Province|department)/gi");
 
-const getPlaceSuffix = (
+const getPlaceName = (
+  name: string,
+  subtitle: string | null,
   components: {
     longText: string;
     shortText: string;
@@ -47,6 +49,7 @@ const getPlaceSuffix = (
     languageCode: string;
   }[],
 ) => {
+  if (!subtitle) return name;
   let country = "",
     city = "";
   for (let i = components.length - 1; i >= 0 || (!city && !country); i--) {
@@ -57,8 +60,8 @@ const getPlaceSuffix = (
     if (!city && components[i].types.includes("administrative_area_level_1"))
       city = components[i].longText;
   }
-  if (city) return city.replace(suffixRegex, "");
-  return country;
+  if (city && city !== name) return name + " " + city.replace(suffixRegex, "");
+  return name + " " + country;
 };
 
 // Visualise https://www.desmos.com/calculator/ldhs15ostc
@@ -256,14 +259,15 @@ export async function GET(request: NextRequest) {
   }
 
   const boundsQueryUrl = new URLSearchParams([
-    ["q", `${name} ${country ? getPlaceSuffix(bounds.addressComponents) : ""}`],
+    ["q", `${getPlaceName(name, country, bounds.addressComponents)}`],
     ["polygon_threshold", "0.05"],
     ["polygon_geojson", "1"],
     ["format", "json"],
     ["limit", "1"],
   ]);
   console.log(
-    `${name} ${country ? getPlaceSuffix(bounds.addressComponents) : ""}`,
+    "Nominatim search",
+    getPlaceName(name, country, bounds.addressComponents),
   );
 
   const polygon = await fetch(
