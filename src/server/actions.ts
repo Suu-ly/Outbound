@@ -2,7 +2,7 @@
 
 import { getStartingIndex, insertAfter } from "@/lib/utils";
 import { differenceInCalendarDays } from "date-fns";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { redirect } from "next/navigation";
 import { type DateRange } from "react-day-picker";
@@ -136,27 +136,17 @@ export async function setPlaceAsInterested(
   tripId: string,
 ): Promise<ApiResponse<true>> {
   try {
-    const lastPlace = await db
-      .select({ order: tripPlace.order })
-      .from(tripPlace)
-      .where(
-        and(
-          eq(tripPlace.tripId, tripId),
-          isNull(tripPlace.dayId),
-          eq(tripPlace.type, "saved"),
-        ),
-      )
-      .orderBy(desc(tripPlace.order))
-      .limit(1);
-    let order: string;
-    if (lastPlace.length > 0 && lastPlace[0].order)
-      order = insertAfter(lastPlace[0].order);
-    else order = getStartingIndex();
     await db
       .update(tripPlace)
       .set({
+        order: sql`insert_after(
+        (SELECT ${tripPlace.order} from ${tripPlace} WHERE 
+        ${tripPlace.tripId} = ${tripId} AND 
+        ${tripPlace.dayId} IS NULL AND 
+        ${tripPlace.type} = 'saved' AND
+        ${tripPlace.order} IS NOT NULL 
+        ORDER BY ${tripPlace.order} DESC LIMIT 1))`,
         type: "saved",
-        order: order,
       })
       .where(
         and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),

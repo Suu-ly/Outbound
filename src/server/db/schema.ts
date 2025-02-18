@@ -216,7 +216,7 @@ export const tripDay = pgTable("trip_day", {
       onDelete: "cascade",
     })
     .notNull(),
-  order: text("order").notNull(),
+  order: text("order").notNull(), // SET COLLATE TO POSIX OR C!
   startTime: varchar("end_time", { length: 4 })
     .notNull()
     .default("auto")
@@ -246,7 +246,7 @@ export const tripPlace = pgTable(
     }),
     note: text("note"),
     type: tripPlaceTypeEnum("type").default("undecided").notNull(),
-    order: text("order"),
+    order: text("order"), // SET COLLATE TO POSIX OR C!
     createdAt: timestamp("created_at", {
       mode: "date",
       precision: 3,
@@ -273,6 +273,7 @@ export const tripTravelTimeTypeEnum = pgEnum("trip_travel_time_type_enum", [
   "cycle",
 ]);
 
+// TODO create another table to store user preference
 export const tripTravelTime = pgTable("trip_travel_time", {
   id: serial("id").primaryKey(),
   from: text("from")
