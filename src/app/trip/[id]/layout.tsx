@@ -3,12 +3,79 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ButtonLink from "@/components/ui/button-link";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { location, trip, tripDay } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { location, place, trip, tripDay, tripPlace } from "@/server/db/schema";
+import {
+  DayData,
+  InitialQuery,
+  InitialQueryPrepared,
+  PlaceData,
+  TripPlaceDetails,
+} from "@/server/types";
+import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import MapView from "./map-view";
 import TripHeaderItems from "./trip-header-items";
 import TripProviders from "./trip-providers";
+
+function prepareData(data: InitialQuery[]): InitialQueryPrepared {
+  const firstRow = data[0];
+  const tripData = {
+    ...firstRow.trip,
+    viewport: firstRow.location.viewport,
+    coverImg: firstRow.location.coverImg,
+  };
+  const windowData = {
+    name: firstRow.location.name,
+    windows: firstRow.location.windows,
+    currentSearchIndex: firstRow.trip.currentSearchIndex,
+    nextPageToken: firstRow.trip.nextPageToken,
+  };
+  const dayData: DayData[] = [];
+  const discoverData: TripPlaceDetails[] = [];
+  const placeData: PlaceData = { saved: [] };
+
+  for (let i = 0, length = data.length; i < length; i++) {
+    const rowData = data[i];
+    const tempPlaceData = {
+      placeInfo: {
+        displayName: rowData.place.displayName,
+        primaryTypeDisplayName: rowData.place.primaryTypeDisplayName,
+        typeColor: rowData.place.typeColor,
+        location: rowData.place.location,
+        viewport: rowData.place.viewport,
+        coverImgSmall: rowData.place.coverImgSmall,
+        rating: rowData.place.rating,
+        googleMapsLink: rowData.place.googleMapsLink,
+        openingHours: rowData.place.openingHours,
+      },
+      userPlaceInfo: {
+        placeId: rowData.inner.placeId,
+        note: rowData.inner.note,
+        tripOrder: rowData.inner.tripOrder,
+      },
+    };
+    // Unplanned place
+    if (!rowData.inner.dayId && rowData.inner.type === "saved")
+      placeData.saved.push(tempPlaceData);
+    // Place with day
+    else if (rowData.inner.dayId) {
+      dayData.push({
+        dayId: rowData.inner.dayId,
+        dayOrder: rowData.inner.dayOrder,
+        dayStartTime: rowData.inner.dayStartTime,
+      });
+      if (rowData.inner.dayId in placeData)
+        placeData[rowData.inner.dayId].push(tempPlaceData);
+      else placeData[rowData.inner.dayId] = [tempPlaceData];
+
+      // Undecided place
+    } else if (rowData.inner.type === "undecided") {
+      discoverData.push(rowData.place);
+    }
+  }
+
+  return { tripData, windowData, dayData, discoverData, placeData };
+}
 
 export default async function TripLayout({
   params,
@@ -20,16 +87,101 @@ export default async function TripLayout({
   const id = (await params).id;
   const header = await headers();
 
+  const inner = db.$with("inner").as(
+    db
+      .select({
+        tripId:
+          sql<string>`COALESCE(${tripDay.tripId}, ${tripPlace.tripId})`.as(
+            "tripId",
+          ),
+        placeId: tripPlace.placeId,
+        dayId: tripPlace.dayId,
+        note: tripPlace.note,
+        type: tripPlace.type,
+        tripOrder: sql<string>`${tripPlace.order}`.as("tripOrder"),
+        dayOrder: sql<string>`${tripDay.order}`.as("dayOrder"),
+        tripPlaceCreated: tripPlace.createdAt,
+        dayStartTime: tripDay.startTime,
+      })
+      .from(tripDay)
+      .fullJoin(tripPlace, eq(tripPlace.dayId, tripDay.id)),
+  );
+
   const [userSession, data] = await Promise.all([
     auth.api.getSession({
       headers: header,
     }),
     db
-      .select()
+      .with(inner)
+      .select({
+        trip: {
+          id: trip.id,
+          name: trip.name,
+          userId: trip.userId,
+          startDate: trip.startDate,
+          endDate: trip.endDate,
+          private: trip.private,
+          roundUpTime: trip.roundUpTime,
+          currentSearchIndex: trip.currentSearchIndex,
+          nextPageToken: trip.nextPageToken,
+          startTime: trip.startTime,
+          endTime: trip.endTime,
+        },
+        inner: {
+          placeId: inner.placeId,
+          dayId: inner.dayId,
+          note: inner.note,
+          type: inner.type,
+          tripOrder: inner.tripOrder,
+          dayOrder: inner.dayOrder,
+          dayStartTime: inner.dayStartTime,
+        },
+        location: {
+          name: location.name,
+          coverImg: location.coverImg,
+          viewport: location.viewport,
+          windows: location.windows,
+        },
+        place: {
+          id: place.id,
+          name: place.name,
+          types: place.types,
+          displayName: place.displayName,
+          primaryTypeDisplayName: place.primaryTypeDisplayName,
+          typeColor: place.typeColor,
+          phone: place.phone,
+          address: place.address,
+          location: place.location,
+          viewport: place.viewport,
+          coverImg: place.coverImg,
+          coverImgSmall: place.coverImgSmall,
+          rating: place.rating,
+          ratingCount: place.ratingCount,
+          reviews: place.reviews,
+          reviewHighlight: place.reviewHighlight,
+          website: place.website,
+          googleMapsLink: place.googleMapsLink,
+          description: place.description,
+          openingHours: place.openingHours,
+          accessibilityOptions: place.accessibilityOptions,
+          parkingOptions: place.parkingOptions,
+          paymentOptions: place.paymentOptions,
+          amenities: place.amenities,
+          additionalInfo: place.additionalInfo,
+        },
+      })
       .from(trip)
-      .innerJoin(tripDay, eq(trip.id, tripDay.tripId))
-      .innerJoin(location, eq(location.id, trip.locationId))
-      .where(eq(trip.id, id)),
+      .innerJoin(inner, eq(inner.tripId, trip.id))
+      .innerJoin(place, eq(inner.placeId, place.id))
+      .innerJoin(location, eq(trip.locationId, location.id))
+      .where(
+        and(or(isNull(inner.type), ne(inner.type, "skipped")), eq(trip.id, id)),
+      )
+      .orderBy(
+        asc(inner.dayOrder),
+        asc(inner.tripOrder),
+        asc(inner.dayStartTime),
+      ),
   ]);
 
   if (data.length === 0)
@@ -68,14 +220,16 @@ export default async function TripLayout({
       </div>
     );
 
+  const preparedData = prepareData(data);
+
   return (
-    <TripProviders data={data} session={userSession}>
+    <TripProviders data={preparedData} session={userSession}>
       <Header>
         <TripHeaderItems />
       </Header>
       <div className="relative flex h-[calc(100dvh-56px)] overflow-hidden">
         {children}
-        <MapView initialBounds={data[0].location.viewport} />
+        <MapView initialBounds={preparedData.tripData.viewport} />
       </div>
     </TripProviders>
   );

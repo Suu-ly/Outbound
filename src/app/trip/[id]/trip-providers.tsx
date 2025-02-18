@@ -1,22 +1,25 @@
 "use client";
 
-import { SelectLocation, SelectTrip, SelectTripDay } from "@/server/db/schema";
+import { InitialQueryPrepared } from "@/server/types";
 import { Session, User } from "better-auth";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { MapProvider } from "react-map-gl";
-import { isTripAdminAtom, tripDetailsAtom, tripLocationAtom } from "../atoms";
+import {
+  dayPlacesAtom,
+  discoverPlacesAtom,
+  isTripAdminAtom,
+  tripDetailsAtom,
+  tripPlacesAtom,
+  tripWindowsAtom,
+} from "../atoms";
 
 export default function TripProviders({
   data,
   session,
   children,
 }: Readonly<{
-  data: {
-    trip: SelectTrip;
-    trip_day: SelectTripDay;
-    location: SelectLocation;
-  }[];
+  data: InitialQueryPrepared;
   session: { session: Session; user: User } | null;
   children: React.ReactNode;
 }>) {
@@ -34,41 +37,16 @@ const HydrateAtoms = ({
   data,
   session,
 }: Readonly<{
-  data: {
-    trip: SelectTrip;
-    trip_day: SelectTripDay;
-    location: SelectLocation;
-  }[];
+  data: InitialQueryPrepared;
   session: { session: Session; user: User } | null;
 }>) => {
-  const firstRow = data[0];
-
   useHydrateAtoms([
-    [
-      tripDetailsAtom,
-      {
-        id: firstRow.trip.id,
-        name: firstRow.trip.name,
-        coverImg: firstRow.location.coverImg,
-        startDate: firstRow.trip.startDate,
-        endDate: firstRow.trip.endDate,
-        startTime: firstRow.trip.startTime,
-        endTime: firstRow.trip.endTime,
-        private: firstRow.trip.private,
-        roundUpTime: firstRow.trip.roundUpTime,
-      },
-    ],
-    [isTripAdminAtom, firstRow.trip.userId === session?.user.id],
-    [
-      tripLocationAtom,
-      {
-        name: firstRow.location.name,
-        viewport: firstRow.location.viewport,
-        windows: firstRow.location.windows,
-        currentSearchIndex: firstRow.trip.currentSearchIndex,
-        nextPageToken: firstRow.trip.nextPageToken,
-      },
-    ],
+    [tripDetailsAtom, data.tripData],
+    [isTripAdminAtom, data.tripData.userId === session?.user.id],
+    [tripWindowsAtom, data.windowData],
+    [discoverPlacesAtom, data.discoverData],
+    [tripPlacesAtom, data.placeData],
+    [dayPlacesAtom, data.dayData],
   ]);
   return null;
 };

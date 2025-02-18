@@ -13,49 +13,30 @@ import {
   IconMapPinSearch,
   IconWand,
 } from "@tabler/icons-react";
+import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
 import { type DateRange } from "react-day-picker";
+import { savedPlacesAmountAtom, tripDetailsAtom } from "../atoms";
 import ViewMapToggle from "./view-map-toggle";
 
 export default function TripPage() {
   // const session = authClient.useSession();
 
-  const [date, setDate] = useState<DateRange | undefined>(undefined);
   const isLarge = useMediaQuery("(min-width: 768px)");
 
-  const data = {
-    location: {
-      id: "ChIJdZOLiiMR2jERxPWrUs9peIg",
-      name: "Singapore",
-      coverImg:
-        "https://www.stokedtotravel.com/wp-content/uploads/2020/11/Singapore-1.jpg",
-      coverImgSmall:
-        "https://tse2.mm.bing.net/th?id=OIP.8Tuqfv4sTaSGvOvdCGYJFwHaFQ&pid=Api",
-      bounds: [Array],
-      windowXStep: 2,
-      windowYStep: 2,
-    },
-    trip: {
-      id: "kkt9dn35q27f",
-      userId: "c2TPmdFM0wIj7TWB3rvjpZxSUaMB1ibo",
-      locationId: "ChIJdZOLiiMR2jERxPWrUs9peIg",
-      name: "Trip to Singapore",
-      private: true,
-      roundUpTime: true,
-      currentXWindow: 1,
-      currentYWindow: 1,
-      nextPageToken: null,
-      startTime: "0900",
-      endTime: "2100",
-    },
-  };
+  const [tripData, setTripData] = useAtom(tripDetailsAtom);
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: tripData.startDate,
+    to: tripData.endDate,
+  });
+  const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
 
   return (
     <ViewMapToggle>
       <div className="relative aspect-square w-full">
         <div className="absolute inset-x-4 bottom-4 z-10 rounded-2xl border-2 border-slate-200 bg-white p-4 text-center shadow-md">
           <h1 className="mb-4 font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
-            {data.trip.name}
+            {tripData.name}
           </h1>
           <Popover>
             <PopoverTrigger asChild>
@@ -113,12 +94,11 @@ export default function TripPage() {
               />
             </PopoverContent>
           </Popover>
-          <p>5 Places</p>
+          <p>{savedPlacesAmount} Places</p>
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={data.location.coverImg}
-          alt={data.location.name}
+          src={tripData.coverImg}
+          alt={tripData.name}
           className="absolute inset-0 size-full object-cover"
         />
       </div>
@@ -131,7 +111,7 @@ export default function TripPage() {
             </Button>
           </div>
         </div>
-        <div className="pb-14">
+        <div className="pb-14 sm:pb-4">
           <div className="flex justify-between gap-3">
             <h3 className="font-display text-2xl font-medium">Itinerary</h3>
             <Button size="small" variant="secondary" iconOnly>

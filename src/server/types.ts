@@ -246,8 +246,113 @@ export type PlacesResult = {
   nextPageToken?: string;
 };
 
+export type InitialQuery = {
+  trip: {
+    id: string;
+    name: string;
+    userId: string;
+    startDate: Date;
+    endDate: Date;
+    private: boolean;
+    roundUpTime: boolean;
+    currentSearchIndex: number;
+    nextPageToken: string[] | null;
+    startTime: string;
+    endTime: string;
+  };
+  location: {
+    name: string;
+    coverImg: string;
+    viewport: BoundingBox;
+    windows: BoundingBox[];
+  };
+  place: SelectPlace;
+  inner: {
+    placeId: string | null;
+    dayId: number | null;
+    note: string | null;
+    type: "saved" | "skipped" | "undecided" | null;
+    tripOrder: string;
+    dayOrder: string;
+    dayStartTime: string | null;
+  };
+};
+
+export type TripData = {
+  id: string;
+  name: string;
+  userId: string;
+  startDate: Date;
+  endDate: Date;
+  private: boolean;
+  roundUpTime: boolean;
+  startTime: string;
+  endTime: string;
+  coverImg: string;
+  viewport: BoundingBox;
+};
+
+export type WindowData = {
+  name: string;
+  windows: BoundingBox[];
+  currentSearchIndex: number;
+  nextPageToken: string[] | null;
+};
+
+export type DayData = {
+  dayId: number | null;
+  dayOrder: string;
+  dayStartTime: string | null;
+};
+
+type PlaceDataPlaceInfo = {
+  displayName: string;
+  primaryTypeDisplayName: string;
+  typeColor: string;
+  location: { latitude: number; longitude: number };
+  viewport: {
+    low: { latitude: number; longitude: number };
+    high: { latitude: number; longitude: number };
+  };
+  coverImgSmall: string;
+  rating: number | null;
+  googleMapsLink: string;
+  openingHours: {
+    periods: {
+      open: { day: number; hour: number; minute: number };
+      close?: { day: number; hour: number; minute: number };
+    }[];
+    text: string[];
+  } | null;
+};
+
+type PlaceDataUserPlaceInfo = {
+  placeId: string | null;
+  note: string | null;
+  // time spent
+  tripOrder: string;
+};
+
+type PlaceDataEntry = {
+  placeInfo: PlaceDataPlaceInfo;
+  userPlaceInfo: PlaceDataUserPlaceInfo;
+};
+
+export type PlaceData = {
+  saved: PlaceDataEntry[];
+  [key: string | number]: PlaceDataEntry[];
+};
+
+export type InitialQueryPrepared = {
+  tripData: TripData;
+  windowData: WindowData;
+  dayData: DayData[];
+  discoverData: TripPlaceDetails[];
+  placeData: PlaceData;
+};
+
 export type TripPlaceDetails = SelectPlace & {
-  photos: PlacesResult["places"][number]["photos"];
+  photos?: PlacesResult["places"][number]["photos"];
 };
 
 export type DiscoverReturn = {

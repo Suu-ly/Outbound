@@ -9,7 +9,8 @@ export default function MapView({
   initialBounds: BoundingBox;
 }) {
   const showMap = process.env.NEXT_PUBLIC_USE_REAL_DATA === "true";
-  if (!showMap) return null;
+  if (!showMap)
+    return <div className="size-full bg-sky-300 sm:w-1/2 xl:w-2/3"></div>;
 
   return (
     <div className="size-full bg-sky-300 sm:w-1/2 xl:w-2/3">

@@ -3,12 +3,13 @@
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import { useMediaQuery } from "@/lib/use-media-query";
+import { insertAfter } from "@/lib/utils";
 import {
   setPlaceAsInterested,
   setPlaceAsUninterested,
   updateTripWindows,
 } from "@/server/actions";
-import { ApiResponse, DiscoverReturn } from "@/server/types";
+import { ApiResponse, DiscoverReturn, TripPlaceDetails } from "@/server/types";
 import { IconHeart, IconX } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -28,7 +29,9 @@ import {
   drawerDragProgressAtom,
   isTripAdminAtom,
   mapActiveMarkerAtom,
-  tripLocationAtom,
+  savedPlacesAmountAtom,
+  tripPlacesAtom,
+  tripWindowsAtom,
 } from "../../atoms";
 import BottomSheet from "./bottom-sheet";
 import Card from "./swipe-card";
@@ -65,14 +68,14 @@ export function DiscoverManager() {
   const isAdmin = useAtomValue(isTripAdminAtom);
   if (!isAdmin) redirect(path.substring(0, 18));
 
-  const [tripLocation, setTripLocation] = useAtom(tripLocationAtom);
+  const [tripWindows, setTripWindows] = useAtom(tripWindowsAtom);
   const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
   const activePlaceIndex = useAtomValue(activePlaceIndexAtom);
 
   const [queryValue, setQueryValue] = useState<QueryValue>({
     query: "",
-    currentSearchIndex: tripLocation.currentSearchIndex,
-    nextPageToken: tripLocation.nextPageToken,
+    currentSearchIndex: tripWindows.currentSearchIndex,
+    nextPageToken: tripWindows.nextPageToken,
   });
 
   const id = useParams<{ id: string }>().id;
@@ -111,13 +114,13 @@ export function DiscoverManager() {
         array[index] = token ?? NO_MORE_RESULT_TOKEN;
         return [...array];
       }
-      const newArray: string[] = new Array(tripLocation.windows.length).fill(
+      const newArray: string[] = new Array(tripWindows.windows.length).fill(
         NO_TOKEN_STRING,
       );
       newArray[index] = token ?? NO_MORE_RESULT_TOKEN;
       return newArray;
     },
-    [tripLocation.windows.length],
+    [tripWindows.windows.length],
   );
 
   const getDiscoverPlaces = async (queryValue: QueryValue) => {
@@ -132,7 +135,7 @@ export function DiscoverManager() {
       const newWindows = {
         currentSearchIndex: getNextIndex(
           queryValue,
-          tripLocation.windows.length,
+          tripWindows.windows.length,
         ),
         nextPageToken: getNextPageTokenArray(
           queryValue.nextPageToken,
@@ -142,7 +145,7 @@ export function DiscoverManager() {
       };
       const res = await updateTripWindows(newWindows, id);
       if (res.status === "success") {
-        setTripLocation((prev) => ({
+        setTripWindows((prev) => ({
           ...prev,
           ...newWindows,
         }));
@@ -165,29 +168,29 @@ export function DiscoverManager() {
   useEffect(() => {
     if (discoverLocations.length - activePlaceIndex < 10 && !isFetching) {
       const queryUrl = new URLSearchParams([
-        ["location", tripLocation.name],
+        ["location", tripWindows.name],
         ["id", id],
       ]);
       if (
-        tripLocation.nextPageToken &&
-        tripLocation.nextPageToken[tripLocation.currentSearchIndex] !==
+        tripWindows.nextPageToken &&
+        tripWindows.nextPageToken[tripWindows.currentSearchIndex] !==
           NO_TOKEN_STRING &&
-        tripLocation.nextPageToken[tripLocation.currentSearchIndex] !==
+        tripWindows.nextPageToken[tripWindows.currentSearchIndex] !==
           NO_MORE_RESULT_TOKEN
       ) {
         queryUrl.set(
           "nextPageToken",
-          tripLocation.nextPageToken[tripLocation.currentSearchIndex],
+          tripWindows.nextPageToken[tripWindows.currentSearchIndex],
         );
       }
       const searchBounds = [
         [
-          tripLocation.windows[tripLocation.currentSearchIndex][0][0],
-          tripLocation.windows[tripLocation.currentSearchIndex][0][1],
+          tripWindows.windows[tripWindows.currentSearchIndex][0][0],
+          tripWindows.windows[tripWindows.currentSearchIndex][0][1],
         ],
         [
-          tripLocation.windows[tripLocation.currentSearchIndex][1][0],
-          tripLocation.windows[tripLocation.currentSearchIndex][1][1],
+          tripWindows.windows[tripWindows.currentSearchIndex][1][0],
+          tripWindows.windows[tripWindows.currentSearchIndex][1][1],
         ],
       ];
       for (let i = 0; i < searchBounds.length; i++) {
@@ -197,8 +200,8 @@ export function DiscoverManager() {
       }
       setQueryValue({
         query: queryUrl.toString(),
-        currentSearchIndex: tripLocation.currentSearchIndex,
-        nextPageToken: tripLocation.nextPageToken,
+        currentSearchIndex: tripWindows.currentSearchIndex,
+        nextPageToken: tripWindows.nextPageToken,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -219,6 +222,8 @@ export function SwipeManager() {
 
   const setActiveLocation = useSetAtom(mapActiveMarkerAtom);
   const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
+  const setTripPlaces = useSetAtom(tripPlacesAtom);
+  const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
 
   const drawerProgress = useAtomValue(drawerDragProgressAtom);
   const buttonsY = useTransform(() => 100 - drawerProgress?.get() * 100);
@@ -243,14 +248,42 @@ export function SwipeManager() {
   );
 
   const onDecision = useCallback(
-    async (id: string, accepted: boolean) => {
+    async (data: TripPlaceDetails, accepted: boolean) => {
+      if (accepted) {
+        setTripPlaces((prev) => ({
+          ...prev,
+          saved: [
+            ...prev.saved,
+            {
+              userPlaceInfo: {
+                placeId: data.id,
+                note: null,
+                tripOrder: insertAfter(
+                  prev.saved[prev.saved.length - 1].userPlaceInfo.tripOrder,
+                ),
+              },
+              placeInfo: {
+                displayName: data.displayName,
+                primaryTypeDisplayName: data.primaryTypeDisplayName,
+                typeColor: data.typeColor,
+                location: data.location,
+                viewport: data.viewport,
+                coverImgSmall: data.coverImgSmall,
+                rating: data.rating,
+                googleMapsLink: data.googleMapsLink,
+                openingHours: data.openingHours,
+              },
+            },
+          ],
+        }));
+      }
       setActivePlaceIndex((prev) => prev + 1);
       const res = accepted
-        ? await setPlaceAsInterested(id, tripId)
-        : await setPlaceAsUninterested(id, tripId);
+        ? await setPlaceAsInterested(data.id, tripId)
+        : await setPlaceAsUninterested(data.id, tripId);
       if (res.status === "error") toast.error(res.message);
     },
-    [setActivePlaceIndex, tripId],
+    [setActivePlaceIndex, setTripPlaces, tripId],
   );
 
   const onRemove = useCallback(
@@ -328,7 +361,9 @@ export function SwipeManager() {
           </motion.div>
         </TabDisable>
         <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between gap-3 border-t-2 border-slate-200 bg-white px-4 py-2">
-          <span className="w-28 text-sm text-slate-700">14 Places Saved</span>
+          <span className="w-28 text-sm text-slate-700">
+            {savedPlacesAmount} Places Saved
+          </span>
           <Magnet x={magnetX} y={magnetY}>
             <ButtonLink size="large" href={path.substring(0, 18)}>
               Plan Trip
@@ -381,7 +416,9 @@ export function SwipeManager() {
       </div>
       <Magnet x={magnetX} y={magnetY} className="fixed bottom-4 right-4 z-50">
         <div className="flex items-center gap-3 rounded-full border-2 border-slate-200 bg-white p-1 pl-4 shadow-md">
-          <span className="w-28 text-sm text-slate-700">14 Places Saved</span>
+          <span className="w-28 text-sm text-slate-700">
+            {savedPlacesAmount} Places Saved
+          </span>
           <ButtonLink href={path.substring(0, 18)}>Plan Trip</ButtonLink>
         </div>
       </Magnet>

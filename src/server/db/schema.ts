@@ -217,7 +217,7 @@ export const tripDay = pgTable("trip_day", {
     })
     .notNull(),
   order: text("order").notNull(), // SET COLLATE TO POSIX OR C!
-  startTime: varchar("end_time", { length: 4 })
+  startTime: varchar("start_time", { length: 4 })
     .notNull()
     .default("auto")
     .notNull(),
@@ -246,6 +246,7 @@ export const tripPlace = pgTable(
     }),
     note: text("note"),
     type: tripPlaceTypeEnum("type").default("undecided").notNull(),
+    // TIME SPENT
     order: text("order"), // SET COLLATE TO POSIX OR C!
     createdAt: timestamp("created_at", {
       mode: "date",

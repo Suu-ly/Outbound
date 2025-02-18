@@ -69,7 +69,7 @@ type CardProps = {
   active: boolean;
   magnetFunctionX: (x: number) => void;
   magnetFunctionY: (y: number) => void;
-  onDecision: (id: string, accepted: boolean) => void;
+  onDecision: (data: TripPlaceDetails, accepted: boolean) => void;
   onRemove: (id: string) => void;
   draggable?: boolean;
   mobile?: boolean;
@@ -344,7 +344,7 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
   const acceptPlace = useCallback(
     (info?: PanInfo) => {
       setStatus("accept");
-      onDecision(data.id, true);
+      onDecision(data, true);
 
       const containerDims = scrollContainerRef.current!.getBoundingClientRect();
 
@@ -388,7 +388,7 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
       }).then(() => onRemove(data.id));
     },
     [
-      data.id,
+      data,
       isDragging,
       magnetFunctionX,
       magnetFunctionY,
@@ -403,7 +403,7 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
   const rejectPlace = useCallback(
     (info?: PanInfo) => {
       setStatus("reject");
-      onDecision(data.id, false);
+      onDecision(data, false);
 
       if (!info) {
         animate(x, -480, {
@@ -422,7 +422,7 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
         }).then(() => onRemove(data.id));
       }
     },
-    [data.id, onDecision, onRemove, x, y],
+    [data, onDecision, onRemove, x, y],
   );
 
   useImperativeHandle(ref, () => {
@@ -501,6 +501,7 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
 
   const hideScroll = isDragging || status !== "none" || !active || minimised;
 
+  // TODO get photos if not already received from the API
   return (
     <motion.div
       className={cn(
