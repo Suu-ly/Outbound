@@ -266,7 +266,7 @@ export type InitialQuery = {
     viewport: BoundingBox;
     windows: BoundingBox[];
   };
-  place: SelectPlace;
+  place: SelectPlace | null;
   inner: {
     placeId: string | null;
     dayId: number | null;
@@ -300,12 +300,12 @@ export type WindowData = {
 };
 
 export type DayData = {
-  dayId: number | null;
+  dayId: number;
   dayOrder: string;
-  dayStartTime: string | null;
+  dayStartTime: string;
 };
 
-type PlaceDataPlaceInfo = {
+export type PlaceDataPlaceInfo = {
   displayName: string;
   primaryTypeDisplayName: string;
   typeColor: string;

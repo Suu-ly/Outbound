@@ -36,41 +36,50 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
 
   for (let i = 0, length = data.length; i < length; i++) {
     const rowData = data[i];
-    const tempPlaceData = {
-      placeInfo: {
-        displayName: rowData.place.displayName,
-        primaryTypeDisplayName: rowData.place.primaryTypeDisplayName,
-        typeColor: rowData.place.typeColor,
-        location: rowData.place.location,
-        viewport: rowData.place.viewport,
-        coverImgSmall: rowData.place.coverImgSmall,
-        rating: rowData.place.rating,
-        googleMapsLink: rowData.place.googleMapsLink,
-        openingHours: rowData.place.openingHours,
-      },
-      userPlaceInfo: {
-        placeId: rowData.inner.placeId,
-        note: rowData.inner.note,
-        tripOrder: rowData.inner.tripOrder,
-      },
-    };
-    // Unplanned place
-    if (!rowData.inner.dayId && rowData.inner.type === "saved")
-      placeData.saved.push(tempPlaceData);
-    // Place with day
-    else if (rowData.inner.dayId) {
+    // Day with no place
+    if (!rowData.place) {
       dayData.push({
-        dayId: rowData.inner.dayId,
+        dayId: rowData.inner.dayId!,
         dayOrder: rowData.inner.dayOrder,
-        dayStartTime: rowData.inner.dayStartTime,
+        dayStartTime: rowData.inner.dayStartTime!,
       });
-      if (rowData.inner.dayId in placeData)
-        placeData[rowData.inner.dayId].push(tempPlaceData);
-      else placeData[rowData.inner.dayId] = [tempPlaceData];
-
-      // Undecided place
-    } else if (rowData.inner.type === "undecided") {
-      discoverData.push(rowData.place);
+    } else {
+      const tempPlaceData = {
+        placeInfo: {
+          displayName: rowData.place.displayName,
+          primaryTypeDisplayName: rowData.place.primaryTypeDisplayName,
+          typeColor: rowData.place.typeColor,
+          location: rowData.place.location,
+          viewport: rowData.place.viewport,
+          coverImgSmall: rowData.place.coverImgSmall,
+          rating: rowData.place.rating,
+          googleMapsLink: rowData.place.googleMapsLink,
+          openingHours: rowData.place.openingHours,
+        },
+        userPlaceInfo: {
+          placeId: rowData.inner.placeId,
+          note: rowData.inner.note,
+          tripOrder: rowData.inner.tripOrder,
+        },
+      };
+      // Unplanned place
+      if (!rowData.inner.dayId && rowData.inner.type === "saved")
+        placeData.saved.push(tempPlaceData);
+      // Day
+      else if (rowData.inner.dayId) {
+        dayData.push({
+          dayId: rowData.inner.dayId,
+          dayOrder: rowData.inner.dayOrder,
+          dayStartTime: rowData.inner.dayStartTime!,
+        });
+        // Day with place
+        if (rowData.inner.dayId in placeData)
+          placeData[rowData.inner.dayId].push(tempPlaceData);
+        else placeData[rowData.inner.dayId] = [tempPlaceData];
+        // Undecided place
+      } else if (rowData.inner.type === "undecided") {
+        discoverData.push(rowData.place);
+      }
     }
   }
 
@@ -95,7 +104,7 @@ export default async function TripLayout({
             "tripId",
           ),
         placeId: tripPlace.placeId,
-        dayId: tripPlace.dayId,
+        dayId: tripDay.id,
         note: tripPlace.note,
         type: tripPlace.type,
         tripOrder: sql<string>`${tripPlace.order}`.as("tripOrder"),
@@ -172,7 +181,7 @@ export default async function TripLayout({
       })
       .from(trip)
       .innerJoin(inner, eq(inner.tripId, trip.id))
-      .innerJoin(place, eq(inner.placeId, place.id))
+      .leftJoin(place, eq(inner.placeId, place.id))
       .innerJoin(location, eq(trip.locationId, location.id))
       .where(
         and(or(isNull(inner.type), ne(inner.type, "skipped")), eq(trip.id, id)),
