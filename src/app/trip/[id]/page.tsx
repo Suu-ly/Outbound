@@ -1,5 +1,6 @@
 "use client";
 
+import DayFolder from "@/components/day-folder";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -13,10 +14,16 @@ import {
   IconMapPinSearch,
   IconWand,
 } from "@tabler/icons-react";
+import { addDays } from "date-fns";
 import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
 import { type DateRange } from "react-day-picker";
-import { savedPlacesAmountAtom, tripDetailsAtom } from "../atoms";
+import {
+  dayPlacesAtom,
+  savedPlacesAmountAtom,
+  tripDetailsAtom,
+  tripPlacesAtom,
+} from "../atoms";
 import ViewMapToggle from "./view-map-toggle";
 
 export default function TripPage() {
@@ -25,11 +32,16 @@ export default function TripPage() {
   const isLarge = useMediaQuery("(min-width: 768px)");
 
   const [tripData, setTripData] = useAtom(tripDetailsAtom);
+  const [places, setPlaces] = useAtom(tripPlacesAtom);
+  const [days, setDays] = useAtom(dayPlacesAtom);
   const [date, setDate] = useState<DateRange | undefined>({
     from: tripData.startDate,
     to: tripData.endDate,
   });
   const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
+
+  console.log(places);
+  console.log(days);
 
   return (
     <ViewMapToggle>
@@ -103,21 +115,45 @@ export default function TripPage() {
         />
       </div>
       <div className="flex flex-col gap-4 p-4">
-        <div className="mb-4">
+        <div className="mb-4 space-y-4">
           <div className="flex justify-between gap-3">
             <h3 className="font-display text-2xl font-medium">Saved Places</h3>
             <Button size="small" variant="secondary" iconOnly>
               <IconMapPinSearch />
             </Button>
           </div>
+          {places.saved.map((place) => (
+            <div
+              key={place.userPlaceInfo.placeId}
+              className="rounded-lg bg-white p-4"
+            >
+              {place.placeInfo.displayName}
+            </div>
+          ))}
         </div>
-        <div className="pb-14 sm:pb-4">
+        <div className="flex flex-col gap-4 pb-14 sm:pb-4">
           <div className="flex justify-between gap-3">
             <h3 className="font-display text-2xl font-medium">Itinerary</h3>
             <Button size="small" variant="secondary" iconOnly>
               <IconWand />
             </Button>
           </div>
+          {days.map((day, index) => (
+            <DayFolder
+              key={day.dayId}
+              date={addDays(tripData.startDate, index)}
+            >
+              {places[day.dayId] &&
+                places[day.dayId].map((place) => (
+                  <div
+                    key={place.userPlaceInfo.placeId}
+                    className="rounded-lg bg-white p-4"
+                  >
+                    {place.placeInfo.displayName}
+                  </div>
+                ))}
+            </DayFolder>
+          ))}
         </div>
       </div>
     </ViewMapToggle>

@@ -25,7 +25,7 @@ export default function ViewMapToggle({
           </Button>
         )}
         {!viewMap && (
-          <div className="pointer-events-auto h-full bg-zinc-50">
+          <div className="pointer-events-auto h-full overflow-auto bg-zinc-50">
             <Button
               variant="outline"
               className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 bg-white shadow-md sm:hidden"
