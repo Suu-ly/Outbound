@@ -1,5 +1,6 @@
 "use client";
 
+import TabDisable from "@/components/tab-disable";
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import { useMediaQuery } from "@/lib/use-media-query";
@@ -34,7 +35,6 @@ import {
 } from "../../atoms";
 import BottomSheet from "./bottom-sheet";
 import Card from "./swipe-card";
-import TabDisable from "./tab-disable";
 
 const NO_TOKEN_STRING = "none";
 const NO_MORE_RESULT_TOKEN = "done";

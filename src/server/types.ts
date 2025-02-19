@@ -333,7 +333,7 @@ type PlaceDataUserPlaceInfo = {
   tripOrder: string;
 };
 
-type PlaceDataEntry = {
+export type PlaceDataEntry = {
   placeInfo: PlaceDataPlaceInfo;
   userPlaceInfo: PlaceDataUserPlaceInfo;
 };

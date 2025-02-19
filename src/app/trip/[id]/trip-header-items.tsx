@@ -1,5 +1,6 @@
 "use client";
 
+import ShareButton from "@/components/share-button";
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import {
@@ -8,22 +9,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import useCopyToClipboard from "@/lib/use-copy-to-clipboard";
 import {
-  IconCheck,
   IconDotsVertical,
   IconEdit,
   IconMapPinSearch,
   IconPlaylistX,
   IconSettings,
-  IconShare,
   IconTrash,
 } from "@tabler/icons-react";
 import { useAtomValue } from "jotai";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback } from "react";
-import { toast } from "sonner";
 import { isTripAdminAtom } from "../atoms";
 
 const discoverRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/discover`);
@@ -31,7 +27,6 @@ const skipRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/skipped`);
 
 export default function TripHeaderItems() {
   const path = usePathname();
-  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const basePath = path.substring(0, 18);
 
@@ -41,25 +36,12 @@ export default function TripHeaderItems() {
 
   const isAdmin = useAtomValue(isTripAdminAtom);
 
-  const onCopy = useCallback(() => {
-    copyToClipboard(window.location.origin + basePath);
-    toast.success("Trip link copied to clipboard!", {
-      id: "CopyToClipboard",
-    });
-  }, [basePath, copyToClipboard]);
-
   return (
     <>
-      <Button
-        size="small"
-        variant="ghost"
-        iconOnly
-        aria-label="Share"
+      <ShareButton
         className={!isDiscover ? "hidden sm:inline-flex" : undefined}
-        onClick={onCopy}
-      >
-        {copied ? <IconCheck /> : <IconShare />}
-      </Button>
+        link={window.location.origin + basePath}
+      />
       {isAdmin && (
         <>
           <ButtonLink
@@ -85,13 +67,12 @@ export default function TripHeaderItems() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem
+              <ShareButton
+                isDropdown
                 className={!isDiscover ? "sm:hidden" : "hidden"}
-                onClick={onCopy}
-              >
-                <IconShare />
-                Share
-              </DropdownMenuItem>
+                link={window.location.origin + basePath}
+              />
+
               <DropdownMenuItem
                 className={!isDiscover ? "sm:hidden" : "hidden"}
                 asChild

@@ -1,6 +1,7 @@
 "use client";
 
 import PlaceDetails from "@/components/place-details";
+import TabDisable from "@/components/tab-disable";
 import {
   Carousel,
   CarouselContent,
@@ -37,7 +38,6 @@ import {
   drawerMinimisedAtom,
   scrolledToTopAtom,
 } from "../../atoms";
-import TabDisable from "./tab-disable";
 
 type CardProps = {
   data: TripPlaceDetails;

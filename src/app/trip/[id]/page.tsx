@@ -1,6 +1,7 @@
 "use client";
 
 import DayFolder from "@/components/day-folder";
+import PlaceDetailsCompact from "@/components/place-details-compact";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -20,6 +21,7 @@ import { useState } from "react";
 import { type DateRange } from "react-day-picker";
 import {
   dayPlacesAtom,
+  isTripAdminAtom,
   savedPlacesAmountAtom,
   tripDetailsAtom,
   tripPlacesAtom,
@@ -27,8 +29,6 @@ import {
 import ViewMapToggle from "./view-map-toggle";
 
 export default function TripPage() {
-  // const session = authClient.useSession();
-
   const isLarge = useMediaQuery("(min-width: 768px)");
 
   const [tripData, setTripData] = useAtom(tripDetailsAtom);
@@ -39,6 +39,7 @@ export default function TripPage() {
     to: tripData.endDate,
   });
   const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
+  const isAdmin = useAtomValue(isTripAdminAtom);
 
   console.log(places);
   console.log(days);
@@ -111,7 +112,7 @@ export default function TripPage() {
         <img
           src={tripData.coverImg}
           alt={tripData.name}
-          className="absolute inset-0 size-full object-cover"
+          className="absolute size-full object-cover"
         />
       </div>
       <div className="flex flex-col gap-4 p-4">
@@ -123,12 +124,13 @@ export default function TripPage() {
             </Button>
           </div>
           {places.saved.map((place) => (
-            <div
+            <PlaceDetailsCompact
               key={place.userPlaceInfo.placeId}
-              className="rounded-lg bg-white p-4"
-            >
-              {place.placeInfo.displayName}
-            </div>
+              data={place}
+              days={days}
+              startDate={tripData.startDate}
+              isAdmin={isAdmin}
+            />
           ))}
         </div>
         <div className="flex flex-col gap-4 pb-14 sm:pb-4">

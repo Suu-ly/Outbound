@@ -1,14 +1,21 @@
+import { composeRefs } from "@radix-ui/react-compose-refs";
 import { useAtomValue } from "jotai";
-import { ReactNode, useEffect, useRef } from "react";
-import { drawerMinimisedAtom } from "../../atoms";
+import {
+  ComponentProps,
+  forwardRef,
+  ReactNode,
+  useEffect,
+  useRef,
+} from "react";
+import { drawerMinimisedAtom } from "../app/trip/atoms";
 
-export default function TabDisable({
-  children,
-  active = true,
-}: {
-  children: ReactNode;
-  active?: boolean;
-}) {
+const TabDisable = forwardRef<
+  HTMLDivElement,
+  {
+    children: ReactNode;
+    active?: boolean;
+  } & ComponentProps<"div">
+>(({ children, className, active = true, ...rest }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const minimised = useAtomValue(drawerMinimisedAtom);
@@ -45,5 +52,13 @@ export default function TabDisable({
     };
   }, [active, minimised]);
 
-  return <div ref={containerRef}>{children}</div>;
-}
+  return (
+    <div className={className} ref={composeRefs(containerRef, ref)} {...rest}>
+      {children}
+    </div>
+  );
+});
+
+TabDisable.displayName = "TabDisable";
+
+export default TabDisable;

@@ -14,20 +14,29 @@ type OpeningHoursProps = {
   highligtedDay: number;
   hours?: string[];
   collapsible?: boolean;
+  contentClassName?: string;
+  className?: string;
 };
 
 export default function OpeningHours({
   highligtedDay,
   hours,
   collapsible = true,
+  contentClassName,
+  className,
 }: OpeningHoursProps) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(collapsible ? "" : "hours");
 
   const dayIndex = (((highligtedDay - 1) % 7) + 7) % 7; //For negative numbers
 
   if (!hours)
     return (
-      <div className="flex gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+      <div
+        className={cn(
+          "flex gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100",
+          className,
+        )}
+      >
         <IconClock size={20} className="shrink-0 text-slate-600" />
         No opening hours provided
       </div>
@@ -42,13 +51,25 @@ export default function OpeningHours({
       onValueChange={setValue}
     >
       <AccordionItem value="hours" className="border-0">
-        <AccordionTrigger className="ring-offset-zinc-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2">
-          <div className="flex gap-3 font-normal text-slate-700">
-            <IconClock size={20} className="shrink-0 text-slate-600" />
+        <AccordionTrigger
+          collapsible={collapsible}
+          disabled={!collapsible}
+          className={cn(
+            "gap-3 ring-offset-zinc-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:pointer-events-none",
+            className,
+          )}
+        >
+          <IconClock size={20} className="shrink-0 text-slate-600" />
+          <span className="grow text-left font-normal text-slate-700">
             {value ? "Opening Hours" : hours[dayIndex].split(": ")[1]}
-          </div>
+          </span>
         </AccordionTrigger>
-        <AccordionContent className="space-y-2 pb-2 pl-12 pr-4 pt-1 text-sm text-slate-700">
+        <AccordionContent
+          className={cn(
+            "space-y-2 pb-2 pl-12 pr-4 pt-1 text-sm text-slate-700",
+            contentClassName,
+          )}
+        >
           {hours.map((day, index) => {
             const splitDay = day.split(": ");
             return (
