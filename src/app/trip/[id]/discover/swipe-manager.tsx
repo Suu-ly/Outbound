@@ -28,7 +28,6 @@ import {
   discoverPlacesAtom,
   drawerDragProgressAtom,
   isTripAdminAtom,
-  mapActiveMarkerAtom,
   savedPlacesAmountAtom,
   tripPlacesAtom,
   tripWindowsAtom,
@@ -220,7 +219,6 @@ export function SwipeManager() {
     triggerReject: () => void;
   }>(null);
 
-  const setActiveLocation = useSetAtom(mapActiveMarkerAtom);
   const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
   const setTripPlaces = useSetAtom(tripPlacesAtom);
   const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
@@ -310,118 +308,118 @@ export function SwipeManager() {
 
   console.log(discoverLocations);
 
-  if (!isLarge)
+  if (isLarge)
     return (
-      <>
-        <BottomSheet>
-          {discoverLocations.map((location, index) => {
-            // Only render the currently active card and the 2 cards below it for better performance
-            if (index > 2) return;
-            return (
-              <Card
-                key={location.id}
-                data={location}
-                index={index}
-                active={index === activePlaceIndex}
-                ref={index === activePlaceIndex ? cardRef : undefined}
-                magnetFunctionX={magnetFunctionX}
-                magnetFunctionY={magnetFunctionY}
-                onDecision={onDecision}
-                onRemove={onRemove}
-                mobile
-              />
-            );
-          })}
-        </BottomSheet>
-        <TabDisable>
-          <motion.div
-            className="pointer-events-none fixed bottom-16 left-0 z-50 flex w-full items-center justify-center gap-6 p-4 sm:w-1/2 xl:w-1/3"
-            style={{ y: buttonsY }}
+      <main className="max-h-full w-full sm:w-1/2 xl:w-1/3">
+        {discoverLocations.map((location, index) => {
+          // Only render the currently active card and the 2 cards below it for better performance
+          if (index > 2) return;
+          return (
+            <Card
+              key={location.id}
+              data={location}
+              index={index}
+              active={index === activePlaceIndex}
+              ref={index === activePlaceIndex ? cardRef : undefined}
+              magnetFunctionX={magnetFunctionX}
+              magnetFunctionY={magnetFunctionY}
+              onDecision={onDecision}
+              onRemove={onRemove}
+            />
+          );
+        })}
+        <div className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-center gap-6 p-4 sm:w-1/2 xl:w-1/3">
+          <Button
+            className="border-red-400 bg-white text-rose-500 shadow-md active:ring-red-400"
+            primaryBgColor="bg-rose-700"
+            iconOnly
+            onClick={handleRejectClick}
+            size="large"
+            aria-label="Not interested"
           >
-            <Button
-              className="pointer-events-auto border-red-400 bg-white text-rose-500 shadow-md active:ring-red-400"
-              primaryBgColor="bg-rose-700"
-              iconOnly
-              onClick={handleRejectClick}
-              size="large"
-              aria-label="Not interested"
-            >
-              <IconX />
-            </Button>
-            <Button
-              className="pointer-events-auto border-green-400 bg-white text-emerald-500 shadow-md active:ring-green-400"
-              primaryBgColor="bg-emerald-700"
-              iconOnly
-              onClick={handleAcceptClick}
-              size="large"
-              aria-label="Interested"
-            >
-              <IconHeart />
-            </Button>
-          </motion.div>
-        </TabDisable>
-        <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between gap-3 border-t-2 border-slate-200 bg-white px-4 py-2">
-          <span className="w-28 text-sm text-slate-700">
-            {savedPlacesAmount} Places Saved
-          </span>
-          <Magnet x={magnetX} y={magnetY}>
-            <ButtonLink size="large" href={path.substring(0, 18)}>
-              Plan Trip
-            </ButtonLink>
-          </Magnet>
+            <IconX />
+          </Button>
+          <Button
+            className="border-green-400 bg-white text-emerald-500 shadow-md active:ring-green-400"
+            primaryBgColor="bg-emerald-700"
+            iconOnly
+            onClick={handleAcceptClick}
+            size="large"
+            aria-label="Interested"
+          >
+            <IconHeart />
+          </Button>
         </div>
-      </>
+        <Magnet x={magnetX} y={magnetY} className="fixed bottom-4 right-4 z-50">
+          <div className="flex items-center gap-3 rounded-full border-2 border-slate-200 bg-white p-1 pl-4 shadow-md">
+            <span className="w-28 text-sm text-slate-700">
+              {savedPlacesAmount} Places Saved
+            </span>
+            <ButtonLink href={path.substring(0, 18)}>Plan Trip</ButtonLink>
+          </div>
+        </Magnet>
+      </main>
     );
 
   return (
-    <main className="max-h-full w-full sm:w-1/2 xl:w-1/3">
-      {discoverLocations.map((location, index) => {
-        // Only render the currently active card and the 2 cards below it for better performance
-        if (index > 2) return;
-        return (
-          <Card
-            key={location.id}
-            data={location}
-            index={index}
-            active={index === activePlaceIndex}
-            ref={index === activePlaceIndex ? cardRef : undefined}
-            magnetFunctionX={magnetFunctionX}
-            magnetFunctionY={magnetFunctionY}
-            onDecision={onDecision}
-            onRemove={onRemove}
-          />
-        );
-      })}
-      <div className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-center gap-6 p-4 sm:w-1/2 xl:w-1/3">
-        <Button
-          className="border-red-400 bg-white text-rose-500 shadow-md active:ring-red-400"
-          primaryBgColor="bg-rose-700"
-          iconOnly
-          onClick={handleRejectClick}
-          size="large"
-          aria-label="Not interested"
+    <>
+      <BottomSheet>
+        {discoverLocations.map((location, index) => {
+          // Only render the currently active card and the 2 cards below it for better performance
+          if (index > 2) return;
+          return (
+            <Card
+              key={location.id}
+              data={location}
+              index={index}
+              active={index === activePlaceIndex}
+              ref={index === activePlaceIndex ? cardRef : undefined}
+              magnetFunctionX={magnetFunctionX}
+              magnetFunctionY={magnetFunctionY}
+              onDecision={onDecision}
+              onRemove={onRemove}
+              mobile
+            />
+          );
+        })}
+      </BottomSheet>
+      <TabDisable>
+        <motion.div
+          className="pointer-events-none fixed bottom-16 left-0 z-50 flex w-full items-center justify-center gap-6 p-4 sm:w-1/2 xl:w-1/3"
+          style={{ y: buttonsY }}
         >
-          <IconX />
-        </Button>
-        <Button
-          className="border-green-400 bg-white text-emerald-500 shadow-md active:ring-green-400"
-          primaryBgColor="bg-emerald-700"
-          iconOnly
-          onClick={handleAcceptClick}
-          size="large"
-          aria-label="Interested"
-        >
-          <IconHeart />
-        </Button>
+          <Button
+            className="pointer-events-auto border-red-400 bg-white text-rose-500 shadow-md active:ring-red-400"
+            primaryBgColor="bg-rose-700"
+            iconOnly
+            onClick={handleRejectClick}
+            size="large"
+            aria-label="Not interested"
+          >
+            <IconX />
+          </Button>
+          <Button
+            className="pointer-events-auto border-green-400 bg-white text-emerald-500 shadow-md active:ring-green-400"
+            primaryBgColor="bg-emerald-700"
+            iconOnly
+            onClick={handleAcceptClick}
+            size="large"
+            aria-label="Interested"
+          >
+            <IconHeart />
+          </Button>
+        </motion.div>
+      </TabDisable>
+      <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between gap-3 border-t-2 border-slate-200 bg-white px-4 py-2">
+        <span className="w-28 text-sm text-slate-700">
+          {savedPlacesAmount} Places Saved
+        </span>
+        <Magnet x={magnetX} y={magnetY}>
+          <ButtonLink size="large" href={path.substring(0, 18)}>
+            Plan Trip
+          </ButtonLink>
+        </Magnet>
       </div>
-      <Magnet x={magnetX} y={magnetY} className="fixed bottom-4 right-4 z-50">
-        <div className="flex items-center gap-3 rounded-full border-2 border-slate-200 bg-white p-1 pl-4 shadow-md">
-          <span className="w-28 text-sm text-slate-700">
-            {savedPlacesAmount} Places Saved
-          </span>
-          <ButtonLink href={path.substring(0, 18)}>Plan Trip</ButtonLink>
-        </div>
-      </Magnet>
-    </main>
+    </>
   );
 }

@@ -1,4 +1,3 @@
-import { data } from "@/resources/mock-data";
 import {
   BoundingBox,
   DayData,
@@ -58,9 +57,7 @@ export const savedPlacesAmountAtom = atom((get) => {
 export const dayPlacesAtom = atom<DayData[]>([]);
 
 // For the discover page
-export const discoverPlacesAtom = atom<TripPlaceDetails[]>(
-  process.env.NEXT_PUBLIC_USE_REAL_DATA === "true" ? [] : [...data, ...data],
-);
+export const discoverPlacesAtom = atom<TripPlaceDetails[]>([]);
 
 export const activePlaceIndexAtom = atom<number>(0);
 
