@@ -102,7 +102,7 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
         e.preventDefault();
     };
 
-    if (typeof window !== undefined) {
+    if (typeof window !== "undefined") {
       setFinalPosition(window.innerHeight - 56 + 24 - 64 - 112);
     }
 

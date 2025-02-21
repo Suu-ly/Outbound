@@ -1,6 +1,5 @@
 "use client";
 
-import DayFolder from "@/components/day-folder";
 import PlaceDetailsCompact from "@/components/place-details-compact";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -15,7 +14,6 @@ import {
   IconMapPinSearch,
   IconWand,
 } from "@tabler/icons-react";
-import { addDays } from "date-fns";
 import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
 import { type DateRange } from "react-day-picker";
@@ -26,6 +24,7 @@ import {
   tripDetailsAtom,
   tripPlacesAtom,
 } from "../atoms";
+import SortPlaces from "./sort-places";
 import ViewMapToggle from "./view-map-toggle";
 
 export default function TripPage() {
@@ -123,14 +122,24 @@ export default function TripPage() {
               <IconMapPinSearch />
             </Button>
           </div>
-          {places.saved.map((place) => (
-            <PlaceDetailsCompact
+          {places.saved.map((place, index) => (
+            <div
               key={place.userPlaceInfo.placeId}
-              data={place}
-              days={days}
-              startDate={tripData.startDate}
-              isAdmin={isAdmin}
-            />
+              className="relative ml-6 border-l-2 border-zinc-50 pl-6"
+            >
+              <div
+                className="absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900"
+                aria-label={`Saved place ${index + 1}`}
+              >
+                {index + 1}
+              </div>
+              <PlaceDetailsCompact
+                data={place}
+                days={days}
+                startDate={tripData.startDate}
+                isAdmin={isAdmin}
+              />
+            </div>
           ))}
         </div>
         <div className="flex flex-col gap-4 pb-14 sm:pb-4">
@@ -140,22 +149,12 @@ export default function TripPage() {
               <IconWand />
             </Button>
           </div>
-          {days.map((day, index) => (
-            <DayFolder
-              key={day.dayId}
-              date={addDays(tripData.startDate, index)}
-            >
-              {places[day.dayId] &&
-                places[day.dayId].map((place) => (
-                  <div
-                    key={place.userPlaceInfo.placeId}
-                    className="rounded-lg bg-white p-4"
-                  >
-                    {place.placeInfo.displayName}
-                  </div>
-                ))}
-            </DayFolder>
-          ))}
+          <SortPlaces
+            startDate={tripData.startDate}
+            isAdmin={isAdmin}
+            placesData={places}
+            dayData={days}
+          />
         </div>
       </div>
     </ViewMapToggle>

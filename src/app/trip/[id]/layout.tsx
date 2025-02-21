@@ -43,6 +43,7 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
         dayOrder: rowData.inner.dayOrder,
         dayStartTime: rowData.inner.dayStartTime!,
       });
+      placeData[rowData.inner.dayId!] = [];
     } else {
       const tempPlaceData = {
         placeInfo: {
@@ -57,7 +58,7 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
           openingHours: rowData.place.openingHours,
         },
         userPlaceInfo: {
-          placeId: rowData.inner.placeId,
+          placeId: rowData.inner.placeId!,
           note: rowData.inner.note,
           tripOrder: rowData.inner.tripOrder,
         },

@@ -327,7 +327,7 @@ export type PlaceDataPlaceInfo = {
 };
 
 type PlaceDataUserPlaceInfo = {
-  placeId: string | null;
+  placeId: string;
   note: string | null;
   // time spent
   tripOrder: string;

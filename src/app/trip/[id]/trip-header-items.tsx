@@ -40,7 +40,11 @@ export default function TripHeaderItems() {
     <>
       <ShareButton
         className={!isDiscover ? "hidden sm:inline-flex" : undefined}
-        link={window.location.origin + basePath}
+        link={
+          typeof window !== "undefined"
+            ? window.location.origin + basePath
+            : "/"
+        }
       />
       {isAdmin && (
         <>
@@ -70,7 +74,11 @@ export default function TripHeaderItems() {
               <ShareButton
                 isDropdown
                 className={!isDiscover ? "sm:hidden" : "hidden"}
-                link={window.location.origin + basePath}
+                link={
+                  typeof window !== "undefined"
+                    ? window.location.origin + basePath
+                    : "/"
+                }
               />
 
               <DropdownMenuItem
