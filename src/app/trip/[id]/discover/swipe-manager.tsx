@@ -4,7 +4,7 @@ import TabDisable from "@/components/tab-disable";
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { insertAfter } from "@/lib/utils";
+import { getStartingIndex, insertAfter } from "@/lib/utils";
 import {
   setPlaceAsInterested,
   setPlaceAsUninterested,
@@ -256,9 +256,13 @@ export function SwipeManager() {
               userPlaceInfo: {
                 placeId: data.id,
                 note: null,
-                tripOrder: insertAfter(
-                  prev.saved[prev.saved.length - 1].userPlaceInfo.tripOrder,
-                ),
+                tripOrder:
+                  prev.saved.length > 0
+                    ? insertAfter(
+                        prev.saved[prev.saved.length - 1].userPlaceInfo
+                          .tripOrder,
+                      )
+                    : getStartingIndex(),
               },
               placeInfo: {
                 displayName: data.displayName,

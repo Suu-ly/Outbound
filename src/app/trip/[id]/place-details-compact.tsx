@@ -1,7 +1,27 @@
 "use client";
 
+import {
+  dayPlacesAtom,
+  isTripAdminAtom,
+  tripPlacesAtom,
+  tripStartDateAtom,
+} from "@/app/trip/atoms";
+import OpeningHours from "@/components/opening-hours";
+import ShareButton from "@/components/share-button";
+import TabDisable from "@/components/tab-disable";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Textarea from "@/components/ui/textarea";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { DayData, PlaceDataEntry } from "@/server/types";
+import { PlaceDataEntry } from "@/server/types";
 import {
   IconCalendarRepeat,
   IconDotsVertical,
@@ -13,6 +33,7 @@ import {
   IconTrash,
 } from "@tabler/icons-react";
 import { addDays } from "date-fns";
+import { useAtomValue, useSetAtom } from "jotai";
 import { motion } from "motion/react";
 import Link from "next/link";
 import {
@@ -25,39 +46,27 @@ import {
   useRef,
   useState,
 } from "react";
-import OpeningHours from "./opening-hours";
-import ShareButton from "./share-button";
-import TabDisable from "./tab-disable";
-import { Button } from "./ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import Textarea from "./ui/textarea";
 
 export type PlaceDetailsCompactProps = {
   data: PlaceDataEntry;
-  isInDay?: number;
-  startDate: Date;
-  days: DayData[];
-  isAdmin?: boolean;
+  isInDay?: number | string;
   skipped?: boolean;
+  isDragging?: boolean;
 };
 
 const PlaceDetailsCompact = memo(
   forwardRef<HTMLDivElement, PlaceDetailsCompactProps>(
-    ({ data, startDate, days, isAdmin, skipped, isInDay }, ref) => {
+    ({ data, skipped, isInDay = "saved", isDragging }, ref) => {
       const [expanded, setExpanded] = useState<"min" | "mid" | "max">("min");
+      const startDate = useAtomValue(tripStartDateAtom);
+      const days = useAtomValue(dayPlacesAtom);
+      const isAdmin = useAtomValue(isTripAdminAtom);
       const isLarge = useMediaQuery("(min-width: 1280px)");
       const [bottomHeight, setBottomHeight] = useState(324);
       const [note, setNote] = useState(
         data.userPlaceInfo.note ? data.userPlaceInfo.note : "",
       );
+      const setPlaces = useSetAtom(tripPlacesAtom);
 
       const noteRef = useRef<HTMLTextAreaElement | null>(null);
       const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -84,10 +93,49 @@ const PlaceDetailsCompact = memo(
         [],
       );
 
+      const handleMoveTo = useCallback(
+        (newDay: number | string) => {
+          setPlaces((prev) => ({
+            ...prev,
+            [isInDay]: prev[isInDay].filter(
+              (place) =>
+                place.userPlaceInfo.placeId !== data.userPlaceInfo.placeId,
+            ),
+            [newDay]: [...prev[newDay], data],
+          }));
+        },
+        [setPlaces, isInDay, data],
+      );
+
       const handleOnBlur = useCallback(() => {
         if (!isAdmin) return;
         if (!note && expanded === "mid") setExpanded("min");
-      }, [expanded, isAdmin, note]);
+        // update note value in places state
+        setPlaces((prev) => ({
+          ...prev,
+          [isInDay]: [
+            ...prev[isInDay].map((place) => {
+              if (place.userPlaceInfo.placeId !== data.userPlaceInfo.placeId)
+                return place;
+              return {
+                placeInfo: data.placeInfo,
+                userPlaceInfo: {
+                  ...data.userPlaceInfo,
+                  note: note,
+                },
+              };
+            }),
+          ],
+        }));
+      }, [
+        data.placeInfo,
+        data.userPlaceInfo,
+        expanded,
+        isAdmin,
+        isInDay,
+        note,
+        setPlaces,
+      ]);
 
       useEffect(() => {
         const handleResize = () => {
@@ -104,11 +152,10 @@ const PlaceDetailsCompact = memo(
       }, []);
 
       const dayIndex = (((new Date().getDay() - 1) % 7) + 7) % 7;
-
       return (
         <div
           ref={ref}
-          aria-expanded={expanded === "max"}
+          aria-expanded={expanded === "max" && !isDragging}
           className="overflow-hidden rounded-xl bg-white ring-offset-zinc-50 transition fill-mode-both has-[[data-trigger=true]:focus-visible]:outline-none has-[[data-trigger=true]:focus-visible]:ring-2 has-[[data-trigger=true]:focus-visible]:ring-slate-400 has-[[data-trigger=true]:focus-visible]:ring-offset-2"
         >
           <div className="flex items-start p-2">
@@ -116,7 +163,7 @@ const PlaceDetailsCompact = memo(
               {data.placeInfo.rating && (
                 <div className="absolute bottom-1 left-1 z-10 flex items-center gap-1 rounded bg-slate-50 px-1">
                   <span className="text-sm font-medium text-slate-700">
-                    {data.placeInfo.rating}
+                    {data.placeInfo.rating.toFixed(1)}
                   </span>
                   <IconStarFilled size={16} className="text-amber-400" />
                 </div>
@@ -199,10 +246,20 @@ const PlaceDetailsCompact = memo(
                           Change day
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent>
+                          {isInDay !== "saved" && (
+                            <DropdownMenuItem
+                              onClick={() => handleMoveTo("saved")}
+                            >
+                              Saved places
+                            </DropdownMenuItem>
+                          )}
                           {days.map((day, index) => {
                             if (day.dayId === isInDay) return;
                             return (
-                              <DropdownMenuItem key={day.dayId}>
+                              <DropdownMenuItem
+                                key={day.dayId}
+                                onClick={() => handleMoveTo(day.dayId)}
+                              >
                                 {addDays(startDate, index).toLocaleDateString(
                                   undefined,
                                   {
@@ -265,7 +322,11 @@ const PlaceDetailsCompact = memo(
           )}
           <motion.div
             initial={{ height: 0 }}
-            animate={expanded === "min" ? { height: 0 } : { height: "auto" }}
+            animate={
+              expanded === "min" || isDragging
+                ? { height: 0 }
+                : { height: "auto" }
+            }
             transition={{
               duration: 0.3,
               ease: [0.8, 0, 0.2, 1],
@@ -335,10 +396,8 @@ const PlaceDetailsCompact = memo(
   (prev, next) => {
     if (
       prev.data.userPlaceInfo.placeId !== next.data.userPlaceInfo.placeId ||
-      prev.days.some((day, index) => next.days[index].dayId !== day.dayId) ||
+      prev.isDragging !== next.isDragging ||
       prev.isInDay !== next.isInDay ||
-      prev.isAdmin !== next.isAdmin ||
-      prev.startDate !== next.startDate ||
       prev.skipped !== next.skipped
     )
       return false;

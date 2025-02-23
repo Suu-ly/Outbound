@@ -27,6 +27,11 @@ export const tripDetailsAtom = atom<TripData>({
   ],
 });
 
+export const tripStartDateAtom = atom((get) => {
+  const trip = get(tripDetailsAtom);
+  return trip.startDate;
+});
+
 // Checks if the user is the owner of the trip
 export const isTripAdminAtom = atom<boolean>(false);
 

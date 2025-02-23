@@ -1,6 +1,6 @@
 import PlaceDetailsCompact, {
   PlaceDetailsCompactProps,
-} from "@/components/place-details-compact";
+} from "@/app/trip/[id]/place-details-compact";
 import { cn } from "@/lib/utils";
 import { DraggableSyntheticListeners } from "@dnd-kit/core";
 import { forwardRef } from "react";
@@ -10,7 +10,6 @@ type PlaceDetailsSortWrapperProps = {
   isDragging?: boolean;
   fadeIn?: boolean;
   listeners?: DraggableSyntheticListeners;
-  isSorting?: boolean;
   style?: React.CSSProperties;
   onRemove?: (isInDay: number, placeId: string) => void;
 } & PlaceDetailsCompactProps;
@@ -23,14 +22,10 @@ const PlaceDetailsSortWrapper = forwardRef<
     {
       data,
       isInDay,
-      startDate,
-      days,
-      isAdmin,
       skipped,
       isDragOverlay,
       isDragging,
       fadeIn,
-      isSorting,
       onRemove,
       style,
       listeners,
@@ -48,18 +43,22 @@ const PlaceDetailsSortWrapper = forwardRef<
         className={cn(
           "cursor-grab touch-manipulation rounded-xl ring-offset-zinc-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-4 active:cursor-grabbing",
           isDragOverlay && "shadow-lg",
-          isDragging && "opacity-0",
+          isDragging && "opacity-50",
           fadeIn && "duration-300 animate-in fade-in-0",
         )}
       >
-        <PlaceDetailsCompact
-          data={data}
-          isInDay={isInDay}
-          startDate={startDate}
-          days={days}
-          isAdmin={isAdmin}
-          skipped={skipped}
-        />
+        <div
+          onKeyDown={(e) => {
+            if (e.code === "Space") e.stopPropagation();
+          }}
+        >
+          <PlaceDetailsCompact
+            data={data}
+            isInDay={isInDay}
+            isDragging={isDragging}
+            skipped={skipped}
+          />
+        </div>
       </div>
     );
   },

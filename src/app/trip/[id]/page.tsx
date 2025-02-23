@@ -1,6 +1,5 @@
 "use client";
 
-import PlaceDetailsCompact from "@/components/place-details-compact";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -9,11 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useMediaQuery } from "@/lib/use-media-query";
-import {
-  IconCalendarWeek,
-  IconMapPinSearch,
-  IconWand,
-} from "@tabler/icons-react";
+import { IconCalendarWeek } from "@tabler/icons-react";
 import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
 import { type DateRange } from "react-day-picker";
@@ -114,48 +109,8 @@ export default function TripPage() {
           className="absolute size-full object-cover"
         />
       </div>
-      <div className="flex flex-col gap-4 p-4">
-        <div className="mb-4 space-y-4">
-          <div className="flex justify-between gap-3">
-            <h3 className="font-display text-2xl font-medium">Saved Places</h3>
-            <Button size="small" variant="secondary" iconOnly>
-              <IconMapPinSearch />
-            </Button>
-          </div>
-          {places.saved.map((place, index) => (
-            <div
-              key={place.userPlaceInfo.placeId}
-              className="relative ml-6 border-l-2 border-zinc-50 pl-6"
-            >
-              <div
-                className="absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900"
-                aria-label={`Saved place ${index + 1}`}
-              >
-                {index + 1}
-              </div>
-              <PlaceDetailsCompact
-                data={place}
-                days={days}
-                startDate={tripData.startDate}
-                isAdmin={isAdmin}
-              />
-            </div>
-          ))}
-        </div>
-        <div className="flex flex-col gap-4 pb-14 sm:pb-4">
-          <div className="flex justify-between gap-3">
-            <h3 className="font-display text-2xl font-medium">Itinerary</h3>
-            <Button size="small" variant="secondary" iconOnly>
-              <IconWand />
-            </Button>
-          </div>
-          <SortPlaces
-            startDate={tripData.startDate}
-            isAdmin={isAdmin}
-            placesData={places}
-            dayData={days}
-          />
-        </div>
+      <div className="flex flex-col gap-4 p-4 pb-14 sm:pb-4">
+        <SortPlaces />
       </div>
     </ViewMapToggle>
   );

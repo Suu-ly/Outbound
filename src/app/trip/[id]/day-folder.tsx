@@ -1,3 +1,11 @@
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import {
   IconChevronRight,
@@ -12,14 +20,6 @@ import {
   SetStateAction,
   useState,
 } from "react";
-import { Button } from "./ui/button";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "./ui/collapsible";
-import { Input } from "./ui/input";
-import { Separator } from "./ui/separator";
 
 type DayFolderProps = {
   isOpen?: boolean;

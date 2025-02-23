@@ -1,9 +1,11 @@
-import DayFolder from "@/components/day-folder";
-import { PlaceDetailsCompactProps } from "@/components/place-details-compact";
+"use client";
+
+import DayFolder from "@/app/trip/[id]/day-folder";
+import { PlaceDetailsCompactProps } from "@/app/trip/[id]/place-details-compact";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { DayData, PlaceData } from "@/server/types";
+import { PlaceData, PlaceDataEntry } from "@/server/types";
 import {
-  CancelDrop,
   closestCenter,
   CollisionDetection,
   defaultDropAnimationSideEffects,
@@ -33,7 +35,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { IconMapPinSearch, IconWand } from "@tabler/icons-react";
 import { addDays } from "date-fns";
+import { useAtom, useAtomValue } from "jotai";
 import React, {
   ReactNode,
   useCallback,
@@ -42,6 +46,7 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { dayPlacesAtom, tripPlacesAtom, tripStartDateAtom } from "../atoms";
 import PlaceDetailsSortWrapper from "./place-details-sort-wrapper";
 
 const directions: string[] = [KeyboardCode.Down, KeyboardCode.Up];
@@ -149,32 +154,27 @@ type SortableItemProps = {
   disabled?: boolean;
 } & PlaceDetailsCompactProps;
 
-function SortableItem({ disabled, id, ...rest }: SortableItemProps) {
-  const {
-    setNodeRef,
-    listeners,
-    isDragging,
-    isSorting,
-    transform,
-    transition,
-  } = useSortable({
-    id,
-  });
+function SortableItem({ disabled, id, data, ...rest }: SortableItemProps) {
+  const { setNodeRef, listeners, isDragging, transform, transition } =
+    useSortable({
+      id,
+      data: { data: data },
+    });
   const mounted = useMountStatus();
   const mountedWhileDragging = isDragging && !mounted;
 
   return (
     <PlaceDetailsSortWrapper
       ref={disabled ? undefined : setNodeRef}
+      {...rest}
       isDragging={isDragging}
-      isSorting={isSorting}
       style={{
         transition,
         transform: CSS.Translate.toString(transform),
       }}
+      data={data}
       fadeIn={mountedWhileDragging}
       listeners={listeners}
-      {...rest}
     />
   );
 }
@@ -275,39 +275,30 @@ function DroppableContainer({
 }
 
 const dropAnimation: DropAnimation = {
+  duration: 500,
+  easing: "cubic-bezier(.45,1.3,.3,1)",
   sideEffects: defaultDropAnimationSideEffects({
     styles: {
       active: {
-        opacity: "0.5",
+        opacity: "1",
       },
     },
   }),
 };
-
-interface Props {
-  startDate: Date;
-  isAdmin: boolean;
-  cancelDrop?: CancelDrop;
-  placesData: PlaceData;
-  dayData: DayData[];
-}
-
 const SAVED_ID = "saved";
 
-export default function SortPlaces({
-  startDate,
-  isAdmin,
-  cancelDrop,
-  placesData,
-  dayData,
-}: Props) {
-  const [places, setPlaces] = useState<PlaceData>(placesData);
-  const [days, setDays] = useState(dayData);
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+export default function SortPlaces() {
+  const [places, setPlaces] = useAtom(tripPlacesAtom);
+  const [days, setDays] = useAtom(dayPlacesAtom);
+  const startDate = useAtomValue(tripStartDateAtom);
+  const [activeId, setActiveId] = useState<{
+    id: UniqueIdentifier;
+    data: PlaceDataEntry;
+  } | null>(null);
   const lastOverId = useRef<UniqueIdentifier | null>(null);
   const recentlyMovedToNewContainer = useRef(false);
   const isSortingContainer =
-    activeId != null ? days.some((day) => day.dayId === activeId) : false;
+    activeId != null ? days.some((day) => day.dayId === activeId.id) : false;
 
   /**
    * Custom collision detection strategy optimized for multiple containers
@@ -319,7 +310,7 @@ export default function SortPlaces({
    */
   const collisionDetectionStrategy: CollisionDetection = useCallback(
     (args) => {
-      if (activeId && activeId in places) {
+      if (activeId && activeId.id in places) {
         return closestCenter({
           ...args,
           droppableContainers: args.droppableContainers.filter(
@@ -368,7 +359,7 @@ export default function SortPlaces({
       // to the id of the draggable item that was moved to the new container, otherwise
       // the previous `overId` will be returned which can cause items to incorrectly shift positions
       if (recentlyMovedToNewContainer.current) {
-        lastOverId.current = activeId;
+        lastOverId.current = activeId ? activeId.id : activeId;
       }
 
       // If no droppable is matched, return the last match
@@ -421,14 +412,8 @@ export default function SortPlaces({
     setClonedItems(null);
   };
 
-  function renderSortableItemDragOverlay(id: UniqueIdentifier) {
-    return (
-      <div className="size-10 bg-red-50"></div>
-      // <PlaceDetailsSortWrapper
-      //   isDragging
-      //   dragOverlay
-      // />
-    );
+  function renderSortableItemDragOverlay(data: PlaceDataEntry) {
+    return <PlaceDetailsSortWrapper isDragOverlay data={data} />;
   }
 
   function renderContainerDragOverlay(date: Date) {
@@ -451,12 +436,11 @@ export default function SortPlaces({
         },
       }}
       onDragStart={({ active }) => {
-        setActiveId(active.id);
+        setActiveId({ id: active.id, data: active.data.current?.data });
         setClonedItems(places);
       }}
       onDragOver={({ active, over }) => {
         const overId = over?.id;
-        console.log("event fired");
         // If dragging a day folder, do nothing
         if (overId == null || active.id in places) {
           return;
@@ -524,6 +508,7 @@ export default function SortPlaces({
         }
       }}
       onDragEnd={({ active, over }) => {
+        setActiveId(null);
         if (active.id in places && over?.id) {
           setDays((currentDays) => {
             const activeIndex = currentDays.findIndex(
@@ -541,14 +526,12 @@ export default function SortPlaces({
         const activeContainer = findContainer(active.id);
 
         if (!activeContainer) {
-          setActiveId(null);
           return;
         }
 
         const overId = over?.id;
 
         if (overId == null) {
-          setActiveId(null);
           return;
         }
 
@@ -585,10 +568,7 @@ export default function SortPlaces({
             }
           }
         }
-
-        setActiveId(null);
       }}
-      cancelDrop={cancelDrop}
       onDragCancel={onDragCancel}
     >
       <div className="flex flex-col gap-4">
@@ -596,6 +576,12 @@ export default function SortPlaces({
           items={[SAVED_ID, ...days.map((day) => day.dayId)]}
           strategy={verticalListSortingStrategy}
         >
+          <div className="flex justify-between gap-3">
+            <h3 className="font-display text-2xl font-medium">Saved Places</h3>
+            <Button size="small" variant="secondary" iconOnly>
+              <IconMapPinSearch />
+            </Button>
+          </div>
           <DroppableContainer
             id={SAVED_ID}
             disabled={isSortingContainer}
@@ -612,16 +598,13 @@ export default function SortPlaces({
                   className={"relative ml-6 border-l-2 border-zinc-50 pl-6"}
                 >
                   <div
-                    className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId ? "opacity-0" : ""}`}
+                    className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
                     aria-label={`Saved place ${index + 1}`}
                   >
                     {index + 1}
                   </div>
                   <SortableItem
                     data={place}
-                    days={days}
-                    startDate={startDate}
-                    isAdmin={isAdmin}
                     disabled={isSortingContainer}
                     id={place.userPlaceInfo.placeId!}
                   />
@@ -629,6 +612,12 @@ export default function SortPlaces({
               ))}
             </SortableContext>
           </DroppableContainer>
+          <div className="flex justify-between gap-3">
+            <h3 className="font-display text-2xl font-medium">Itinerary</h3>
+            <Button size="small" variant="secondary" iconOnly>
+              <IconWand />
+            </Button>
+          </div>
           {days.map((day, index) => (
             <DroppableContainer
               day
@@ -651,20 +640,17 @@ export default function SortPlaces({
                       key={place.userPlaceInfo.placeId}
                       className={cn(
                         "relative ml-6 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
-                        activeId && "border-transparent",
+                        activeId && !isSortingContainer && "border-transparent",
                       )}
                     >
                       <div
-                        className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId ? "opacity-0" : ""}`}
+                        className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
                         aria-label={`Saved place ${index + 1}`}
                       >
                         {index + 1}
                       </div>
                       <SortableItem
                         data={place}
-                        days={days}
-                        startDate={startDate}
-                        isAdmin={isAdmin}
                         isInDay={day.dayId}
                         disabled={isSortingContainer}
                         id={place.userPlaceInfo.placeId!}
@@ -677,21 +663,22 @@ export default function SortPlaces({
           ))}
         </SortableContext>
       </div>
-      {createPortal(
-        <DragOverlay dropAnimation={dropAnimation}>
-          {activeId
-            ? dayData.some((day) => day.dayId === activeId)
-              ? renderContainerDragOverlay(
-                  addDays(
-                    startDate,
-                    days.findIndex((day) => day.dayId === activeId),
-                  ),
-                )
-              : renderSortableItemDragOverlay(activeId)
-            : null}
-        </DragOverlay>,
-        document.body,
-      )}
+      {typeof window !== "undefined" &&
+        createPortal(
+          <DragOverlay dropAnimation={dropAnimation} zIndex={50}>
+            {activeId
+              ? days.some((day) => day.dayId === activeId.id)
+                ? renderContainerDragOverlay(
+                    addDays(
+                      startDate,
+                      days.findIndex((day) => day.dayId === activeId.id),
+                    ),
+                  )
+                : renderSortableItemDragOverlay(activeId.data)
+              : null}
+          </DragOverlay>,
+          document.body,
+        )}
     </DndContext>
   );
 }
