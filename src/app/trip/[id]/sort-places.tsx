@@ -387,20 +387,6 @@ export default function SortPlaces() {
     );
   };
 
-  const getIndex = (id: UniqueIdentifier) => {
-    const container = findContainer(id);
-
-    if (!container) {
-      return -1;
-    }
-
-    const index = places[container].findIndex(
-      (placesGroup) => placesGroup.userPlaceInfo.placeId === id,
-    );
-
-    return index;
-  };
-
   const onDragCancel = () => {
     if (clonedItems) {
       // Reset items to their original state in case items have been
