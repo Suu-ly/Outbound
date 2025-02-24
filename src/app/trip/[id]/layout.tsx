@@ -47,6 +47,7 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
     } else {
       const tempPlaceData = {
         placeInfo: {
+          placeId: rowData.inner.placeId!,
           displayName: rowData.place.displayName,
           primaryTypeDisplayName: rowData.place.primaryTypeDisplayName,
           typeColor: rowData.place.typeColor,
@@ -58,7 +59,6 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
           openingHours: rowData.place.openingHours,
         },
         userPlaceInfo: {
-          placeId: rowData.inner.placeId!,
           note: rowData.inner.note,
           tripOrder: rowData.inner.tripOrder,
         },
@@ -68,11 +68,12 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
         placeData.saved.push(tempPlaceData);
       // Day
       else if (rowData.inner.dayId) {
-        dayData.push({
-          dayId: rowData.inner.dayId,
-          dayOrder: rowData.inner.dayOrder,
-          dayStartTime: rowData.inner.dayStartTime!,
-        });
+        if (!dayData.some((day) => day.dayId === rowData.inner.dayId))
+          dayData.push({
+            dayId: rowData.inner.dayId,
+            dayOrder: rowData.inner.dayOrder,
+            dayStartTime: rowData.inner.dayStartTime!,
+          });
         // Day with place
         if (rowData.inner.dayId in placeData)
           placeData[rowData.inner.dayId].push(tempPlaceData);
