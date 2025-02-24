@@ -65,3 +65,7 @@ export function insertBefore(index: string) {
 export function insertAfter(index: string) {
   return averageStrings(index, "\x7F"); // Average with "one"
 }
+
+export function insertBetween(left: string, right: string) {
+  return averageStrings(left, right);
+}

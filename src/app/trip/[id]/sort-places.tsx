@@ -3,7 +3,18 @@
 import DayFolder from "@/app/trip/[id]/day-folder";
 import { PlaceDetailsCompactProps } from "@/app/trip/[id]/place-details-compact";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import {
+  cn,
+  getStartingIndex,
+  insertAfter,
+  insertBefore,
+  insertBetween,
+} from "@/lib/utils";
+import {
+  removePlaceFromInterested,
+  updateTripDayOrder,
+  updateTripPlaceOrder,
+} from "@/server/actions";
 import { PlaceData, PlaceDataEntry } from "@/server/types";
 import {
   closestCenter,
@@ -35,6 +46,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Portal } from "@radix-ui/react-portal";
 import { IconMapPinSearch, IconWand } from "@tabler/icons-react";
 import { addDays } from "date-fns";
 import { useAtom, useAtomValue } from "jotai";
@@ -45,7 +57,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
+import { toast } from "sonner";
 import { dayPlacesAtom, tripPlacesAtom, tripStartDateAtom } from "../atoms";
 import PlaceDetailsSortWrapper from "./place-details-sort-wrapper";
 
@@ -91,7 +103,7 @@ const coordinateGetter: KeyboardCoordinateGetter = (
 
       if (data) {
         const { type, children } = data;
-
+        // Do not set container as valid target if children are inside
         if (type === "container" && children?.length > 0) {
           if (active.data.current?.type !== "container") {
             return;
@@ -152,6 +164,12 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) =>
 type SortableItemProps = {
   id: UniqueIdentifier;
   disabled?: boolean;
+  onRemove: (isInDay: number | string, placeId: string) => void;
+  handleMove: (
+    isInDay: number | string,
+    data: PlaceDataEntry,
+    newDay: number | string,
+  ) => void;
 } & PlaceDetailsCompactProps;
 
 function SortableItem({ disabled, id, data, ...rest }: SortableItemProps) {
@@ -204,7 +222,7 @@ function DroppableContainer({
       items: UniqueIdentifier[];
       style?: React.CSSProperties;
     }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const timer = useRef<NodeJS.Timeout>(null);
   const {
     active,
@@ -275,7 +293,7 @@ function DroppableContainer({
 }
 
 const dropAnimation: DropAnimation = {
-  duration: 500,
+  duration: 300,
   easing: "cubic-bezier(.45,1.3,.3,1)",
   sideEffects: defaultDropAnimationSideEffects({
     styles: {
@@ -287,8 +305,9 @@ const dropAnimation: DropAnimation = {
 };
 const SAVED_ID = "saved";
 
-export default function SortPlaces() {
+export default function SortPlaces({ tripId }: { tripId: string }) {
   const [places, setPlaces] = useAtom(tripPlacesAtom);
+  const [clonedItems, setClonedItems] = useState<PlaceData | null>(null);
   const [days, setDays] = useAtom(dayPlacesAtom);
   const startDate = useAtomValue(tripStartDateAtom);
   const [activeId, setActiveId] = useState<{
@@ -342,7 +361,7 @@ export default function SortPlaces() {
                   (container) =>
                     container.id !== overId &&
                     containerItems.some(
-                      (item) => item.userPlaceInfo.placeId === container.id,
+                      (item) => item.placeInfo.placeId === container.id,
                     ),
                 ),
               })[0]?.id ?? containerId;
@@ -367,7 +386,6 @@ export default function SortPlaces() {
     },
     [activeId, places],
   );
-  const [clonedItems, setClonedItems] = useState<PlaceData | null>(null);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, {
@@ -383,7 +401,7 @@ export default function SortPlaces() {
     }
 
     return Object.keys(places).find((placesGroup) =>
-      places[placesGroup].some((place) => place.userPlaceInfo.placeId === id),
+      places[placesGroup].some((place) => place.placeInfo.placeId === id),
     );
   };
 
@@ -397,6 +415,65 @@ export default function SortPlaces() {
     setActiveId(null);
     setClonedItems(null);
   };
+
+  const onRemove = useCallback(
+    (isInDay: number | string, placeId: string) => {
+      setPlaces((prev) => ({
+        ...prev,
+        [isInDay]: prev[isInDay].filter(
+          (place) => place.placeInfo.placeId !== placeId,
+        ),
+      }));
+
+      removePlaceFromInterested(tripId, placeId).then((data) => {
+        if (data.status === "error") toast.error(data.message);
+      });
+    },
+    [setPlaces, tripId],
+  );
+
+  const handleMove = useCallback(
+    (
+      isInDay: number | string,
+      data: PlaceDataEntry,
+      newDay: number | string,
+    ) => {
+      const newOrder =
+        places[isInDay].length > 0
+          ? insertAfter(
+              places[isInDay][places[isInDay].length - 1].userPlaceInfo
+                .tripOrder,
+            )
+          : getStartingIndex(); // No items in day
+      setPlaces((prev) => ({
+        ...prev,
+        [isInDay]: prev[isInDay].filter(
+          (place) => place.placeInfo.placeId !== data.placeInfo.placeId,
+        ), // Remove from current day
+        [newDay]: [
+          ...prev[newDay],
+          {
+            placeInfo: data.placeInfo,
+            userPlaceInfo: {
+              note: data.userPlaceInfo.note,
+              tripOrder: newOrder,
+            },
+          },
+        ], // Add to the end of the new day with updated details
+      }));
+
+      updateTripPlaceOrder(
+        tripId,
+        data.placeInfo.placeId,
+        newOrder,
+        newDay !== "saved" ? Number(newDay) : null,
+      ).then((data) => {
+        if (data.status === "error") toast.error(data.message);
+      });
+    },
+
+    [places, setPlaces, tripId],
+  );
 
   function renderSortableItemDragOverlay(data: PlaceDataEntry) {
     return <PlaceDetailsSortWrapper isDragOverlay data={data} />;
@@ -448,10 +525,10 @@ export default function SortPlaces() {
             const activeItems = currentPlaces[activeContainer];
             const overItems = currentPlaces[overContainer];
             const overIndex = overItems.findIndex(
-              (item) => item.userPlaceInfo.placeId === overId,
+              (item) => item.placeInfo.placeId === overId,
             );
             const activeIndex = activeItems.findIndex(
-              (item) => item.userPlaceInfo.placeId === active.id,
+              (item) => item.placeInfo.placeId === active.id,
             );
 
             let newIndex: number;
@@ -478,7 +555,7 @@ export default function SortPlaces() {
             return {
               ...currentPlaces,
               [activeContainer]: currentPlaces[activeContainer].filter(
-                (place) => place.userPlaceInfo.placeId !== active.id,
+                (place) => place.placeInfo.placeId !== active.id,
               ), // remove item from current container
               [overContainer]: [
                 // and add item to new container at the index
@@ -495,17 +572,43 @@ export default function SortPlaces() {
       }}
       onDragEnd={({ active, over }) => {
         setActiveId(null);
+        // Dragging a day
         if (active.id in places && over?.id) {
+          const activeIndex = days.findIndex((day) => day.dayId === active.id);
+          const overIndex = days.findIndex((day) => day.dayId === over.id);
+          // Nothing changed
+          if (activeIndex === overIndex) return;
+          let newOrder = "";
+          // Is not the first or last element in the new array
+          if (overIndex > 0 && overIndex < days.length - 1) {
+            if (activeIndex > overIndex)
+              newOrder = insertBetween(
+                days[overIndex - 1].dayOrder,
+                days[overIndex].dayOrder,
+              );
+            else
+              newOrder = insertBetween(
+                days[overIndex].dayOrder,
+                days[overIndex + 1].dayOrder,
+              );
+          } else if (overIndex === 0) {
+            if (days.length > 0) newOrder = insertBefore(days[0].dayOrder);
+            else newOrder = getStartingIndex();
+          } else if (overIndex === days.length - 1) {
+            newOrder = insertAfter(days[overIndex].dayOrder);
+          }
           setDays((currentDays) => {
-            const activeIndex = currentDays.findIndex(
-              (day) => day.dayId === active.id,
-            );
-            const overIndex = currentDays.findIndex(
-              (day) => day.dayId === over.id,
-            );
-
+            currentDays[activeIndex] = {
+              ...currentDays[activeIndex],
+              dayOrder: newOrder,
+            };
             return arrayMove(currentDays, activeIndex, overIndex);
           });
+          updateTripDayOrder(tripId, Number(active.id), newOrder).then(
+            (data) => {
+              if (data.status === "error") toast.error(data.message);
+            },
+          );
           return;
         }
 
@@ -523,36 +626,97 @@ export default function SortPlaces() {
 
         const overContainer = findContainer(overId);
 
+        // Dragging a place
         if (overContainer) {
           const activeIndex = places[activeContainer].findIndex(
-            (place) => place.userPlaceInfo.placeId === active.id,
+            (place) => place.placeInfo.placeId === active.id,
           );
+          const overIndex = places[overContainer].findIndex(
+            (place) => place.placeInfo.placeId === overId,
+          );
+          // Nothing happened
+          if (
+            clonedItems &&
+            clonedItems[overContainer].length > overIndex &&
+            clonedItems[overContainer][overIndex].placeInfo.placeId ===
+              active.id
+          )
+            return;
+
+          let newOrder = "";
+          // Is not the first or last element in the new array
+          if (overIndex > 0 && overIndex < places[overContainer].length - 1) {
+            if (activeIndex > overIndex)
+              newOrder = insertBetween(
+                places[overContainer][overIndex - 1].userPlaceInfo.tripOrder,
+                places[overContainer][overIndex].userPlaceInfo.tripOrder,
+              );
+            else
+              newOrder = insertBetween(
+                places[overContainer][overIndex].userPlaceInfo.tripOrder,
+                places[overContainer][overIndex + 1].userPlaceInfo.tripOrder,
+              );
+          } else if (overIndex === 0) {
+            if (places[overContainer].length > 0)
+              newOrder = insertBefore(
+                places[overContainer][0].userPlaceInfo.tripOrder,
+              );
+            else newOrder = getStartingIndex();
+          } else if (overIndex === places[overContainer].length - 1) {
+            newOrder = insertAfter(
+              places[overContainer][overIndex].userPlaceInfo.tripOrder,
+            );
+          }
           if (activeContainer !== overContainer) {
             setPlaces((currentPlaces) => ({
               ...currentPlaces,
               [activeContainer]: currentPlaces[activeContainer].filter(
-                (place) => place.userPlaceInfo.placeId !== active.id,
+                (place) => place.placeInfo.placeId !== active.id,
               ), // remove item from current container
               [overContainer]: [
                 ...currentPlaces[overContainer],
-                currentPlaces[activeContainer][activeIndex],
-              ],
+                {
+                  placeInfo:
+                    currentPlaces[activeContainer][activeIndex].placeInfo,
+                  userPlaceInfo: {
+                    ...currentPlaces[activeContainer][activeIndex]
+                      .userPlaceInfo,
+                    tripOrder: newOrder,
+                  },
+                },
+              ], // add place to the end of the array with new order
             }));
           } else {
-            const overIndex = places[overContainer].findIndex(
-              (place) => place.userPlaceInfo.placeId === overId,
-            );
             if (activeIndex !== overIndex) {
-              setPlaces((currentPlaces) => ({
-                ...currentPlaces,
-                [overContainer]: arrayMove(
-                  currentPlaces[overContainer],
-                  activeIndex,
-                  overIndex,
-                ),
-              }));
+              setPlaces((currentPlaces) => {
+                currentPlaces[overContainer][activeIndex] = {
+                  placeInfo:
+                    currentPlaces[overContainer][activeIndex].placeInfo,
+                  userPlaceInfo: {
+                    ...currentPlaces[overContainer][activeIndex].userPlaceInfo,
+                    tripOrder: newOrder,
+                  },
+                };
+
+                return {
+                  ...currentPlaces,
+                  [overContainer]: arrayMove(
+                    currentPlaces[overContainer],
+                    activeIndex,
+                    overIndex,
+                  ),
+                };
+              });
             }
           }
+          updateTripPlaceOrder(
+            tripId,
+            String(active.id),
+            newOrder,
+            overContainer !== "saved" ? Number(overContainer) : null,
+          ).then((data) => {
+            if (data.status === "error") toast.error(data.message);
+          });
         }
       }}
       onDragCancel={onDragCancel}
@@ -571,16 +735,16 @@ export default function SortPlaces() {
           <DroppableContainer
             id={SAVED_ID}
             disabled={isSortingContainer}
-            items={places.saved.map((place) => place.userPlaceInfo.placeId!)}
+            items={places.saved.map((place) => place.placeInfo.placeId!)}
             day={false}
           >
             <SortableContext
-              items={places.saved.map((place) => place.userPlaceInfo.placeId!)}
+              items={places.saved.map((place) => place.placeInfo.placeId!)}
               strategy={verticalListSortingStrategy}
             >
               {places.saved.map((place, index) => (
                 <div
-                  key={place.userPlaceInfo.placeId}
+                  key={place.placeInfo.placeId}
                   className={"relative ml-6 border-l-2 border-zinc-50 pl-6"}
                 >
                   <div
@@ -592,7 +756,9 @@ export default function SortPlaces() {
                   <SortableItem
                     data={place}
                     disabled={isSortingContainer}
-                    id={place.userPlaceInfo.placeId!}
+                    id={place.placeInfo.placeId!}
+                    onRemove={onRemove}
+                    handleMove={handleMove}
                   />
                 </div>
               ))}
@@ -609,21 +775,19 @@ export default function SortPlaces() {
               day
               key={day.dayId}
               id={day.dayId}
-              items={places[day.dayId].map(
-                (place) => place.userPlaceInfo.placeId!,
-              )}
+              items={places[day.dayId].map((place) => place.placeInfo.placeId!)}
               date={addDays(startDate, index)}
             >
               <SortableContext
                 items={places[day.dayId].map(
-                  (place) => place.userPlaceInfo.placeId!,
+                  (place) => place.placeInfo.placeId!,
                 )}
                 strategy={verticalListSortingStrategy}
               >
                 {places[day.dayId].map((place, index) => {
                   return (
                     <div
-                      key={place.userPlaceInfo.placeId}
+                      key={place.placeInfo.placeId}
                       className={cn(
                         "relative ml-6 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
                         activeId && !isSortingContainer && "border-transparent",
@@ -639,7 +803,9 @@ export default function SortPlaces() {
                         data={place}
                         isInDay={day.dayId}
                         disabled={isSortingContainer}
-                        id={place.userPlaceInfo.placeId!}
+                        id={place.placeInfo.placeId!}
+                        onRemove={onRemove}
+                        handleMove={handleMove}
                       />
                     </div>
                   );
@@ -649,22 +815,20 @@ export default function SortPlaces() {
           ))}
         </SortableContext>
       </div>
-      {typeof window !== "undefined" &&
-        createPortal(
-          <DragOverlay dropAnimation={dropAnimation} zIndex={50}>
-            {activeId
-              ? days.some((day) => day.dayId === activeId.id)
-                ? renderContainerDragOverlay(
-                    addDays(
-                      startDate,
-                      days.findIndex((day) => day.dayId === activeId.id),
-                    ),
-                  )
-                : renderSortableItemDragOverlay(activeId.data)
-              : null}
-          </DragOverlay>,
-          document.body,
-        )}
+      <Portal>
+        <DragOverlay dropAnimation={dropAnimation} zIndex={50}>
+          {activeId
+            ? days.some((day) => day.dayId === activeId.id)
+              ? renderContainerDragOverlay(
+                  addDays(
+                    startDate,
+                    days.findIndex((day) => day.dayId === activeId.id),
+                  ),
+                )
+              : renderSortableItemDragOverlay(activeId.data)
+            : null}
+        </DragOverlay>
+      </Portal>
     </DndContext>
   );
 }

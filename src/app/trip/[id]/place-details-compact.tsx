@@ -52,11 +52,20 @@ export type PlaceDetailsCompactProps = {
   isInDay?: number | string;
   skipped?: boolean;
   isDragging?: boolean;
+  onRemove?: (isInDay: number | string, placeId: string) => void;
+  handleMove?: (
+    isInDay: number | string,
+    data: PlaceDataEntry,
+    newDay: number | string,
+  ) => void;
 };
 
 const PlaceDetailsCompact = memo(
   forwardRef<HTMLDivElement, PlaceDetailsCompactProps>(
-    ({ data, skipped, isInDay = "saved", isDragging }, ref) => {
+    (
+      { data, skipped, isInDay = "saved", isDragging, onRemove, handleMove },
+      ref,
+    ) => {
       const [expanded, setExpanded] = useState<"min" | "mid" | "max">("min");
       const startDate = useAtomValue(tripStartDateAtom);
       const days = useAtomValue(dayPlacesAtom);
@@ -93,20 +102,6 @@ const PlaceDetailsCompact = memo(
         [],
       );
 
-      const handleMoveTo = useCallback(
-        (newDay: number | string) => {
-          setPlaces((prev) => ({
-            ...prev,
-            [isInDay]: prev[isInDay].filter(
-              (place) =>
-                place.userPlaceInfo.placeId !== data.userPlaceInfo.placeId,
-            ),
-            [newDay]: [...prev[newDay], data],
-          }));
-        },
-        [setPlaces, isInDay, data],
-      );
-
       const handleOnBlur = useCallback(() => {
         if (!isAdmin) return;
         if (!note && expanded === "mid") setExpanded("min");
@@ -115,7 +110,7 @@ const PlaceDetailsCompact = memo(
           ...prev,
           [isInDay]: [
             ...prev[isInDay].map((place) => {
-              if (place.userPlaceInfo.placeId !== data.userPlaceInfo.placeId)
+              if (place.placeInfo.placeId !== data.placeInfo.placeId)
                 return place;
               return {
                 placeInfo: data.placeInfo,
@@ -248,7 +243,9 @@ const PlaceDetailsCompact = memo(
                         <DropdownMenuSubContent>
                           {isInDay !== "saved" && (
                             <DropdownMenuItem
-                              onClick={() => handleMoveTo("saved")}
+                              onClick={() =>
+                                handleMove && handleMove(isInDay, data, "saved")
+                              }
                             >
                               Saved places
                             </DropdownMenuItem>
@@ -258,7 +255,10 @@ const PlaceDetailsCompact = memo(
                             return (
                               <DropdownMenuItem
                                 key={day.dayId}
-                                onClick={() => handleMoveTo(day.dayId)}
+                                onClick={() =>
+                                  handleMove &&
+                                  handleMove(isInDay, data, day.dayId)
+                                }
                               >
                                 {addDays(startDate, index).toLocaleDateString(
                                   undefined,
@@ -273,7 +273,12 @@ const PlaceDetailsCompact = memo(
                           })}
                         </DropdownMenuSubContent>
                       </DropdownMenuSub>
-                      <DropdownMenuItem className="text-rose-700 focus:text-rose-900 [&_svg]:text-rose-600 [&_svg]:focus:text-rose-700">
+                      <DropdownMenuItem
+                        onClick={() =>
+                          onRemove && onRemove(isInDay, data.placeInfo.placeId)
+                        }
+                        className="text-rose-700 focus:text-rose-900 [&_svg]:text-rose-600 [&_svg]:focus:text-rose-700"
+                      >
                         <IconTrash />
                         Remove from saved places
                       </DropdownMenuItem>
@@ -395,7 +400,7 @@ const PlaceDetailsCompact = memo(
   ),
   (prev, next) => {
     if (
-      prev.data.userPlaceInfo.placeId !== next.data.userPlaceInfo.placeId ||
+      prev.data.placeInfo.placeId !== next.data.placeInfo.placeId ||
       prev.isDragging !== next.isDragging ||
       prev.isInDay !== next.isInDay ||
       prev.skipped !== next.skipped

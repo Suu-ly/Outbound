@@ -10,11 +10,11 @@ import {
 import { useMediaQuery } from "@/lib/use-media-query";
 import { IconCalendarWeek } from "@tabler/icons-react";
 import { useAtom, useAtomValue } from "jotai";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { type DateRange } from "react-day-picker";
 import {
   dayPlacesAtom,
-  isTripAdminAtom,
   savedPlacesAmountAtom,
   tripDetailsAtom,
   tripPlacesAtom,
@@ -24,7 +24,7 @@ import ViewMapToggle from "./view-map-toggle";
 
 export default function TripPage() {
   const isLarge = useMediaQuery("(min-width: 768px)");
-
+  const tripId = useParams<{ id: string }>().id;
   const [tripData, setTripData] = useAtom(tripDetailsAtom);
   const [places, setPlaces] = useAtom(tripPlacesAtom);
   const [days, setDays] = useAtom(dayPlacesAtom);
@@ -33,7 +33,6 @@ export default function TripPage() {
     to: tripData.endDate,
   });
   const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
-  const isAdmin = useAtomValue(isTripAdminAtom);
 
   console.log(places);
   console.log(days);
@@ -110,7 +109,7 @@ export default function TripPage() {
         />
       </div>
       <div className="flex flex-col gap-4 p-4 pb-14 sm:pb-4">
-        <SortPlaces />
+        <SortPlaces tripId={tripId} />
       </div>
     </ViewMapToggle>
   );

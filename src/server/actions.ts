@@ -21,6 +21,8 @@ const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const ID_LENGTH = 12;
 const MAX_RETRIES = 20;
 
+// TODO protect functions with auth check
+
 export async function addNewTrip(
   locationId: string,
   locationName: string,
@@ -156,6 +158,111 @@ export async function setPlaceAsInterested(
       data: true,
     };
   } catch {
+    return {
+      status: "error",
+      message: "Unable to update place preferences",
+    };
+  }
+}
+
+export async function removePlaceFromInterested(
+  tripId: string,
+  tripPlaceId: string,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(tripPlace)
+      .set({
+        order: null,
+        type: "skipped",
+      })
+      .where(
+        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+      );
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update place preferences",
+    };
+  }
+}
+
+export async function updateTripPlaceOrder(
+  tripId: string,
+  tripPlaceId: string,
+  newOrder: string,
+  newDay?: number | null,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(tripPlace)
+      .set({
+        order: newOrder,
+        dayId: newDay,
+      })
+      .where(
+        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+      );
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update place preferences",
+    };
+  }
+}
+
+export async function updateTripPlaceNote(
+  tripId: string,
+  tripPlaceId: string,
+  note: string,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(tripPlace)
+      .set({
+        note: note,
+      })
+      .where(
+        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+      );
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update place preferences",
+    };
+  }
+}
+
+export async function updateTripDayOrder(
+  tripId: string,
+  tripDayId: number,
+  newOrder: string,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(tripDay)
+      .set({
+        order: newOrder,
+      })
+      .where(and(eq(tripDay.id, tripDayId), eq(tripDay.tripId, tripId)));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch (e) {
+    console.log(e);
     return {
       status: "error",
       message: "Unable to update place preferences",

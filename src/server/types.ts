@@ -306,6 +306,7 @@ export type DayData = {
 };
 
 export type PlaceDataPlaceInfo = {
+  placeId: string;
   displayName: string;
   primaryTypeDisplayName: string;
   typeColor: string;
@@ -327,7 +328,6 @@ export type PlaceDataPlaceInfo = {
 };
 
 type PlaceDataUserPlaceInfo = {
-  placeId: string;
   note: string | null;
   // time spent
   tripOrder: string;

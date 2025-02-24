@@ -11,58 +11,38 @@ type PlaceDetailsSortWrapperProps = {
   fadeIn?: boolean;
   listeners?: DraggableSyntheticListeners;
   style?: React.CSSProperties;
-  onRemove?: (isInDay: number, placeId: string) => void;
 } & PlaceDetailsCompactProps;
 
 const PlaceDetailsSortWrapper = forwardRef<
   HTMLDivElement,
   PlaceDetailsSortWrapperProps
->(
-  (
-    {
-      data,
-      isInDay,
-      skipped,
-      isDragOverlay,
-      isDragging,
-      fadeIn,
-      onRemove,
-      style,
-      listeners,
-    },
-    ref,
-  ) => {
-    return (
+>(({ isDragOverlay, isDragging, fadeIn, style, listeners, ...rest }, ref) => {
+  return (
+    <div
+      role="button"
+      aria-roledescription="draggable place"
+      tabIndex={0}
+      ref={ref}
+      {...listeners}
+      style={style}
+      className={cn(
+        "cursor-grab touch-manipulation rounded-xl ring-offset-zinc-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-4 active:cursor-grabbing",
+        isDragOverlay && "shadow-lg",
+        isDragging && "opacity-50",
+        fadeIn && "duration-300 animate-in fade-in-0",
+      )}
+    >
       <div
-        role="button"
-        aria-roledescription="draggable place"
-        tabIndex={0}
-        ref={ref}
-        {...listeners}
-        style={style}
-        className={cn(
-          "cursor-grab touch-manipulation rounded-xl ring-offset-zinc-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-4 active:cursor-grabbing",
-          isDragOverlay && "shadow-lg",
-          isDragging && "opacity-50",
-          fadeIn && "duration-300 animate-in fade-in-0",
-        )}
+        onKeyDown={(e) => {
+          // Prevent the keyboard sensor from picking up space or enter
+          if (e.code === "Space" || e.code === "Enter") e.stopPropagation();
+        }}
       >
-        <div
-          onKeyDown={(e) => {
-            if (e.code === "Space") e.stopPropagation();
-          }}
-        >
-          <PlaceDetailsCompact
-            data={data}
-            isInDay={isInDay}
-            isDragging={isDragging}
-            skipped={skipped}
-          />
-        </div>
+        <PlaceDetailsCompact isDragging={isDragging} {...rest} />
       </div>
-    );
-  },
-);
+    </div>
+  );
+});
 
 PlaceDetailsSortWrapper.displayName = "PlaceDetailsSortWrapper";
 
