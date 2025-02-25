@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
             ? places.contextualContents[i].justifications![0]
                 .reviewJustification!.highlightedText.text
             : null,
-        photos: place.photos,
+        photos: place.photos ?? null,
         website: place.websiteUri ?? null,
         googleMapsLink: place.googleMapsUri,
         description: place.editorialSummary?.text ?? null,

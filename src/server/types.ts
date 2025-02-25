@@ -352,7 +352,7 @@ export type InitialQueryPrepared = {
 };
 
 export type TripPlaceDetails = SelectPlace & {
-  photos?: PlacesResult["places"][number]["photos"];
+  photos?: PlacesResult["places"][number]["photos"] | null;
 };
 
 export type DiscoverReturn = {

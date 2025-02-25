@@ -276,7 +276,6 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
 
   const hideScroll = isDragging || status !== "none" || !active || minimised;
 
-  // TODO get photos if not already received from the API
   return (
     <motion.div
       className={cn(
