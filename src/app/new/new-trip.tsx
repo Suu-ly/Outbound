@@ -146,26 +146,28 @@ export default function NewTrip({ userId }: { userId: string }) {
     <>
       <div className="w-full space-y-2">
         <AutoComplete
-          listItems={autocomplete}
-          listElement={(data) => (
-            <div>
-              {data.label}
-              {data.subtitle && (
-                <div className="text-xs text-slate-500">{data.subtitle}</div>
-              )}
-            </div>
-          )}
-          listValueFunction={(data) => data.id}
-          inputReplaceFunction={(data) => data.label}
+          async={{
+            listItems: autocomplete,
+            listElement: (data) => (
+              <div>
+                {data.label}
+                {data.subtitle && (
+                  <div className="text-xs text-slate-500">{data.subtitle}</div>
+                )}
+              </div>
+            ),
+            listValueFunction: (data) => data.id,
+            inputReplaceFunction: (data) => data.label,
+            onSelectItem: (data) => {
+              setSelectedId(data);
+              setError((prev) => ({ calendar: prev.calendar }));
+            },
+          }}
           emptyMessage="No results found!"
           value={value}
           setValue={setValue}
           onUserInput={(string) => {
             debounce(() => setDebouncedValue(string));
-          }}
-          onSelectItem={(data) => {
-            setSelectedId(data);
-            setError((prev) => ({ calendar: prev.calendar }));
           }}
           inputLarge={true}
           placeholder="Where to?"

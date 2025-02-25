@@ -21,16 +21,29 @@ import {
   CommandLoading,
 } from "./command";
 
-type AutoCompleteProps<T> = {
-  listItems?: T[];
+type AsyncProps<T> = {
+  listItems: T[] | undefined;
   listElement: (data: T) => JSX.Element;
   listValueFunction: (data: T) => string;
   inputReplaceFunction: (data: T) => string;
-  emptyMessage: string;
+  onSelectItem: (data: T) => void | Promise<void>;
+};
+
+type SyncProps<P> = {
+  syncListItems: P[];
+  syncListElement: (data: P) => JSX.Element;
+  syncListValueFunction: (data: P) => string;
+  syncInputReplaceFunction: (data: P) => string;
+  onSelectSyncItem: (data: P) => void | Promise<void>;
+};
+
+type AutoCompleteProps<T, P> = {
+  async?: AsyncProps<T>;
+  sync?: SyncProps<P>;
   value: string;
   setValue: React.Dispatch<SetStateAction<string>>;
   onUserInput: (value: string) => void | Promise<void>;
-  onSelectItem: (data: T) => void | Promise<void>;
+  emptyMessage: string;
   isLoading?: boolean;
   disabled?: boolean;
   placeholder?: string;
@@ -40,17 +53,14 @@ type AutoCompleteProps<T> = {
   inputRight?: React.ReactNode;
 } & ComponentPropsWithoutRef<typeof Command>;
 
-export default function AutoComplete<T>({
-  listElement,
-  listItems,
-  listValueFunction,
-  inputReplaceFunction,
+export default function AutoComplete<T, P>({
+  async,
+  sync,
   placeholder,
   emptyMessage,
   value,
   setValue,
   onUserInput,
-  onSelectItem,
   disabled,
   isLoading = false,
   inputLarge = false,
@@ -58,7 +68,7 @@ export default function AutoComplete<T>({
   inputLeft,
   inputRight,
   ...rest
-}: AutoCompleteProps<T>) {
+}: AutoCompleteProps<T, P>) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [isOpen, setOpen] = useState(false);
@@ -88,12 +98,13 @@ export default function AutoComplete<T>({
   };
 
   useEffect(() => {
+    console.log(async?.listItems);
     // Is open and prevPresent is same as present, listItems is the one changed
     if (present && prevPresent.current === present) {
       setIsClosed(false);
     }
     prevPresent.current = present;
-  }, [present, listItems]);
+  }, [present, async?.listItems]);
 
   return (
     <Command onKeyDown={handleKeyDown} shouldFilter={false} {...rest}>
@@ -125,20 +136,23 @@ export default function AutoComplete<T>({
             data-state={present ? "open" : "closed"}
           >
             <CommandList>
-              {((isLoading && listItems && listItems.length === 0) ||
+              {((isLoading &&
+                async?.listItems &&
+                async?.listItems.length === 0) ||
                 isClosed) && <CommandLoading />}
               {!isClosed && (
                 <CommandGroup>
-                  {listItems &&
-                    listItems.map((data) => {
-                      const key = listValueFunction(data);
+                  {async &&
+                    async.listItems &&
+                    async.listItems.map((data) => {
+                      const key = async.listValueFunction(data);
                       return (
                         <CommandItem
                           key={key}
                           value={key}
                           onSelect={() => {
-                            onSelectItem(data);
-                            setValue(inputReplaceFunction(data));
+                            async.onSelectItem(data);
+                            setValue(async.inputReplaceFunction(data));
                             const input = inputRef.current;
                             if (input)
                               requestAnimationFrame(() => {
@@ -149,7 +163,7 @@ export default function AutoComplete<T>({
                             event.preventDefault();
                           }}
                         >
-                          {listElement(data)}
+                          {async.listElement(data)}
                         </CommandItem>
                       );
                     })}
