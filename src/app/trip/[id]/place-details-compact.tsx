@@ -3,7 +3,6 @@
 import {
   dayPlacesAtom,
   isTripAdminAtom,
-  tripPlacesAtom,
   tripStartDateAtom,
 } from "@/app/trip/atoms";
 import OpeningHours from "@/components/opening-hours";
@@ -33,7 +32,7 @@ import {
   IconTrash,
 } from "@tabler/icons-react";
 import { addDays } from "date-fns";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { motion } from "motion/react";
 import Link from "next/link";
 import {
@@ -58,12 +57,27 @@ export type PlaceDetailsCompactProps = {
     data: PlaceDataEntry,
     newDay: number | string,
   ) => void;
+  handleNoteChange?: (
+    isInDay: number | string,
+    placeId: string,
+    note: string,
+  ) => void;
 };
+
+// TODO it is broken when note is set then window is minimised
 
 const PlaceDetailsCompact = memo(
   forwardRef<HTMLDivElement, PlaceDetailsCompactProps>(
     (
-      { data, skipped, isInDay = "saved", isDragging, onRemove, handleMove },
+      {
+        data,
+        skipped,
+        isInDay = "saved",
+        isDragging,
+        onRemove,
+        handleMove,
+        handleNoteChange,
+      },
       ref,
     ) => {
       const [expanded, setExpanded] = useState<"min" | "mid" | "max">("min");
@@ -75,7 +89,6 @@ const PlaceDetailsCompact = memo(
       const [note, setNote] = useState(
         data.userPlaceInfo.note ? data.userPlaceInfo.note : "",
       );
-      const setPlaces = useSetAtom(tripPlacesAtom);
 
       const noteRef = useRef<HTMLTextAreaElement | null>(null);
       const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -105,31 +118,15 @@ const PlaceDetailsCompact = memo(
       const handleOnBlur = useCallback(() => {
         if (!isAdmin) return;
         if (!note && expanded === "mid") setExpanded("min");
-        // update note value in places state
-        setPlaces((prev) => ({
-          ...prev,
-          [isInDay]: [
-            ...prev[isInDay].map((place) => {
-              if (place.placeInfo.placeId !== data.placeInfo.placeId)
-                return place;
-              return {
-                placeInfo: data.placeInfo,
-                userPlaceInfo: {
-                  ...data.userPlaceInfo,
-                  note: note,
-                },
-              };
-            }),
-          ],
-        }));
+        if (handleNoteChange)
+          handleNoteChange(isInDay, data.placeInfo.placeId, note);
       }, [
-        data.placeInfo,
-        data.userPlaceInfo,
+        data.placeInfo.placeId,
         expanded,
+        handleNoteChange,
         isAdmin,
         isInDay,
         note,
-        setPlaces,
       ]);
 
       useEffect(() => {
@@ -401,6 +398,9 @@ const PlaceDetailsCompact = memo(
   (prev, next) => {
     if (
       prev.data.placeInfo.placeId !== next.data.placeInfo.placeId ||
+      prev.onRemove !== next.onRemove ||
+      prev.handleMove !== next.handleMove ||
+      prev.handleNoteChange !== next.handleNoteChange ||
       prev.isDragging !== next.isDragging ||
       prev.isInDay !== next.isInDay ||
       prev.skipped !== next.skipped

@@ -222,7 +222,7 @@ export async function updateTripPlaceOrder(
 export async function updateTripPlaceNote(
   tripId: string,
   tripPlaceId: string,
-  note: string,
+  note: string | null,
 ): Promise<ApiResponse<true>> {
   try {
     await db

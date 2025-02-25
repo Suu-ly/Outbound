@@ -27,7 +27,7 @@ const PlaceDetailsSortWrapper = forwardRef<
       style={style}
       className={cn(
         "cursor-grab touch-manipulation rounded-xl ring-offset-zinc-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-4 active:cursor-grabbing",
-        isDragOverlay && "shadow-lg",
+        isDragOverlay && "animate-pickup cursor-grabbing fill-mode-forwards",
         isDragging && "opacity-50",
         fadeIn && "duration-300 animate-in fade-in-0",
       )}

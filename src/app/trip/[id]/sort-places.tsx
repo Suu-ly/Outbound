@@ -13,13 +13,13 @@ import {
 import {
   removePlaceFromInterested,
   updateTripDayOrder,
+  updateTripPlaceNote,
   updateTripPlaceOrder,
 } from "@/server/actions";
 import { PlaceData, PlaceDataEntry } from "@/server/types";
 import {
   closestCenter,
   CollisionDetection,
-  defaultDropAnimationSideEffects,
   DndContext,
   DragOverlay,
   DropAnimation,
@@ -49,7 +49,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Portal } from "@radix-ui/react-portal";
 import { IconMapPinSearch, IconWand } from "@tabler/icons-react";
 import { addDays } from "date-fns";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, {
   ReactNode,
   useCallback,
@@ -170,6 +170,11 @@ type SortableItemProps = {
     data: PlaceDataEntry,
     newDay: number | string,
   ) => void;
+  handleNoteChange: (
+    isInDay: number | string,
+    placeId: string,
+    note: string,
+  ) => void;
 } & PlaceDetailsCompactProps;
 
 function SortableItem({ disabled, id, data, ...rest }: SortableItemProps) {
@@ -245,11 +250,36 @@ function DroppableContainer({
     ? (id === over.id && active?.data.current?.type !== "container") ||
       items.includes(over.id)
     : false;
+  const setPlaces = useSetAtom(tripPlacesAtom);
 
   useEffect(() => {
     if (isOverContainer && !open)
       timer.current = setTimeout(() => {
         setOpen(true);
+        // Force item into container once opened for empty folders
+        if (items.length === 0)
+          setPlaces((currentPlaces) => {
+            let activeIndex = 0;
+            const activeContainer = Object.keys(currentPlaces).find(
+              (placesGroup) => {
+                activeIndex = currentPlaces[placesGroup].findIndex(
+                  (place) => place.placeInfo.placeId === active?.id,
+                );
+                return activeIndex !== -1;
+              },
+            );
+            if (!activeContainer) return currentPlaces;
+            return {
+              ...currentPlaces,
+              [activeContainer]: currentPlaces[activeContainer].filter(
+                (place) => place.placeInfo.placeId !== active?.id,
+              ),
+              [over!.id]: [
+                ...currentPlaces[over!.id],
+                currentPlaces[activeContainer][activeIndex],
+              ],
+            };
+          });
       }, 500);
 
     return () => {
@@ -295,13 +325,27 @@ function DroppableContainer({
 const dropAnimation: DropAnimation = {
   duration: 300,
   easing: "cubic-bezier(.45,1.3,.3,1)",
-  sideEffects: defaultDropAnimationSideEffects({
-    styles: {
-      active: {
-        opacity: "1",
+  sideEffects: (params) => {
+    const div = params.dragOverlay.node.querySelector("div[role='button']");
+    if (!div) return;
+    div.animate(
+      [
+        {
+          boxShadow:
+            "0px 10px 15px -3px rgb(0, 0, 0, 0.1), 0px 4px 6px -4px rgb(0, 0, 0, 0.1)",
+        },
+        {
+          boxShadow:
+            "-1px 0 15px 0 rgba(34, 33, 81, 0), 0px 15px 15px 0 rgba(34, 33, 81, 0)",
+        },
+      ],
+      {
+        duration: 300,
+        easing: "cubic-bezier(.45,1.3,.3,1)",
+        fill: "forwards",
       },
-    },
-  }),
+    );
+  },
 };
 const SAVED_ID = "saved";
 
@@ -475,6 +519,37 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     [places, setPlaces, tripId],
   );
 
+  const handleNoteChange = useCallback(
+    (isInDay: number | string, placeId: string, note: string) => {
+      // update note value in places state
+      let newNote = false;
+      setPlaces((prev) => ({
+        ...prev,
+        [isInDay]: [
+          ...prev[isInDay].map((place) => {
+            if (place.placeInfo.placeId !== placeId) return place;
+            // Null and "" are not the same but functionally they are, so we do this check to make sure
+            // we do not consider it a new note
+            if (
+              place.userPlaceInfo.note !== note &&
+              (place.userPlaceInfo.note !== null || note !== "")
+            )
+              newNote = true;
+            return {
+              placeInfo: place.placeInfo,
+              userPlaceInfo: {
+                tripOrder: place.userPlaceInfo.tripOrder,
+                note: note,
+              },
+            };
+          }),
+        ],
+      }));
+      if (newNote) updateTripPlaceNote(tripId, placeId, note ? note : null);
+    },
+    [setPlaces, tripId],
+  );
+
   function renderSortableItemDragOverlay(data: PlaceDataEntry) {
     return <PlaceDetailsSortWrapper isDragOverlay data={data} />;
   }
@@ -640,8 +715,10 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
             clonedItems[overContainer].length > overIndex &&
             clonedItems[overContainer][overIndex].placeInfo.placeId ===
               active.id
-          )
+          ) {
+            setPlaces(clonedItems);
             return;
+          }
 
           let newOrder = "";
           // Is not the first or last element in the new array
@@ -759,6 +836,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                     id={place.placeInfo.placeId!}
                     onRemove={onRemove}
                     handleMove={handleMove}
+                    handleNoteChange={handleNoteChange}
                   />
                 </div>
               ))}
@@ -806,6 +884,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                         id={place.placeInfo.placeId!}
                         onRemove={onRemove}
                         handleMove={handleMove}
+                        handleNoteChange={handleNoteChange}
                       />
                     </div>
                   );

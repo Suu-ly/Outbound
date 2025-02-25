@@ -46,6 +46,12 @@ export default {
             pointerEvents: "auto",
           },
         },
+        pickup: {
+          to: {
+            boxShadow:
+              "0px 10px 15px -3px rgb(0, 0, 0, 0.1), 0px 4px 6px -4px rgb(0, 0, 0, 0.1)",
+          },
+        },
         expand: {
           from: {
             height: "var(--content-closed)",
@@ -77,6 +83,7 @@ export default {
         expand: "expand 0.3s cubic-bezier(0.8, 0, 0.2, 1)",
         minimise: "minimise 0.3s cubic-bezier(0.8, 0, 0.2, 1)",
         spinner: "spinner 1.5s ease-in-out infinite",
+        pickup: "pickup 0.3s cubic-bezier(0.45,1.3,0.3,1)",
       },
       transitionTimingFunction: {
         snap: "cubic-bezier(0.8, 0, 0.2, 1)",
