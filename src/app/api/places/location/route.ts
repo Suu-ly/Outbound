@@ -220,23 +220,17 @@ export async function GET(request: NextRequest) {
   const queryUrl = new URLSearchParams([
     ["q", `${name}${country ? " " + country : ""} visit`],
   ]);
-  const googleHeaders = new Headers({
-    "X-Goog-FieldMask": "viewport,displayName,id,addressComponents",
-    "X-Goog-Api-Key": process.env.GOOGLE_SECRET,
-    Accept: "application/json",
-  });
-  const nominatimHeaders = new Headers({
-    Accept: "application/json",
-    "user-agent": requestHeaders.get("user-agent") || "",
-    referer: requestHeaders.get("referer") || "",
-  });
 
   const [bounds, images] = await Promise.all([
     fetch(
       `https://places.googleapis.com/v1/places/${id}?sessionToken=${session}`,
       {
         method: "GET",
-        headers: googleHeaders,
+        headers: {
+          "X-Goog-FieldMask": "viewport,displayName,id,addressComponents",
+          "X-Goog-Api-Key": process.env.GOOGLE_SECRET,
+          Accept: "application/json",
+        },
       },
     )
       .then((response) => response.json())
@@ -274,7 +268,11 @@ export async function GET(request: NextRequest) {
     `https://nominatim.openstreetmap.org/search.php?${boundsQueryUrl.toString()}`,
     {
       method: "GET",
-      headers: nominatimHeaders,
+      headers: {
+        Accept: "application/json",
+        "user-agent": requestHeaders.get("user-agent") || "",
+        referer: requestHeaders.get("referer") || "",
+      },
     },
   )
     .then((response) => response.json() as Promise<NominatimResponse>)

@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get("query");
   const session = searchParams.get("session");
+  const isTrip = searchParams.get("trip");
 
   if (!query || !session) {
     return Response.json(
@@ -76,11 +77,15 @@ export async function GET(request: NextRequest) {
       body: JSON.stringify({
         input: query,
         sessionToken: session,
-        includedPrimaryTypes: [
-          "country",
-          "administrative_area_level_1",
-          "locality",
-        ],
+        includedPrimaryTypes: isTrip
+          ? [
+              "food",
+              "point_of_interest",
+              "lodging",
+              "establishment",
+              "transit_station",
+            ]
+          : ["country", "administrative_area_level_1", "locality"],
       }),
     },
   )

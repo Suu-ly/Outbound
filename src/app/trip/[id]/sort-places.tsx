@@ -51,7 +51,9 @@ import { IconMapPinSearch, IconWand } from "@tabler/icons-react";
 import { addDays } from "date-fns";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, {
+  Dispatch,
   ReactNode,
+  SetStateAction,
   useCallback,
   useEffect,
   useRef,
@@ -59,6 +61,7 @@ import React, {
 } from "react";
 import { toast } from "sonner";
 import { dayPlacesAtom, tripPlacesAtom, tripStartDateAtom } from "../atoms";
+import PlaceDetailsSkeletonLoader from "./place-details-skeleton-loader";
 import PlaceDetailsSortWrapper from "./place-details-sort-wrapper";
 
 const directions: string[] = [KeyboardCode.Down, KeyboardCode.Up];
@@ -217,6 +220,14 @@ function DroppableContainer({
       disabled?: boolean;
       id: UniqueIdentifier;
       items: UniqueIdentifier[];
+      handleMove: (
+        isInDay: number | string,
+        data: PlaceDataEntry,
+        newDay: number | string,
+      ) => void;
+      setLoadingState: Dispatch<
+        SetStateAction<Record<keyof PlaceData, string[]>>
+      >;
       style?: React.CSSProperties;
     }
   | {
@@ -307,10 +318,13 @@ function DroppableContainer({
         // transition,
         transform: CSS.Translate.toString(transform),
       }}
+      dayId={id}
       isOpen={open && !isDragging}
       onOpenChange={setOpen}
       isDragging={isDragging}
       hover={isOverContainer}
+      handleMove={rest.handleMove}
+      setLoadingState={rest.setLoadingState}
       handleProps={{
         ...attributes,
         ...listeners,
@@ -354,6 +368,9 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   const [clonedItems, setClonedItems] = useState<PlaceData | null>(null);
   const [days, setDays] = useAtom(dayPlacesAtom);
   const startDate = useAtomValue(tripStartDateAtom);
+  const [loadingState, setLoadingState] = useState<
+    Record<keyof typeof places, string[]>
+  >({});
   const [activeId, setActiveId] = useState<{
     id: UniqueIdentifier;
     data: PlaceDataEntry;
@@ -855,6 +872,8 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               id={day.dayId}
               items={places[day.dayId].map((place) => place.placeInfo.placeId!)}
               date={addDays(startDate, index)}
+              handleMove={handleMove}
+              setLoadingState={setLoadingState}
             >
               <SortableContext
                 items={places[day.dayId].map(
@@ -890,6 +909,9 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                   );
                 })}
               </SortableContext>
+              {loadingState[day.dayId]?.map((id) => (
+                <PlaceDetailsSkeletonLoader key={`${id}loader`} />
+              ))}
             </DroppableContainer>
           ))}
         </SortableContext>
