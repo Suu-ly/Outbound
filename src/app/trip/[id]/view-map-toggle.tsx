@@ -24,19 +24,19 @@ export default function ViewMapToggle({
             Close Map
           </Button>
         )}
-        {!viewMap && (
-          <div className="pointer-events-auto h-full overflow-auto bg-zinc-50">
-            <Button
-              variant="outline"
-              className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 bg-white shadow-md sm:hidden"
-              onClick={() => setViewMap((prev) => !prev)}
-            >
-              <IconMap />
-              View Map
-            </Button>
-            {children}
-          </div>
-        )}
+        <div
+          className={`h-full overflow-auto bg-zinc-50 ${viewMap ? "pointer-events-none invisible" : "pointer-events-auto"}`}
+        >
+          <Button
+            variant="outline"
+            className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 bg-white shadow-md sm:hidden"
+            onClick={() => setViewMap((prev) => !prev)}
+          >
+            <IconMap />
+            View Map
+          </Button>
+          {children}
+        </div>
       </div>
     </main>
   );
