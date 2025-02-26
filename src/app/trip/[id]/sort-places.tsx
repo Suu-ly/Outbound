@@ -367,10 +367,14 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   const [places, setPlaces] = useAtom(tripPlacesAtom);
   const [clonedItems, setClonedItems] = useState<PlaceData | null>(null);
   const [days, setDays] = useAtom(dayPlacesAtom);
+
   const startDate = useAtomValue(tripStartDateAtom);
+
+  // to be deleted show dialog drawer
   const [loadingState, setLoadingState] = useState<
     Record<keyof typeof places, string[]>
   >({});
+
   const [activeId, setActiveId] = useState<{
     id: UniqueIdentifier;
     data: PlaceDataEntry;
@@ -583,6 +587,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
 
   return (
     <DndContext
+      id="Sort-places-dnd-context"
       sensors={sensors}
       collisionDetection={collisionDetectionStrategy}
       measuring={{

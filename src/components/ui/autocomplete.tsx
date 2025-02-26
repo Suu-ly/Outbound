@@ -1,6 +1,5 @@
 "use client";
 
-import { Presence } from "@radix-ui/react-presence";
 import { defaultFilter } from "cmdk";
 import {
   ComponentPropsWithoutRef,
@@ -12,7 +11,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { cn } from "../../lib/utils";
 import {
   Command,
   CommandEmpty,
@@ -23,6 +21,7 @@ import {
   CommandLoading,
   CommandSeparator,
 } from "./command";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 type asyncProps<P> = {
   listItems: P[] | undefined;
@@ -145,107 +144,107 @@ export default function AutoComplete<T, P>({
 
   return (
     <Command onKeyDown={handleKeyDown} shouldFilter={false} {...rest}>
-      <CommandInput
-        ref={inputRef}
-        value={value}
-        onValueChange={(e) => {
-          setValue(e);
-          onUserInput(e);
-        }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        placeholder={placeholder}
-        disabled={disabled}
-        left={inputLeft}
-        right={inputRight}
-        className={inputClassName}
-        large={inputLarge}
-      />
-      <div className="relative mt-1">
-        <Presence present={present}>
-          <div
-            onAnimationEnd={() => {
-              if (value.length === 0) setIsClosed(true);
-            }}
-            className={cn(
-              "absolute top-0 isolate z-50 w-full origin-top pb-4 data-[state=open]:block data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98]",
-            )}
-            data-state={present ? "open" : "closed"}
-          >
-            <CommandList>
-              {sync && scoredItems && scoredItems.length > 0 && (
-                <CommandGroup heading={sync.header}>
-                  {scoredItems?.slice(0, 5).map(([item, index]) => {
-                    const key = sync.listValueFunction(item);
-                    return (
-                      <CommandItem
-                        key={key}
-                        value={key}
-                        onSelect={() => {
-                          sync.onSelectItem(item);
-                          if (clearOnSelect) setValue("");
-                          else setValue(sync.inputReplaceFunction(item));
-                          const input = inputRef.current;
-                          if (input)
-                            requestAnimationFrame(() => {
-                              input.blur();
-                            });
-                        }}
-                        onMouseDown={(e) => e.preventDefault()}
-                      >
-                        {sync.listElement(item, index)}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              )}
-
-              {sync && async && scoredItems && scoredItems.length > 0 && (
-                <CommandSeparator alwaysRender />
-              )}
-
-              <CommandGroup heading={async?.header}>
-                {((isLoading &&
-                  async?.listItems &&
-                  async?.listItems.length === 0) ||
-                  isClosed) && <CommandLoading />}
-                {!isClosed &&
-                  async &&
-                  async.listItems &&
-                  async.listItems.map((data) => {
-                    const key = async.listValueFunction(data);
-                    return (
-                      <CommandItem
-                        key={key}
-                        value={key}
-                        onSelect={() => {
-                          async.onSelectItem(data);
-                          if (clearOnSelect) setValue("");
-                          else setValue(async.inputReplaceFunction(data));
-                          const input = inputRef.current;
-                          if (input)
-                            requestAnimationFrame(() => {
-                              input.blur();
-                            });
-                        }}
-                        onMouseDown={(event) => {
-                          event.preventDefault();
-                        }}
-                      >
-                        {async.listElement(data)}
-                      </CommandItem>
-                    );
-                  })}
-              </CommandGroup>
-              {!isLoading && !isClosed && (
-                <CommandEmpty className="select-none rounded-sm px-2 py-6 text-center text-slate-700">
-                  {emptyMessage}
-                </CommandEmpty>
-              )}
-            </CommandList>
+      <Popover open={present}>
+        <PopoverTrigger asChild>
+          <div>
+            <CommandInput
+              ref={inputRef}
+              value={value}
+              onValueChange={(e) => {
+                setValue(e);
+                onUserInput(e);
+              }}
+              onFocus={() => setOpen(true)}
+              onBlur={() => setOpen(false)}
+              placeholder={placeholder}
+              disabled={disabled}
+              left={inputLeft}
+              right={inputRight}
+              className={inputClassName}
+              large={inputLarge}
+            />
           </div>
-        </Presence>
-      </div>
+        </PopoverTrigger>
+        <PopoverContent
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onAnimationEnd={() => {
+            if (value.length === 0) setIsClosed(true);
+          }}
+          className="w-[--radix-popover-trigger-width] rounded-none border-0 bg-transparent p-0 shadow-none"
+        >
+          <CommandList className="w-full">
+            {sync && scoredItems && scoredItems.length > 0 && (
+              <CommandGroup heading={sync.header}>
+                {scoredItems?.slice(0, 5).map(([item, index]) => {
+                  const key = sync.listValueFunction(item);
+                  return (
+                    <CommandItem
+                      key={key}
+                      value={key}
+                      onSelect={() => {
+                        sync.onSelectItem(item);
+                        if (clearOnSelect) setValue("");
+                        else setValue(sync.inputReplaceFunction(item));
+                        const input = inputRef.current;
+                        if (input)
+                          requestAnimationFrame(() => {
+                            input.blur();
+                          });
+                      }}
+                      onMouseDown={(e) => e.preventDefault()}
+                    >
+                      {sync.listElement(item, index)}
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+
+            {sync && async && scoredItems && scoredItems.length > 0 && (
+              <CommandSeparator alwaysRender />
+            )}
+
+            <CommandGroup heading={async?.header}>
+              {((isLoading &&
+                async?.listItems &&
+                async?.listItems.length === 0) ||
+                isClosed) && <CommandLoading />}
+              {!isClosed &&
+                async &&
+                async.listItems &&
+                async.listItems.map((data) => {
+                  const key = async.listValueFunction(data);
+                  return (
+                    <CommandItem
+                      key={key}
+                      value={key}
+                      onSelect={() => {
+                        async.onSelectItem(data);
+                        if (clearOnSelect) setValue("");
+                        else setValue(async.inputReplaceFunction(data));
+                        const input = inputRef.current;
+                        if (input)
+                          requestAnimationFrame(() => {
+                            input.blur();
+                          });
+                      }}
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                      }}
+                    >
+                      {async.listElement(data)}
+                    </CommandItem>
+                  );
+                })}
+            </CommandGroup>
+            {!isLoading && !isClosed && (
+              <CommandEmpty className="select-none rounded-sm px-2 py-6 text-center text-slate-700">
+                {emptyMessage}
+              </CommandEmpty>
+            )}
+          </CommandList>
+        </PopoverContent>
+      </Popover>
     </Command>
   );
 }
