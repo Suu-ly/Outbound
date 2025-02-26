@@ -48,10 +48,7 @@ export default function NewTrip({ userId }: { userId: string }) {
     if (data.status === "error") {
       throw new Error(data.message);
     }
-    if (data.status === "success") {
-      return data.data;
-    }
-    return [];
+    return data.data;
   };
 
   const { data: autocomplete } = useQuery({
@@ -67,7 +64,7 @@ export default function NewTrip({ userId }: { userId: string }) {
   const getLocationData = async (
     selectedId: AutocompleteReturn | undefined,
   ) => {
-    if (!selectedId) return undefined;
+    if (!selectedId) throw new Error("Selected place is not valid");
     const urlParams = new URLSearchParams([
       ["id", selectedId.id],
       ["name", selectedId.label],
@@ -81,10 +78,7 @@ export default function NewTrip({ userId }: { userId: string }) {
       throw new Error(data.message);
     }
     session.current = v4();
-    if (data.status === "success") {
-      return data.data;
-    }
-    return undefined;
+    return data.data;
   };
 
   const { isFetching, data: selected } = useQuery({

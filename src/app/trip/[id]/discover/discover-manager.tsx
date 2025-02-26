@@ -89,31 +89,25 @@ export default function DiscoverManager() {
     if (data.status === "error") {
       throw new Error(data.message);
     }
-    if (data.status === "success") {
-      setDiscoverLocations((prev) => prev.concat(data.data.places));
-      const newWindows = {
-        currentSearchIndex: getNextIndex(
-          queryValue,
-          tripWindows.windows.length,
-        ),
-        nextPageToken: getNextPageTokenArray(
-          queryValue.nextPageToken,
-          queryValue.currentSearchIndex,
-          data.data.nextPageToken,
-        ),
-      };
-      const res = await updateTripWindows(newWindows, id);
-      if (res.status === "success") {
-        setTripWindows((prev) => ({
-          ...prev,
-          ...newWindows,
-        }));
-      } else {
-        toast.error(res.message);
-      }
-      return data.data;
+    setDiscoverLocations((prev) => prev.concat(data.data.places));
+    const newWindows = {
+      currentSearchIndex: getNextIndex(queryValue, tripWindows.windows.length),
+      nextPageToken: getNextPageTokenArray(
+        queryValue.nextPageToken,
+        queryValue.currentSearchIndex,
+        data.data.nextPageToken,
+      ),
+    };
+    const res = await updateTripWindows(newWindows, id);
+    if (res.status === "success") {
+      setTripWindows((prev) => ({
+        ...prev,
+        ...newWindows,
+      }));
+    } else {
+      toast.error(res.message);
     }
-    return [];
+    return data.data;
   };
   const { isFetching } = useQuery({
     queryKey: ["discover", queryValue.query],

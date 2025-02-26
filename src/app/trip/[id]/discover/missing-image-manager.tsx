@@ -20,24 +20,20 @@ export default function MissingImageManager() {
       .then((response) => response.json())
       .then((data) => data as ApiResponse<Record<string, PlacesPhoto[]>>);
 
-    console.log("data", data);
     if (data.status === "error") {
       throw new Error(data.message);
     }
-    if (data.status === "success") {
-      setDiscoverLocations((prev) => {
-        return prev.map((place) => {
-          if (place.id in data.data)
-            return {
-              ...place,
-              photos: data.data[place.id],
-            };
-          return { ...place, photos: null };
-        });
+    setDiscoverLocations((prev) => {
+      return prev.map((place) => {
+        if (place.id in data.data)
+          return {
+            ...place,
+            photos: data.data[place.id],
+          };
+        return { ...place, photos: null };
       });
-      return data.data;
-    }
-    return [];
+    });
+    return data.data;
   };
 
   useQuery({
