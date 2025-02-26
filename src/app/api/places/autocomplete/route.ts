@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get("query");
   const session = searchParams.get("session");
   const isTrip = searchParams.get("trip");
+  const bias = searchParams.getAll("bias");
 
   if (!query || !session) {
     return Response.json(
@@ -86,6 +87,20 @@ export async function GET(request: NextRequest) {
               "transit_station",
             ]
           : ["country", "administrative_area_level_1", "locality"],
+        locationRestriction: bias
+          ? {
+              rectangle: {
+                low: {
+                  latitude: parseFloat(bias[1]),
+                  longitude: parseFloat(bias[0]),
+                },
+                high: {
+                  latitude: parseFloat(bias[3]),
+                  longitude: parseFloat(bias[2]),
+                },
+              },
+            }
+          : undefined,
       }),
     },
   )

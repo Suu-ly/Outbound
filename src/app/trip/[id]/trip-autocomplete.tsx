@@ -10,12 +10,12 @@ import {
 } from "@/server/types";
 import { IconSearch } from "@tabler/icons-react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 } from "uuid";
-import { tripPlacesAtom } from "../atoms";
+import { tripDetailsAtom, tripPlacesAtom } from "../atoms";
 
 type TripAutocompleteProps = {
   isInDay: number | string;
@@ -37,6 +37,7 @@ export default function TripAutocomplete({
   const [debouncedValue, setDebouncedValue] = useState("");
   const [selectedId, setSelectedId] = useState<AutocompleteReturn>();
   const [places, setPlaces] = useAtom(tripPlacesAtom);
+  const tripDetails = useAtomValue(tripDetailsAtom);
   const tripId = useParams<{ id: string }>().id;
   const debounce = useDebouncedFunction();
 
@@ -52,6 +53,11 @@ export default function TripAutocomplete({
       ["session", session.current],
       ["trip", "true"],
     ]);
+    for (let i = 0; i < tripDetails.viewport.length; i++) {
+      for (let j = 0; j < tripDetails.viewport[0].length; j++) {
+        urlParams.append("bias", tripDetails.viewport[i][j].toString());
+      }
+    }
     const data = await fetch(`/api/places/autocomplete?${urlParams.toString()}`)
       .then((response) => response.json())
       .then((data) => data as ApiResponse<AutocompleteReturn[]>);
