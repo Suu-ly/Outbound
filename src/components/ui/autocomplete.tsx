@@ -1,12 +1,14 @@
 "use client";
 
 import { Presence } from "@radix-ui/react-presence";
+import { defaultFilter } from "cmdk";
 import {
   ComponentPropsWithoutRef,
   type JSX,
   type KeyboardEvent,
   SetStateAction,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -19,30 +21,34 @@ import {
   CommandItem,
   CommandList,
   CommandLoading,
+  CommandSeparator,
 } from "./command";
 
-type AsyncProps<T> = {
-  listItems: T[] | undefined;
-  listElement: (data: T) => JSX.Element;
-  listValueFunction: (data: T) => string;
-  inputReplaceFunction: (data: T) => string;
-  onSelectItem: (data: T) => void | Promise<void>;
+type asyncProps<P> = {
+  listItems: P[] | undefined;
+  listElement: (data: P) => JSX.Element;
+  listValueFunction: (data: P) => string;
+  inputReplaceFunction: (data: P) => string;
+  onSelectItem: (data: P) => void | Promise<void>;
+  header?: string;
 };
 
-type SyncProps<P> = {
-  syncListItems: P[];
-  syncListElement: (data: P) => JSX.Element;
-  syncListValueFunction: (data: P) => string;
-  syncInputReplaceFunction: (data: P) => string;
-  onSelectSyncItem: (data: P) => void | Promise<void>;
+type syncProps<P> = {
+  listItems: P[];
+  listElement: (data: P, originalIndex: number) => JSX.Element;
+  listValueFunction: (data: P) => string;
+  inputReplaceFunction: (data: P) => string;
+  onSelectItem: (data: P) => void | Promise<void>;
+  header?: string;
 };
 
 type AutoCompleteProps<T, P> = {
-  async?: AsyncProps<T>;
-  sync?: SyncProps<P>;
+  async?: asyncProps<T>;
+  sync?: syncProps<P>;
   value: string;
   setValue: React.Dispatch<SetStateAction<string>>;
   onUserInput: (value: string) => void | Promise<void>;
+  clearOnSelect?: boolean;
   emptyMessage: string;
   isLoading?: boolean;
   disabled?: boolean;
@@ -64,6 +70,7 @@ export default function AutoComplete<T, P>({
   disabled,
   isLoading = false,
   inputLarge = false,
+  clearOnSelect,
   inputClassName,
   inputLeft,
   inputRight,
@@ -77,6 +84,24 @@ export default function AutoComplete<T, P>({
 
   const present = value.length > 0 && isOpen;
   const prevPresent = useRef(present);
+  const prevInput = useRef(value);
+
+  const scoredItems = useMemo(
+    () =>
+      sync && defaultFilter
+        ? sync.listItems
+            .map((item, index) => {
+              const score = value
+                ? defaultFilter!(sync.inputReplaceFunction(item), value)
+                : 0;
+              if (score === 0) return;
+              return [item, index, score] as const;
+            })
+            .filter((val) => !!val)
+            .sort((a, b) => b[2] - a[2])
+        : undefined,
+    [sync, value],
+  );
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const input = inputRef.current;
@@ -98,13 +123,25 @@ export default function AutoComplete<T, P>({
   };
 
   useEffect(() => {
-    console.log(async?.listItems);
     // Is open and prevPresent is same as present, listItems is the one changed
-    if (present && prevPresent.current === present) {
+    // Or no change as input is the same as previous one before closed
+    // Set isClosed to false to remove spinner
+    if (
+      (present && prevPresent.current === present) ||
+      (present && value === prevInput.current)
+    ) {
       setIsClosed(false);
     }
     prevPresent.current = present;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [present, async?.listItems]);
+
+  useEffect(() => {
+    const val = value;
+    return () => {
+      if (val) prevInput.current = val;
+    };
+  }, [value]);
 
   return (
     <Command onKeyDown={handleKeyDown} shouldFilter={false} {...rest}>
@@ -136,39 +173,70 @@ export default function AutoComplete<T, P>({
             data-state={present ? "open" : "closed"}
           >
             <CommandList>
-              {((isLoading &&
-                async?.listItems &&
-                async?.listItems.length === 0) ||
-                isClosed) && <CommandLoading />}
-              {!isClosed && (
-                <CommandGroup>
-                  {async &&
-                    async.listItems &&
-                    async.listItems.map((data) => {
-                      const key = async.listValueFunction(data);
-                      return (
-                        <CommandItem
-                          key={key}
-                          value={key}
-                          onSelect={() => {
-                            async.onSelectItem(data);
-                            setValue(async.inputReplaceFunction(data));
-                            const input = inputRef.current;
-                            if (input)
-                              requestAnimationFrame(() => {
-                                input.blur();
-                              });
-                          }}
-                          onMouseDown={(event) => {
-                            event.preventDefault();
-                          }}
-                        >
-                          {async.listElement(data)}
-                        </CommandItem>
-                      );
-                    })}
+              {sync && scoredItems && scoredItems.length > 0 && (
+                <CommandGroup heading={sync.header}>
+                  {scoredItems?.slice(0, 5).map(([item, index]) => {
+                    const key = sync.listValueFunction(item);
+                    return (
+                      <CommandItem
+                        key={key}
+                        value={key}
+                        onSelect={() => {
+                          sync.onSelectItem(item);
+                          if (clearOnSelect) setValue("");
+                          else setValue(sync.inputReplaceFunction(item));
+                          const input = inputRef.current;
+                          if (input)
+                            requestAnimationFrame(() => {
+                              input.blur();
+                            });
+                        }}
+                        onMouseDown={(e) => e.preventDefault()}
+                      >
+                        {sync.listElement(item, index)}
+                      </CommandItem>
+                    );
+                  })}
                 </CommandGroup>
               )}
+
+              {sync && async && scoredItems && scoredItems.length > 0 && (
+                <CommandSeparator alwaysRender />
+              )}
+
+              <CommandGroup heading={async?.header}>
+                {((isLoading &&
+                  async?.listItems &&
+                  async?.listItems.length === 0) ||
+                  isClosed) && <CommandLoading />}
+                {!isClosed &&
+                  async &&
+                  async.listItems &&
+                  async.listItems.map((data) => {
+                    const key = async.listValueFunction(data);
+                    return (
+                      <CommandItem
+                        key={key}
+                        value={key}
+                        onSelect={() => {
+                          async.onSelectItem(data);
+                          if (clearOnSelect) setValue("");
+                          else setValue(async.inputReplaceFunction(data));
+                          const input = inputRef.current;
+                          if (input)
+                            requestAnimationFrame(() => {
+                              input.blur();
+                            });
+                        }}
+                        onMouseDown={(event) => {
+                          event.preventDefault();
+                        }}
+                      >
+                        {async.listElement(data)}
+                      </CommandItem>
+                    );
+                  })}
+              </CommandGroup>
               {!isLoading && !isClosed && (
                 <CommandEmpty className="select-none rounded-sm px-2 py-6 text-center text-slate-700">
                   {emptyMessage}
