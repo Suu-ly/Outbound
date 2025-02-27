@@ -3,6 +3,7 @@
 import DayFolder from "@/app/trip/[id]/day-folder";
 import { PlaceDetailsCompactProps } from "@/app/trip/[id]/place-details-compact";
 import { Button } from "@/components/ui/button";
+import DrawerDialog from "@/components/ui/drawer-dialog";
 import {
   cn,
   getStartingIndex,
@@ -370,7 +371,10 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
 
   const startDate = useAtomValue(tripStartDateAtom);
 
-  // to be deleted show dialog drawer
+  const [toBeRemoved, setToBeRemoved] = useState<{
+    isInDay: string | number;
+    placeId: string;
+  }>();
   const [loadingState, setLoadingState] = useState<
     Record<keyof typeof places, string[]>
   >({});
@@ -481,7 +485,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     setClonedItems(null);
   };
 
-  const onRemove = useCallback(
+  const removePlace = useCallback(
     (isInDay: number | string, placeId: string) => {
       setPlaces((prev) => ({
         ...prev,
@@ -496,6 +500,13 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     },
     [setPlaces, tripId],
   );
+
+  const onRemove = useCallback((isInDay: number | string, placeId: string) => {
+    setToBeRemoved({
+      isInDay: isInDay,
+      placeId: placeId,
+    });
+  }, []);
 
   const handleMove = useCallback(
     (
@@ -935,6 +946,21 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
             : null}
         </DragOverlay>
       </Portal>
+      <DrawerDialog
+        open={!!toBeRemoved}
+        onOpenChange={(open) => !open && setToBeRemoved(undefined)}
+        header="Remove from saved places?"
+        content={
+          "To undo this action, you can go to the “View Skipped Places” page."
+        }
+        mainActionLabel="Remove"
+        onMainAction={() => {
+          if (toBeRemoved)
+            removePlace(toBeRemoved.isInDay, toBeRemoved.placeId);
+          setToBeRemoved(undefined);
+        }}
+        destructive
+      />
     </DndContext>
   );
 }

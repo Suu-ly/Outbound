@@ -1,5 +1,7 @@
 "use client";
 
+import { IconDotsVertical } from "@tabler/icons-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -9,9 +11,24 @@ import {
   CarouselIndicator,
   CarouselItem,
 } from "./ui/carousel";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 import DrawerDialog from "./ui/drawer-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 const Tester = () => {
+  const [open, setOpen] = useState(false);
   return (
     <>
       <Button
@@ -80,6 +97,43 @@ const Tester = () => {
         </div>
         <CarouselIndicator />
       </Carousel>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button iconOnly size="small" variant="outline">
+              <IconDotsVertical />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem>Item 1</DropdownMenuItem>
+            <DropdownMenuItem>Item 2</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setOpen(true)}>
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Content filter preferences</DialogTitle>
+            <DialogDescription>
+              The content filter flags text that may violate our content policy.
+              It&apos;s powered by our moderation endpoint which is free to use
+              to moderate your OpenAI API traffic. Learn more.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6">
+            <h4 className="text-sm text-slate-500">Playground Warnings</h4>
+            <div className="flex items-start justify-between space-x-4 pt-3">
+              There&apos;s some stuff here
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

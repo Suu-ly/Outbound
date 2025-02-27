@@ -30,7 +30,9 @@ type DrawerDialogProps = {
   loading?: boolean;
   destructive?: boolean;
   canCancel?: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export default function DrawerDialog({
@@ -42,15 +44,25 @@ export default function DrawerDialog({
   loading = false,
   destructive = false,
   canCancel = true,
+  open,
+  onOpenChange,
   children,
 }: DrawerDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const isLarge = useMediaQuery("(min-width: 640px)");
+
+  const close = () => {
+    if (onOpenChange) onOpenChange(false);
+    else setInternalOpen(false);
+  };
 
   if (isLarge) {
     return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>{children}</DialogTrigger>
+      <Dialog
+        open={open !== undefined ? open : internalOpen}
+        onOpenChange={onOpenChange ? onOpenChange : setInternalOpen}
+      >
+        {children && <DialogTrigger asChild>{children}</DialogTrigger>}
         <DialogContent>
           <DialogTitle>{header}</DialogTitle>
           <div>{content}</div>
@@ -58,7 +70,7 @@ export default function DrawerDialog({
             <Button
               className={cn(destructive && "border-rose-900 bg-rose-600")}
               primaryBgColor={destructive ? "bg-rose-900" : undefined}
-              onClick={() => onMainAction(() => setOpen(false))}
+              onClick={() => onMainAction(close)}
               loading={loading}
             >
               {mainActionLabel}
@@ -75,8 +87,11 @@ export default function DrawerDialog({
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>{children}</DrawerTrigger>
+    <Drawer
+      open={open !== undefined ? open : internalOpen}
+      onOpenChange={open !== undefined ? onOpenChange : setInternalOpen}
+    >
+      {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
       <DrawerContent>
         <div className="space-y-6">
           <DrawerTitle>{header}</DrawerTitle>
@@ -86,15 +101,17 @@ export default function DrawerDialog({
               <Button
                 className={cn(destructive && "border-rose-900 bg-rose-600")}
                 primaryBgColor={destructive ? "bg-rose-900" : undefined}
-                onClick={() => onMainAction(() => setOpen(false))}
+                onClick={() => onMainAction(close)}
                 loading={loading}
               >
                 {mainActionLabel}
               </Button>
             </DrawerClose>
-            <DrawerClose asChild>
-              <Button variant="ghost">{cancelAction}</Button>
-            </DrawerClose>
+            {canCancel && (
+              <DrawerClose asChild>
+                <Button variant="ghost">{cancelAction}</Button>
+              </DrawerClose>
+            )}
           </DrawerFooter>
         </div>
       </DrawerContent>

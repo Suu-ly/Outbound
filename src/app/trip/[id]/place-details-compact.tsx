@@ -240,7 +240,7 @@ const PlaceDetailsCompact = memo(
                         <DropdownMenuSubContent>
                           {isInDay !== "saved" && (
                             <DropdownMenuItem
-                              onClick={() =>
+                              onSelect={() =>
                                 handleMove && handleMove(isInDay, data, "saved")
                               }
                             >
@@ -252,7 +252,7 @@ const PlaceDetailsCompact = memo(
                             return (
                               <DropdownMenuItem
                                 key={day.dayId}
-                                onClick={() =>
+                                onSelect={() =>
                                   handleMove &&
                                   handleMove(isInDay, data, day.dayId)
                                 }
@@ -270,8 +270,9 @@ const PlaceDetailsCompact = memo(
                           })}
                         </DropdownMenuSubContent>
                       </DropdownMenuSub>
+
                       <DropdownMenuItem
-                        onClick={() =>
+                        onSelect={() =>
                           onRemove && onRemove(isInDay, data.placeInfo.placeId)
                         }
                         className="text-rose-700 focus:text-rose-900 [&_svg]:text-rose-600 [&_svg]:focus:text-rose-700"
