@@ -206,6 +206,7 @@ const PlaceDetailsCompact = memo(
                   <ShareButton
                     className={`shrink-0 ${skipped ? "hidden xl:inline-flex" : ""}`}
                     link={data.placeInfo.googleMapsLink}
+                    message="Google maps link copied to clipboard!"
                   />
                 )}
                 {isAdmin && !skipped && (
@@ -228,6 +229,7 @@ const PlaceDetailsCompact = memo(
                     >
                       <ShareButton
                         link={data.placeInfo.googleMapsLink}
+                        message="Google maps link copied to clipboard!"
                         isDropdown
                       />
                       <DropdownMenuItem
@@ -331,7 +333,10 @@ const PlaceDetailsCompact = memo(
                 <IconHeartShare />
                 Moved to saved places
               </Button>
-              <ShareButton link={data.placeInfo.googleMapsLink} />
+              <ShareButton
+                link={data.placeInfo.googleMapsLink}
+                message="Google maps link copied to clipboard!"
+              />
             </div>
           )}
           <motion.div

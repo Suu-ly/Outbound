@@ -276,6 +276,7 @@ const CarouselGoogleImage = React.forwardRef<
         }}
         src={data ? data : PLACEHOLDER_SRC}
         alt={alt}
+        referrerPolicy="no-referrer"
       />
       <div className="absolute bottom-2 right-2 flex gap-3 rounded-lg bg-slate-950/70 p-1.5 backdrop-blur">
         {photo.authorAttributions.map((author) => (

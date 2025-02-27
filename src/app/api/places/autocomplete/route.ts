@@ -87,20 +87,21 @@ export async function GET(request: NextRequest) {
               "transit_station",
             ]
           : ["country", "administrative_area_level_1", "locality"],
-        locationRestriction: bias
-          ? {
-              rectangle: {
-                low: {
-                  latitude: parseFloat(bias[1]),
-                  longitude: parseFloat(bias[0]),
+        locationRestriction:
+          bias.length > 0
+            ? {
+                rectangle: {
+                  low: {
+                    latitude: parseFloat(bias[1]),
+                    longitude: parseFloat(bias[0]),
+                  },
+                  high: {
+                    latitude: parseFloat(bias[3]),
+                    longitude: parseFloat(bias[2]),
+                  },
                 },
-                high: {
-                  latitude: parseFloat(bias[3]),
-                  longitude: parseFloat(bias[2]),
-                },
-              },
-            }
-          : undefined,
+              }
+            : undefined,
       }),
     },
   )

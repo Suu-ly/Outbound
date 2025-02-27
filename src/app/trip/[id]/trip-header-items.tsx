@@ -45,6 +45,7 @@ export default function TripHeaderItems() {
             ? window.location.origin + basePath
             : "/"
         }
+        message="Trip link copied to clipboard!"
       />
       {isAdmin && (
         <>
@@ -73,6 +74,7 @@ export default function TripHeaderItems() {
             <DropdownMenuContent align="end">
               <ShareButton
                 isDropdown
+                message="Trip link copied to clipboard!"
                 className={!isDiscover ? "sm:hidden" : "hidden"}
                 link={
                   typeof window !== "undefined"

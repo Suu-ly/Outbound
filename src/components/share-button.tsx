@@ -9,21 +9,23 @@ type ShareButtonProps = {
   link: string;
   label?: string;
   isDropdown?: boolean;
+  message?: string;
 };
 
 export default function ShareButton({
   link,
   label = "Share",
   isDropdown,
+  message = "Link copied to clipboard!",
   ...rest
 }: ShareButtonProps & ButtonProps) {
   const [copied, copyToClipboard] = useCopyToClipboard();
   const onCopy = useCallback(() => {
     copyToClipboard(link);
-    toast.success("Google place link copied to clipboard!", {
-      id: "CopyToClipboard",
+    toast.success(message, {
+      id: link,
     });
-  }, [copyToClipboard, link]);
+  }, [copyToClipboard, link, message]);
 
   if (isDropdown)
     return (
