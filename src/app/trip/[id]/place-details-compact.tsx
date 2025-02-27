@@ -1,6 +1,10 @@
 "use client";
 
-import { dayPlacesAtom, tripStartDateAtom } from "@/app/trip/atoms";
+import {
+  dayPlacesAtom,
+  isTripAdminAtom,
+  tripStartDateAtom,
+} from "@/app/trip/atoms";
 import OpeningHours from "@/components/opening-hours";
 import ShareButton from "@/components/share-button";
 import TabDisable from "@/components/tab-disable";
@@ -80,7 +84,7 @@ const PlaceDetailsCompact = memo(
       );
       const startDate = useAtomValue(tripStartDateAtom);
       const days = useAtomValue(dayPlacesAtom);
-      const isAdmin = false; // useAtomValue(isTripAdminAtom);
+      const isAdmin = useAtomValue(isTripAdminAtom);
       const isLarge = useMediaQuery("(min-width: 1280px)");
       const [inputRows, setInputRows] = useState(1);
       const [note, setNote] = useState(

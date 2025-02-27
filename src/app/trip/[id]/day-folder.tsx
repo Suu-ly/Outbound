@@ -68,7 +68,7 @@ const DayFolder = memo(
           ref={ref}
           {...props}
           className={cn(
-            "space-y-4 rounded-xl ring-brand-400 ring-offset-8 ring-offset-zinc-50 transition",
+            "space-y-4 rounded-xl ring-brand-400 ring-offset-8 ring-offset-zinc-50 transition-[box-shadow,opacity]",
             hover && "ring-2",
             isDragging && "opacity-50",
             isDragOverlay && "shadow-lg",
