@@ -12,7 +12,9 @@ export default function ViewMapToggle({
   const [viewMap, setViewMap] = useState(false);
 
   return (
-    <main className="pointer-events-none absolute bottom-0 z-50 h-[calc(100dvh-56px)] w-full sm:static sm:h-full sm:w-1/2 xl:w-1/3">
+    <main
+      className={`${viewMap ? "pointer-events-none" : ""} absolute bottom-0 z-50 h-[calc(100dvh-56px)] w-full sm:static sm:h-full sm:w-1/2 xl:w-1/3`}
+    >
       <div className="relative size-full">
         {viewMap && (
           <Button
@@ -25,7 +27,7 @@ export default function ViewMapToggle({
           </Button>
         )}
         <div
-          className={`h-full overflow-auto bg-zinc-50 ${viewMap ? "pointer-events-none invisible" : "pointer-events-auto"}`}
+          className={`h-full overflow-auto bg-zinc-50 ${viewMap ? "invisible" : ""}`}
         >
           <Button
             variant="outline"

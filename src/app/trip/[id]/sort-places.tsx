@@ -397,6 +397,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
    * - If there are no intersecting containers, return the last matched intersection
    *
    */
+  // TODO FIX THE KEYBOARD MOVEMENT!
   const collisionDetectionStrategy: CollisionDetection = useCallback(
     (args) => {
       if (activeId && activeId.id in places) {

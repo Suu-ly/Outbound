@@ -7,34 +7,11 @@ type InputProps = React.ComponentProps<"textarea"> & {
   left?: React.ReactNode;
   right?: React.ReactNode;
   small?: boolean;
-  maxRows?: number;
 };
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, InputProps>(
-  (
-    { className, left, rows = 1, right, small = false, maxRows = 4, ...props },
-    ref,
-  ) => {
+  ({ className, left, right, small = false, ...props }, ref) => {
     const inputRef = React.useRef<HTMLTextAreaElement>(null);
-
-    const [rowsState, setRowsState] = React.useState(rows);
-
-    React.useEffect(() => {
-      if (!inputRef.current) return;
-
-      const input = inputRef.current;
-
-      const handleChange = () => {
-        input.style.height = "0";
-        setRowsState(Math.min(input.scrollHeight / 24, maxRows));
-        input.style.removeProperty("height");
-      };
-
-      input.addEventListener("input", handleChange);
-
-      return input.removeEventListener("change", handleChange);
-    }, [maxRows]);
-
     return (
       <div
         className={cn(
@@ -72,7 +49,6 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, InputProps>(
         <textarea
           ref={composeRefs(inputRef, ref)}
           {...props}
-          rows={rowsState}
           className={cn(
             "w-full resize-none overflow-y-auto bg-transparent focus-visible:outline-none",
           )}

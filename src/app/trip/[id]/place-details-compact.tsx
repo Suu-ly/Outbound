@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  dayPlacesAtom,
-  isTripAdminAtom,
-  tripStartDateAtom,
-} from "@/app/trip/atoms";
+import { dayPlacesAtom, tripStartDateAtom } from "@/app/trip/atoms";
 import OpeningHours from "@/components/opening-hours";
 import ShareButton from "@/components/share-button";
 import TabDisable from "@/components/tab-disable";
@@ -37,7 +33,6 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import {
   ChangeEvent,
-  CSSProperties,
   forwardRef,
   memo,
   useCallback,
@@ -80,18 +75,20 @@ const PlaceDetailsCompact = memo(
       },
       ref,
     ) => {
-      const [expanded, setExpanded] = useState<"min" | "mid" | "max">("min");
+      const [expanded, setExpanded] = useState<"min" | "mid" | "max">(
+        data.userPlaceInfo.note ? "mid" : "min",
+      );
       const startDate = useAtomValue(tripStartDateAtom);
       const days = useAtomValue(dayPlacesAtom);
-      const isAdmin = useAtomValue(isTripAdminAtom);
+      const isAdmin = false; // useAtomValue(isTripAdminAtom);
       const isLarge = useMediaQuery("(min-width: 1280px)");
-      const [bottomHeight, setBottomHeight] = useState(324);
+      const [inputRows, setInputRows] = useState(1);
       const [note, setNote] = useState(
         data.userPlaceInfo.note ? data.userPlaceInfo.note : "",
       );
 
       const noteRef = useRef<HTMLTextAreaElement | null>(null);
-      const bottomRef = useRef<HTMLDivElement | null>(null);
+      const inputIsFocused = useRef(false);
 
       const handleOnClick = useCallback(() => {
         setExpanded((prev) => {
@@ -102,24 +99,37 @@ const PlaceDetailsCompact = memo(
       }, [note]);
 
       const onAddNote = useCallback(() => {
-        if (expanded === "min") setExpanded("max");
-        requestAnimationFrame(() => {
+        if (expanded === "min") setExpanded("mid");
+        setTimeout(() => {
           noteRef.current?.focus();
-        });
+          inputIsFocused.current = true;
+        }, 150); // If you bump the mouse while the dropdown menu is closing, the input will lose focus
       }, [expanded]);
 
       const handleTextChange = useCallback(
         (e: ChangeEvent<HTMLTextAreaElement>) => {
           setNote(e.currentTarget.value);
+          if (!noteRef.current) return;
+
+          noteRef.current.style.height = "0";
+          setInputRows(Math.min(noteRef.current.scrollHeight / 24, 4)); // 24 for line height
+          noteRef.current.style.removeProperty("height");
         },
         [],
       );
 
+      const handleOnFocus = useCallback(() => {
+        if (expanded === "min") setExpanded("mid");
+        inputIsFocused.current = true;
+      }, [expanded]);
+
       const handleOnBlur = useCallback(() => {
         if (!isAdmin) return;
         if (!note && expanded === "mid") setExpanded("min");
+        if (note && expanded === "min") setExpanded("mid");
         if (handleNoteChange)
           handleNoteChange(isInDay, data.placeInfo.placeId, note);
+        inputIsFocused.current = false;
       }, [
         data.placeInfo.placeId,
         expanded,
@@ -130,27 +140,21 @@ const PlaceDetailsCompact = memo(
       ]);
 
       useEffect(() => {
-        const handleResize = () => {
-          if (bottomRef.current) {
-            setBottomHeight(bottomRef.current.scrollHeight);
-          }
-        };
-
-        window.addEventListener("resize", handleResize);
-
-        handleResize();
-
-        return () => window.removeEventListener("resize", handleResize);
-      }, []);
+        if (inputIsFocused.current && noteRef.current) {
+          requestAnimationFrame(() => {
+            noteRef.current?.focus();
+          });
+        }
+      }, [isLarge]);
 
       const dayIndex = (((new Date().getDay() - 1) % 7) + 7) % 7;
       return (
         <div
           ref={ref}
           aria-expanded={expanded === "max" && !isDragging}
-          className="overflow-hidden rounded-xl bg-white ring-offset-zinc-50 transition fill-mode-both has-[[data-trigger=true]:focus-visible]:outline-none has-[[data-trigger=true]:focus-visible]:ring-2 has-[[data-trigger=true]:focus-visible]:ring-slate-400 has-[[data-trigger=true]:focus-visible]:ring-offset-2"
+          className="overflow-clip rounded-xl bg-white p-2 ring-offset-zinc-50 transition has-[[data-trigger=true]:focus-visible]:outline-none has-[[data-trigger=true]:focus-visible]:ring-2 has-[[data-trigger=true]:focus-visible]:ring-slate-400 has-[[data-trigger=true]:focus-visible]:ring-offset-2"
         >
-          <div className="flex items-start p-2">
+          <div className="flex items-start">
             <div className="relative mr-2 max-h-full w-20 shrink-0 self-stretch overflow-hidden rounded-lg bg-slate-300 xl:mr-3 xl:w-36">
               {data.placeInfo.rating && (
                 <div className="absolute bottom-1 left-1 z-10 flex items-center gap-1 rounded bg-slate-50 px-1">
@@ -166,21 +170,21 @@ const PlaceDetailsCompact = memo(
                 className="absolute size-full object-cover"
               />
             </div>
-            <div className="w-full xl:min-h-24">
+            <div className="min-w-0 grow xl:min-h-24">
               <div className="flex">
                 <button
                   data-trigger={true}
                   onClick={handleOnClick}
-                  className="flex min-h-[60px] grow flex-col items-start text-left focus-visible:outline-none"
+                  className="flex min-h-[60px] min-w-0 grow flex-col items-start text-left focus-visible:outline-none"
                 >
-                  <div className="mb-1">
+                  <div className="mb-1 w-full">
                     <div
                       className="text-xs font-medium"
                       style={{ color: data.placeInfo.typeColor }}
                     >
                       {data.placeInfo.primaryTypeDisplayName}
                     </div>
-                    <h3 className="font-medium text-slate-900">
+                    <h3 className="break-words font-medium text-slate-900">
                       {data.placeInfo.displayName}
                     </h3>
                   </div>
@@ -216,13 +220,14 @@ const PlaceDetailsCompact = memo(
                     <DropdownMenuContent
                       align="end"
                       onCloseAutoFocus={(e) => e.preventDefault()}
+                      onFocusOutside={(e) => e.preventDefault()}
                     >
                       <ShareButton
                         link={data.placeInfo.googleMapsLink}
                         isDropdown
                       />
                       <DropdownMenuItem
-                        onClick={onAddNote}
+                        onSelect={onAddNote}
                         className="xl:hidden"
                       >
                         <IconNote />
@@ -287,10 +292,12 @@ const PlaceDetailsCompact = memo(
               <div className="hidden w-full xl:block">
                 {!skipped && (isAdmin || !!note) && (
                   <Textarea
+                    rows={inputRows}
                     value={note}
                     ref={isLarge ? noteRef : undefined}
                     onChange={handleTextChange}
                     small
+                    onFocus={handleOnFocus}
                     onBlur={handleOnBlur}
                     className={`mt-3 rounded-lg border-0 bg-slate-50 has-[textarea:focus-visible]:bg-slate-100 has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-slate-300 [&_textarea]:placeholder:text-slate-600 ${!isAdmin ? "pointer-events-none" : ""}`}
                     placeholder="Add note..."
@@ -311,7 +318,7 @@ const PlaceDetailsCompact = memo(
             </div>
           </div>
           {skipped && (
-            <div className="flex items-center gap-1 p-2 xl:hidden">
+            <div className="mt-2 flex items-center gap-1 xl:hidden">
               <Button
                 className="h-9 grow justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600 hover:[&_svg]:text-slate-700"
                 size="small"
@@ -324,24 +331,25 @@ const PlaceDetailsCompact = memo(
             </div>
           )}
           <motion.div
-            initial={{ height: 0 }}
-            animate={
-              expanded === "min" || isDragging
-                ? { height: 0 }
-                : { height: "auto" }
-            }
+            initial={note ? { height: "auto" } : { height: 0 }}
+            animate={expanded === "min" ? { height: 0 } : { height: "auto" }}
             transition={{
               duration: 0.3,
               ease: [0.8, 0, 0.2, 1],
             }}
           >
             {!skipped && (isAdmin || !!note) && (
-              <TabDisable className="p-2 xl:hidden" active={expanded !== "min"}>
+              <TabDisable
+                className="pt-2 xl:hidden"
+                active={expanded !== "min"}
+              >
                 <Textarea
+                  rows={inputRows}
                   ref={!isLarge ? noteRef : undefined}
                   value={note}
                   onChange={handleTextChange}
                   small
+                  onFocus={handleOnFocus}
                   onBlur={handleOnBlur}
                   className={`rounded-lg border-0 bg-slate-50 has-[textarea:focus-visible]:bg-slate-100 has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-slate-300 [&_textarea]:placeholder:text-slate-600 ${!isAdmin ? "pointer-events-none" : ""}`}
                   placeholder="Add note..."
@@ -349,20 +357,20 @@ const PlaceDetailsCompact = memo(
                 />
               </TabDisable>
             )}
-
-            <div
-              ref={bottomRef}
-              className="data-[expanded=false]:h-0 data-[expanded=false]:animate-minimise data-[expanded=true]:animate-expand"
-              data-expanded={expanded === "max" || expanded === "min"}
-              style={
-                {
-                  "--content-height": `${bottomHeight}px`,
-                  "--content-closed": `0px`,
-                } as CSSProperties
+            <motion.div
+              initial={{ height: 0 }}
+              animate={
+                expanded === "min" || expanded === "mid"
+                  ? { height: 0 }
+                  : { height: "auto" }
               }
+              transition={{
+                duration: 0.3,
+                ease: [0.8, 0, 0.2, 1],
+              }}
             >
               <TabDisable
-                className="flex flex-col p-2 pt-0"
+                className={`flex flex-col ${!skipped ? "pt-2" : "xl:pt-2"}`}
                 active={expanded === "max"}
               >
                 {!skipped && (
@@ -390,7 +398,7 @@ const PlaceDetailsCompact = memo(
                   <IconExternalLink /> View full information
                 </Link>
               </TabDisable>
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       );
