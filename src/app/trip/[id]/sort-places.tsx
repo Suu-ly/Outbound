@@ -4,6 +4,7 @@ import DayFolder from "@/app/trip/[id]/day-folder";
 import { PlaceDetailsCompactProps } from "@/app/trip/[id]/place-details-compact";
 import { Button } from "@/components/ui/button";
 import DrawerDialog from "@/components/ui/drawer-dialog";
+import { markerColorLookup } from "@/lib/color-lookups";
 import {
   cn,
   getStartingIndex,
@@ -881,13 +882,13 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               <IconWand />
             </Button>
           </div>
-          {days.map((day, index) => (
+          {days.map((day, dayIndex) => (
             <DroppableContainer
               day
               key={day.dayId}
               id={day.dayId}
               items={places[day.dayId].map((place) => place.placeInfo.placeId!)}
-              date={addDays(startDate, index)}
+              date={addDays(startDate, dayIndex)}
               handleMove={handleMove}
               setLoadingState={setLoadingState}
             >
@@ -907,7 +908,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                       )}
                     >
                       <div
-                        className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
+                        className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length]}`}
                         aria-label={`Saved place ${index + 1}`}
                       >
                         {index + 1}

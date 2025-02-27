@@ -8,3 +8,24 @@ export const typeColorLookup = {
   "#4DB546": "#059669",
   "#F88181": "#db2777",
 };
+
+export const markerColorLookup = [
+  "text-purple-900 bg-purple-300",
+  "text-brand-900 bg-brand-300",
+  "text-orange-900 bg-orange-300",
+  "text-blue-900 bg-blue-200",
+  "text-lime-900 bg-lime-300",
+  "text-pink-900 bg-pink-300",
+  "text-yellow-900 bg-yellow-200",
+  "text-teal-900 bg-teal-300",
+  "text-rose-900 bg-rose-300",
+  "text-green-900 bg-green-300",
+  "text-purple-100 bg-purple-700",
+  "text-lime-100 bg-lime-700",
+  "text-stone-100 bg-stone-800",
+  "text-pink-100 bg-pink-700",
+  "text-teal-100 bg-teal-700",
+  "text-orange-100 bg-orange-700",
+  "text-brand-100 bg-brand-700",
+  "text-green-100 bg-green-700",
+];
