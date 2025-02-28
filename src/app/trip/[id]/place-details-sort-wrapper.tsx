@@ -20,6 +20,7 @@ const PlaceDetailsSortWrapper = forwardRef<
   return (
     <div
       role="button"
+      data-drag-node="true"
       aria-roledescription="draggable place"
       tabIndex={0}
       ref={ref}

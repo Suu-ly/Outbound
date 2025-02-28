@@ -53,7 +53,7 @@ const AccordionContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
-    className="overflow-hidden text-sm transition-[height] data-[state=closed]:animate-minimise data-[state=open]:animate-expand"
+    className="overflow-hidden text-sm data-[state=closed]:animate-minimise data-[state=open]:animate-expand"
     style={
       {
         "--content-closed": "0px",

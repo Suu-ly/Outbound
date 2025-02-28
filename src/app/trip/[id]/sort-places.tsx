@@ -250,6 +250,7 @@ function DroppableContainer({
     over,
     setNodeRef,
     transform,
+    transition,
   } = useSortable({
     id,
     data: {
@@ -317,7 +318,7 @@ function DroppableContainer({
       ref={disabled ? undefined : setNodeRef}
       style={{
         ...style,
-        // transition,
+        transition,
         transform: CSS.Translate.toString(transform),
       }}
       dayId={id}
@@ -342,7 +343,9 @@ const dropAnimation: DropAnimation = {
   duration: 300,
   easing: "cubic-bezier(.45,1.3,.3,1)",
   sideEffects: (params) => {
-    const div = params.dragOverlay.node.querySelector("div[role='button']");
+    const div = params.dragOverlay.node.querySelector(
+      "div[data-drag-node='true']",
+    );
     if (!div) return;
     div.animate(
       [
