@@ -12,6 +12,7 @@ import { useAtomValue } from "jotai";
 import {
   ComponentPropsWithoutRef,
   ComponentRef,
+  CSSProperties,
   Dispatch,
   forwardRef,
   memo,
@@ -68,7 +69,7 @@ const DayFolder = memo(
           ref={ref}
           {...props}
           className={cn(
-            "space-y-4 rounded-xl ring-brand-400 ring-offset-8 ring-offset-zinc-50 transition-[box-shadow,opacity]",
+            "rounded-xl ring-brand-400 ring-offset-8 ring-offset-zinc-50 transition-[box-shadow,opacity]",
             hover && "ring-2",
             isDragging && "opacity-50",
             isDragOverlay && "shadow-lg",
@@ -118,18 +119,30 @@ const DayFolder = memo(
               <IconGripVertical />
             </Button>
           </div>
-          <CollapsibleContent>
-            {children}
-            {isAdmin &&
-              dayId !== undefined &&
-              handleMove &&
-              setLoadingState && (
-                <TripAutocomplete
-                  isInDay={dayId}
-                  handleMove={handleMove}
-                  setLoadingState={setLoadingState}
-                />
-              )}
+          <CollapsibleContent
+            className={
+              "overflow-hidden data-[state=closed]:animate-minimise data-[state=open]:animate-expand"
+            }
+            style={
+              {
+                "--content-height": `var(--radix-collapsible-content-height)`,
+                "--content-closed": "0px",
+              } as CSSProperties
+            }
+          >
+            <div className="mt-4">
+              {children}
+              {isAdmin &&
+                dayId !== undefined &&
+                handleMove &&
+                setLoadingState && (
+                  <TripAutocomplete
+                    isInDay={dayId}
+                    handleMove={handleMove}
+                    setLoadingState={setLoadingState}
+                  />
+                )}
+            </div>
           </CollapsibleContent>
         </Collapsible>
       );
