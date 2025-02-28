@@ -17,7 +17,7 @@ import {
   useTransform,
 } from "motion/react";
 import { useParams, usePathname } from "next/navigation";
-import { forwardRef, useCallback, useRef } from "react";
+import { forwardRef, useCallback, useRef, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import {
   activePlaceIndexAtom,
@@ -143,11 +143,20 @@ export default function SwipeManager() {
     cardRef.current.triggerReject();
   };
 
+  const isServer = useSyncExternalStore(
+    () => () => {},
+    () => false,
+    () => true,
+  );
+
   // useEffect(() => {
   //   setActiveLocation()
   // }, [activePlaceIndex, discoverLocations]);
 
   console.log(discoverLocations);
+
+  if (isServer)
+    return <main className="max-h-full w-full sm:w-1/2 xl:w-1/3"></main>;
 
   if (isLarge)
     return (

@@ -279,7 +279,7 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
   return (
     <motion.div
       className={cn(
-        "pointer-events-none absolute left-0 top-0 z-[--index] size-full touch-none select-none will-change-transform sm:w-1/2 xl:w-1/3",
+        "pointer-events-none absolute left-0 top-0 z-[--index] size-full touch-none select-none sm:w-1/2 xl:w-1/3",
         active && "animate-activate",
       )}
       drag={draggable}
@@ -290,6 +290,7 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
         cursor: "grabbing",
         scale: 0.97,
         borderRadius: "2rem",
+        willChange: "transform",
       }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}

@@ -179,6 +179,7 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
       onDragEnd={onDrawerDragEnd}
       whileDrag={{
         cursor: "grabbing",
+        willChange: "transform",
       }}
       onPointerDown={(e) => {
         if (!scrolledToTop) return;
