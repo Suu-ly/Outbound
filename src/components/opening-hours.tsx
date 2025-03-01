@@ -34,6 +34,7 @@ export default function OpeningHours({
       <div
         className={cn(
           "flex gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100",
+          !collapsible && "pointer-events-none",
           className,
         )}
       >

@@ -25,7 +25,6 @@ import {
   IconCalendarRepeat,
   IconDotsVertical,
   IconExternalLink,
-  IconHeartShare,
   IconHourglass,
   IconNote,
   IconStarFilled,
@@ -48,7 +47,6 @@ import {
 export type PlaceDetailsCompactProps = {
   data: PlaceDataEntry;
   isInDay?: number | string;
-  skipped?: boolean;
   isDragging?: boolean;
   onRemove?: (isInDay: number | string, placeId: string) => void;
   handleMove?: (
@@ -63,14 +61,11 @@ export type PlaceDetailsCompactProps = {
   ) => void;
 };
 
-// TODO it is broken when note is set then window is minimised
-
 const PlaceDetailsCompact = memo(
   forwardRef<HTMLDivElement, PlaceDetailsCompactProps>(
     (
       {
         data,
-        skipped,
         isInDay = "saved",
         isDragging,
         onRemove,
@@ -202,14 +197,14 @@ const PlaceDetailsCompact = memo(
                     </div>
                   )}
                 </button>
-                {(!isAdmin || skipped) && (
+                {!isAdmin && (
                   <ShareButton
-                    className={`shrink-0 ${skipped ? "hidden xl:inline-flex" : ""}`}
+                    className={`shrink-0`}
                     link={data.placeInfo.googleMapsLink}
                     message="Google maps link copied to clipboard!"
                   />
                 )}
-                {isAdmin && !skipped && (
+                {isAdmin && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -295,50 +290,22 @@ const PlaceDetailsCompact = memo(
                   </DropdownMenu>
                 )}
               </div>
-              <div className="hidden w-full xl:block">
-                {!skipped && (isAdmin || !!note) && (
-                  <Textarea
-                    rows={inputRows}
-                    value={note}
-                    ref={isLarge ? noteRef : undefined}
-                    onChange={handleTextChange}
-                    small
-                    onFocus={handleOnFocus}
-                    onBlur={handleOnBlur}
-                    className={`mt-3 rounded-lg border-0 bg-slate-50 has-[textarea:focus-visible]:bg-slate-100 has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-slate-300 [&_textarea]:placeholder:text-slate-600 ${!isAdmin ? "pointer-events-none" : ""}`}
-                    placeholder="Add note..."
-                    left={<IconNote />}
-                  />
-                )}
-                {skipped && (
-                  <Button
-                    className="mt-3 h-9 w-full justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600 hover:[&_svg]:text-slate-700"
-                    size="small"
-                    variant="ghost"
-                  >
-                    <IconHeartShare />
-                    Moved to saved places
-                  </Button>
-                )}
-              </div>
+              {(isAdmin || !!note) && (
+                <Textarea
+                  rows={inputRows}
+                  value={note}
+                  ref={isLarge ? noteRef : undefined}
+                  onChange={handleTextChange}
+                  small
+                  onFocus={handleOnFocus}
+                  onBlur={handleOnBlur}
+                  className={`mt-3 hidden rounded-lg border-0 bg-slate-50 has-[textarea:focus-visible]:bg-slate-100 has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-slate-300 xl:flex [&_textarea]:placeholder:text-slate-600 ${!isAdmin ? "pointer-events-none" : ""}`}
+                  placeholder="Add note..."
+                  left={<IconNote />}
+                />
+              )}
             </div>
           </div>
-          {skipped && (
-            <div className="mt-2 flex items-center gap-1 xl:hidden">
-              <Button
-                className="h-9 grow justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600 hover:[&_svg]:text-slate-700"
-                size="small"
-                variant="ghost"
-              >
-                <IconHeartShare />
-                Moved to saved places
-              </Button>
-              <ShareButton
-                link={data.placeInfo.googleMapsLink}
-                message="Google maps link copied to clipboard!"
-              />
-            </div>
-          )}
           <motion.div
             initial={note ? { height: "auto" } : { height: 0 }}
             animate={expanded === "min" ? { height: 0 } : { height: "auto" }}
@@ -347,7 +314,7 @@ const PlaceDetailsCompact = memo(
               ease: [0.8, 0, 0.2, 1],
             }}
           >
-            {!skipped && (isAdmin || !!note) && (
+            {(isAdmin || !!note) && (
               <TabDisable
                 className="pt-2 xl:hidden"
                 active={expanded !== "min"}
@@ -379,20 +346,18 @@ const PlaceDetailsCompact = memo(
               }}
             >
               <TabDisable
-                className={`flex flex-col ${!skipped ? "pt-2" : "xl:pt-2"}`}
+                className="flex flex-col pt-2 xl:pt-2"
                 active={expanded === "max"}
               >
-                {!skipped && (
-                  <Button
-                    className="h-9 justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600 hover:[&_svg]:text-slate-700"
-                    size="small"
-                    variant="ghost"
-                    disabled={!isAdmin}
-                  >
-                    <IconHourglass />
-                    Allocated time: 2 Hrs
-                  </Button>
-                )}
+                <Button
+                  className="h-9 justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600 hover:[&_svg]:text-slate-700"
+                  size="small"
+                  variant="ghost"
+                  disabled={!isAdmin}
+                >
+                  <IconHourglass />
+                  Allocated time: 2 Hrs
+                </Button>
                 <OpeningHours
                   collapsible={false}
                   highligtedDay={new Date().getDay()}
@@ -420,8 +385,7 @@ const PlaceDetailsCompact = memo(
       prev.handleMove !== next.handleMove ||
       prev.handleNoteChange !== next.handleNoteChange ||
       prev.isDragging !== next.isDragging ||
-      prev.isInDay !== next.isInDay ||
-      prev.skipped !== next.skipped
+      prev.isInDay !== next.isInDay
     )
       return false;
     return true;
