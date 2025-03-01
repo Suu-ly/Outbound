@@ -106,7 +106,6 @@ export default function TripAutocomplete({
         [isInDay]: prev[isInDay].filter((data) => data !== selectedId.id),
       };
     });
-    console.log(data.data.order);
     setPlaces((prev) => ({
       ...prev,
       [isInDay]: [

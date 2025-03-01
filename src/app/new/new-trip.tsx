@@ -219,11 +219,12 @@ export default function NewTrip({ userId }: { userId: string }) {
           <Calendar
             disabled={{ before: new Date() }}
             mode="range"
+            required
             selected={date}
             onSelect={(range) => {
               setDate((prev) => {
-                if (!prev || !range || (prev && prev.from === prev.to))
-                  return range;
+                if (!range) return prev;
+                if (!prev || (prev && prev.from === prev.to)) return range;
                 // Only to changes, set to as start date
                 if (range.from === prev.from)
                   return { from: range.to, to: range.to };

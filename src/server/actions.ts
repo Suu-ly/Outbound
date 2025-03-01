@@ -2,7 +2,7 @@
 
 import { getStartingIndex, insertAfter } from "@/lib/utils";
 import { differenceInCalendarDays } from "date-fns";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { redirect } from "next/navigation";
 import { type DateRange } from "react-day-picker";
@@ -15,7 +15,7 @@ import {
   tripDay,
   tripPlace,
 } from "./db/schema";
-import { ApiResponse } from "./types";
+import { ApiResponse, DayData } from "./types";
 
 const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const ID_LENGTH = 12;
@@ -142,12 +142,11 @@ export async function setPlaceAsInterested(
       .update(tripPlace)
       .set({
         order: sql`insert_after(
-        (SELECT ${tripPlace.order} from ${tripPlace} WHERE 
+        (SELECT MAX(${tripPlace.order}) from ${tripPlace} WHERE 
         ${tripPlace.tripId} = ${tripId} AND 
         ${tripPlace.dayId} IS NULL AND 
-        ${tripPlace.type} = 'saved' AND
-        ${tripPlace.order} IS NOT NULL 
-        ORDER BY ${tripPlace.order} DESC LIMIT 1))`,
+        ${tripPlace.type} = 'saved')
+        )`,
         type: "saved",
       })
       .where(
@@ -266,6 +265,117 @@ export async function updateTripDayOrder(
     return {
       status: "error",
       message: "Unable to update place preferences",
+    };
+  }
+}
+
+export async function addTripDays(
+  newDays: InsertTripDay[],
+): Promise<ApiResponse<DayData[]>> {
+  try {
+    const result = await db.insert(tripDay).values(newDays).returning({
+      dayId: tripDay.id,
+      dayOrder: tripDay.order,
+      dayStartTime: tripDay.startTime,
+    });
+
+    // Makes sure the retured values are in order
+    result.sort((a, b) => {
+      if (a.dayOrder < b.dayOrder) {
+        return -1;
+      }
+      if (a.dayOrder > b.dayOrder) {
+        return 1;
+      }
+      return 0;
+    });
+
+    return {
+      status: "success",
+      data: result,
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      status: "error",
+      message: "Unable to add trip days",
+    };
+  }
+}
+
+export async function deleteTripDays(
+  deleteDays: number[],
+  tripId: string,
+): Promise<ApiResponse<true>> {
+  try {
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`
+        WITH RECURSIVE 
+        places_to_move AS (
+          SELECT ${tripPlace.placeId}, ROW_NUMBER() OVER (ORDER BY ${tripDay.order},${tripPlace.order}) as rn
+          FROM ${tripPlace}
+          LEFT JOIN ${tripDay} ON ${tripDay.id} = ${tripPlace.dayId}
+          WHERE ${tripPlace.dayId} IN ${deleteDays}
+          ORDER BY rn
+        ),
+        new_orders (place_id, new_order, rn) AS (
+          SELECT ptm.place_id, insert_after(
+            (
+              SELECT MAX(${tripPlace.order}) 
+              FROM ${tripPlace} 
+              WHERE ${tripPlace.tripId} = ${tripId} 
+              AND ${tripPlace.dayId} IS NULL 
+              AND ${tripPlace.type} = 'saved'
+            )
+          ), 1::bigint
+          FROM places_to_move ptm
+          WHERE ptm.rn = 1
+          UNION ALL
+          SELECT ptm.place_id, insert_after(no.new_order), ptm.rn
+          FROM places_to_move ptm
+          JOIN new_orders no ON ptm.rn = no.rn + 1
+        )
+        UPDATE ${tripPlace}
+        SET
+          "day_id" = NULL,
+          "order" = no.new_order
+        FROM new_orders no
+        WHERE ${tripPlace.placeId} = no.place_id;  
+        `);
+      await tx.delete(tripDay).where(inArray(tripDay.id, deleteDays));
+    });
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      status: "error",
+      message: "Unable to delete trip days",
+    };
+  }
+}
+
+export async function updateTripDates(
+  startDate: Date,
+  endDate: Date,
+  tripId: string,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(trip)
+      .set({ startDate: startDate, endDate: endDate })
+      .where(eq(trip.id, tripId));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      status: "error",
+      message: "Unable to update trip dates",
     };
   }
 }

@@ -8,11 +8,17 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useMediaQuery } from "@/lib/use-media-query";
+import { insertAfter } from "@/lib/utils";
+import { addTripDays, deleteTripDays, updateTripDates } from "@/server/actions";
+import { InsertTripDay } from "@/server/db/schema";
+import { PlaceDataEntry } from "@/server/types";
 import { IconCalendarWeek } from "@tabler/icons-react";
+import { differenceInCalendarDays } from "date-fns";
 import { useAtom, useAtomValue } from "jotai";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { type DateRange } from "react-day-picker";
+import { toast } from "sonner";
 import {
   dayPlacesAtom,
   savedPlacesAmountAtom,
@@ -33,9 +39,121 @@ export default function TripPage() {
     to: tripData.endDate,
   });
   const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [isChangingDate, setIsChangingDate] = useState(false);
 
-  console.log(places);
-  console.log(days);
+  const handleDateSave = async () => {
+    if (!date || !date.from || !date.to) return;
+    setIsChangingDate(true);
+    const startDate = date.from;
+    const endDate = date.to;
+
+    const numberOfDays = differenceInCalendarDays(date.to, date.from) + 1;
+
+    const updateDates = updateTripDates(startDate, endDate, tripId);
+    let updateDateSuccess;
+
+    if (numberOfDays > days.length) {
+      // Add new days
+      let order = insertAfter(days[days.length - 1].dayOrder);
+      const daysToInsert: InsertTripDay[] = [];
+      for (let i = 0; i < numberOfDays - days.length; i++) {
+        daysToInsert.push({
+          tripId: tripId,
+          order: order,
+        });
+        order = insertAfter(order);
+      }
+      const [newDays, datesResponse] = await Promise.all([
+        addTripDays(daysToInsert),
+        updateDates,
+      ]);
+      updateDateSuccess = datesResponse;
+      if (newDays.status === "error") toast.error(newDays.message);
+      else {
+        const emptyPlaces: Record<string | number, PlaceDataEntry[]> = {};
+        for (let i = 0; i < newDays.data.length; i++) {
+          emptyPlaces[newDays.data[i].dayId] = [];
+        }
+        setDays((prev) => [...prev, ...newDays.data]);
+        setPlaces((prev) => ({
+          ...prev,
+          ...emptyPlaces,
+        }));
+      }
+    } else if (numberOfDays < days.length) {
+      // Remove days from the end and transfer those places to saved places
+      const removedDays: number[] = days
+        .slice(numberOfDays)
+        .map((day) => day.dayId);
+      const [response, datesResponse] = await Promise.all([
+        deleteTripDays(removedDays, tripId),
+        updateDates,
+      ]);
+      updateDateSuccess = datesResponse;
+      if (response.status === "error") toast.error(response.message);
+      else {
+        setDays((prev) => prev.slice(0, numberOfDays));
+        setPlaces((prev) => {
+          let savedPlaces = prev.saved;
+          // Order of current last element in saved places
+          let order =
+            savedPlaces.length > 0
+              ? savedPlaces[savedPlaces.length - 1].userPlaceInfo.tripOrder
+              : undefined;
+          const emptyPlaces: Record<string | number, PlaceDataEntry[]> = {};
+          for (let i = 0; i < removedDays.length; i++) {
+            emptyPlaces[removedDays[i]] = [];
+            const placesToAdd: PlaceDataEntry[] = prev[removedDays[i]].map(
+              (place) => {
+                order = insertAfter(order);
+                return {
+                  placeInfo: place.placeInfo,
+                  userPlaceInfo: {
+                    ...place.userPlaceInfo,
+                    tripOrder: order,
+                  },
+                };
+              },
+            );
+            console.log(placesToAdd);
+            savedPlaces = savedPlaces.concat(placesToAdd);
+          }
+          return {
+            ...prev,
+            ...emptyPlaces,
+            saved: savedPlaces,
+          };
+        });
+      }
+    } else {
+      // No change in number of days, just change dates
+      updateDateSuccess = await updateDates;
+    }
+    if (updateDateSuccess.status === "error")
+      toast.error(updateDateSuccess.message);
+    else {
+      setTripData((prev) => ({
+        ...prev,
+        startDate: startDate,
+        endDate: endDate,
+      }));
+    }
+    setCalendarOpen(false);
+    setIsChangingDate(false);
+  };
+
+  const handleCancel = () => {
+    if (isChangingDate) return;
+    setDate({
+      from: tripData.startDate,
+      to: tripData.endDate,
+    });
+    setCalendarOpen(false);
+  };
+
+  console.log("Places", places);
+  console.log("Days", days);
 
   return (
     <ViewMapToggle>
@@ -44,7 +162,7 @@ export default function TripPage() {
           <h1 className="mb-4 font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
             {tripData.name}
           </h1>
-          <Popover>
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen} modal>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
@@ -78,26 +196,53 @@ export default function TripPage() {
                 </div>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                disabled={{ before: new Date() }}
-                mode="range"
-                selected={date}
-                onSelect={(range) => {
-                  setDate((prev) => {
-                    if (!prev || !range || (prev && prev.from === prev.to))
-                      return range;
-                    // Only to changes, set to as start date
-                    if (range.from === prev.from)
-                      return { from: range.to, to: range.to };
-                    // Otherwise
-                    return { from: range.from, to: range.from };
-                  });
-                }}
-                autoFocus
-                defaultMonth={date?.from}
-                numberOfMonths={isLarge ? 2 : 1}
-              />
+            <PopoverContent
+              className="w-auto p-0"
+              onInteractOutside={(e) => {
+                e.preventDefault();
+                handleCancel();
+              }}
+              onEscapeKeyDown={(e) => {
+                e.preventDefault();
+                handleCancel();
+              }}
+            >
+              <div>
+                <Calendar
+                  className="pb-2"
+                  disabled={{ before: new Date() }}
+                  mode="range"
+                  selected={date}
+                  required
+                  onSelect={(range) => {
+                    setDate((prev) => {
+                      if (!range) return prev;
+                      if (!prev || (prev && prev.from === prev.to))
+                        return range;
+                      // Only to changes, set to as start date
+                      if (range.from === prev.from)
+                        return { from: range.to, to: range.to };
+                      // Otherwise
+                      return { from: range.from, to: range.from };
+                    });
+                  }}
+                  autoFocus
+                  defaultMonth={date?.from}
+                  numberOfMonths={isLarge ? 2 : 1}
+                />
+                <div className="flex flex-row-reverse items-center gap-3 p-3 pt-0">
+                  <Button onClick={handleDateSave} loading={isChangingDate}>
+                    Save
+                  </Button>
+                  <Button
+                    disabled={isChangingDate}
+                    variant="ghost"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
             </PopoverContent>
           </Popover>
           <p>{savedPlacesAmount} Places</p>
