@@ -58,11 +58,13 @@ export function getStartingIndex() {
   return digitToChar(Math.floor(BASE / 3)); // Bias index towards start as more likely to insert after
 }
 
-export function insertBefore(index: string) {
+export function insertBefore(index: string | undefined) {
+  if (!index) return getStartingIndex();
   return averageStrings("\x20", index); // Average with zero
 }
 
-export function insertAfter(index: string) {
+export function insertAfter(index: string | undefined) {
+  if (!index) return getStartingIndex();
   return averageStrings(index, "\x7F"); // Average with "one"
 }
 

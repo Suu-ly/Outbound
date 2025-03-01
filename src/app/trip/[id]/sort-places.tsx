@@ -520,10 +520,9 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       newDay: number | string,
     ) => {
       const newOrder =
-        places[isInDay].length > 0
+        places[newDay].length > 0
           ? insertAfter(
-              places[isInDay][places[isInDay].length - 1].userPlaceInfo
-                .tripOrder,
+              places[newDay][places[newDay].length - 1].userPlaceInfo.tripOrder,
             )
           : getStartingIndex(); // No items in day
       setPlaces((prev) => ({
@@ -542,7 +541,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           },
         ], // Add to the end of the new day with updated details
       }));
-
+      console.log("Handlemove New order", newOrder);
       updateTripPlaceOrder(
         tripId,
         data.placeInfo.placeId,
@@ -705,8 +704,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                 days[overIndex + 1].dayOrder,
               );
           } else if (overIndex === 0) {
-            if (days.length > 0) newOrder = insertBefore(days[0].dayOrder);
-            else newOrder = getStartingIndex();
+            newOrder = insertBefore(days[0].dayOrder);
           } else if (overIndex === days.length - 1) {
             newOrder = insertAfter(days[overIndex].dayOrder);
           }
@@ -747,10 +745,19 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           const overIndex = places[overContainer].findIndex(
             (place) => place.placeInfo.placeId === overId,
           );
+          console.log(
+            "Containers and indexes",
+            activeContainer,
+            activeIndex,
+            overContainer,
+            overIndex,
+          );
+
           // Nothing happened
           if (
+            activeContainer === overContainer &&
             clonedItems &&
-            clonedItems[overContainer].length > overIndex &&
+            clonedItems[overContainer].length > overIndex && // Prevent out of bounds error
             clonedItems[overContainer][overIndex].placeInfo.placeId ===
               active.id
           ) {
@@ -759,29 +766,64 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           }
 
           let newOrder = "";
+          const overPlaces = places[overContainer];
+          const getOrder = (index: number) =>
+            overPlaces[index].userPlaceInfo.tripOrder;
+          // As we update the state when we drag over, the currently dragging item will be in the
+          // same container as the over item, with the exception of dropping in a day folder
+          // before it is open
+
           // Is not the first or last element in the new array
           if (overIndex > 0 && overIndex < places[overContainer].length - 1) {
             if (activeIndex > overIndex)
+              // overIndex moves down to make space
               newOrder = insertBetween(
-                places[overContainer][overIndex - 1].userPlaceInfo.tripOrder,
-                places[overContainer][overIndex].userPlaceInfo.tripOrder,
+                getOrder(overIndex - 1),
+                getOrder(overIndex),
+              );
+            else if (activeIndex < overIndex)
+              // overIndex moves up to make space
+              newOrder = insertBetween(
+                getOrder(overIndex),
+                getOrder(overIndex + 1),
               );
             else
+              // Item is inserted at this index
               newOrder = insertBetween(
-                places[overContainer][overIndex].userPlaceInfo.tripOrder,
-                places[overContainer][overIndex + 1].userPlaceInfo.tripOrder,
+                getOrder(overIndex - 1),
+                getOrder(overIndex + 1),
               );
+
+            // Is the first item in the array
           } else if (overIndex === 0) {
-            if (places[overContainer].length > 0)
-              newOrder = insertBefore(
-                places[overContainer][0].userPlaceInfo.tripOrder,
+            // Container is not previously empty
+            if (overPlaces.length > 1) {
+              if (overIndex !== activeIndex)
+                // Place at index 0 moves down to make space
+                newOrder = insertBefore(getOrder(0));
+              // Place is inserted at 0 index, previous first element is now index 1
+              else newOrder = insertBefore(getOrder(1));
+            } else newOrder = getStartingIndex(); // Only item in day
+
+            // Is the last item in the array and the array is not empty
+          } else if (overIndex === overPlaces.length - 1 && overIndex > 0) {
+            if (activeIndex !== overIndex)
+              // Item at last index moves up to make space
+              newOrder = insertAfter(getOrder(overIndex));
+            else
+              // Item is inserted at last index
+              newOrder = insertAfter(getOrder(overIndex - 1));
+
+            // Item is over a closed day folder
+          } else {
+            if (overPlaces.length > 0)
+              newOrder = insertAfter(
+                getOrder(places[overContainer].length - 1),
               );
             else newOrder = getStartingIndex();
-          } else if (overIndex === places[overContainer].length - 1) {
-            newOrder = insertAfter(
-              places[overContainer][overIndex].userPlaceInfo.tripOrder,
-            );
           }
+          console.log("New order", newOrder);
+
           if (activeContainer !== overContainer) {
             setPlaces((currentPlaces) => ({
               ...currentPlaces,
@@ -802,27 +844,24 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               ], // add place to the end of the array with new order
             }));
           } else {
-            if (activeIndex !== overIndex) {
-              setPlaces((currentPlaces) => {
-                currentPlaces[overContainer][activeIndex] = {
-                  placeInfo:
-                    currentPlaces[overContainer][activeIndex].placeInfo,
-                  userPlaceInfo: {
-                    ...currentPlaces[overContainer][activeIndex].userPlaceInfo,
-                    tripOrder: newOrder,
-                  },
-                };
+            setPlaces((currentPlaces) => {
+              currentPlaces[overContainer][activeIndex] = {
+                placeInfo: currentPlaces[overContainer][activeIndex].placeInfo,
+                userPlaceInfo: {
+                  ...currentPlaces[overContainer][activeIndex].userPlaceInfo,
+                  tripOrder: newOrder,
+                },
+              };
 
-                return {
-                  ...currentPlaces,
-                  [overContainer]: arrayMove(
-                    currentPlaces[overContainer],
-                    activeIndex,
-                    overIndex,
-                  ),
-                };
-              });
-            }
+              return {
+                ...currentPlaces,
+                [overContainer]: arrayMove(
+                  currentPlaces[overContainer],
+                  activeIndex,
+                  overIndex,
+                ),
+              };
+            });
           }
           updateTripPlaceOrder(
             tripId,
