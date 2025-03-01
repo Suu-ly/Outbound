@@ -17,6 +17,7 @@ export default function ShareButton({
   label = "Share",
   isDropdown,
   message = "Link copied to clipboard!",
+  className,
   ...rest
 }: ShareButtonProps & ButtonProps) {
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -29,7 +30,7 @@ export default function ShareButton({
 
   if (isDropdown)
     return (
-      <DropdownMenuItem onClick={onCopy}>
+      <DropdownMenuItem onClick={onCopy} className={className}>
         <IconShare />
         Share
       </DropdownMenuItem>
@@ -42,6 +43,7 @@ export default function ShareButton({
       onClick={onCopy}
       iconOnly
       aria-label={label}
+      className={className}
       {...rest}
     >
       {copied ? <IconCheck /> : <IconShare />}

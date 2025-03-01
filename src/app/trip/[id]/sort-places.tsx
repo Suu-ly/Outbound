@@ -3,7 +3,13 @@
 import DayFolder from "@/app/trip/[id]/day-folder";
 import { PlaceDetailsCompactProps } from "@/app/trip/[id]/place-details-compact";
 import { Button } from "@/components/ui/button";
+import ButtonLink from "@/components/ui/button-link";
 import DrawerDialog from "@/components/ui/drawer-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { markerColorLookup } from "@/lib/color-lookups";
 import {
   cn,
@@ -882,9 +888,20 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         >
           <div className="flex justify-between gap-3">
             <h3 className="font-display text-2xl font-medium">Saved Places</h3>
-            <Button size="small" variant="secondary" iconOnly>
-              <IconMapPinSearch />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <ButtonLink
+                  href={`/trip/${tripId}/discover`}
+                  size="small"
+                  variant="secondary"
+                  iconOnly
+                  aria-label="Discover places"
+                >
+                  <IconMapPinSearch />
+                </ButtonLink>
+              </TooltipTrigger>
+              <TooltipContent>Discover places</TooltipContent>
+            </Tooltip>
           </div>
           <DroppableContainer
             id={SAVED_ID}
@@ -921,9 +938,19 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           </DroppableContainer>
           <div className="flex justify-between gap-3">
             <h3 className="font-display text-2xl font-medium">Itinerary</h3>
-            <Button size="small" variant="secondary" iconOnly>
-              <IconWand />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="small"
+                  variant="secondary"
+                  iconOnly
+                  aria-label="Generate itinerary"
+                >
+                  <IconWand />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Generate itinerary</TooltipContent>
+            </Tooltip>
           </div>
           {days.map((day, dayIndex) => (
             <DroppableContainer
