@@ -1,3 +1,8 @@
+import OpeningHours from "@/components/opening-hours";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import Rating from "@/components/ui/rating";
+import { Separator } from "@/components/ui/separator";
 import useCopyToClipboard from "@/lib/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import { PlacesReview, TripPlaceDetails } from "@/server/types";
@@ -26,12 +31,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import OpeningHours from "./opening-hours";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Button } from "./ui/button";
-import Rating from "./ui/rating";
-import { Separator } from "./ui/separator";
-import { TooltipProvider } from "./ui/tooltip";
 
 const InfoWithCopy = ({
   copy,
@@ -284,47 +283,45 @@ export const PlaceDetails = forwardRef<HTMLDivElement, PlaceDetailsProps>(
           </div>
         )}
         <div>
-          <TooltipProvider delayDuration={300}>
+          <InfoWithCopy
+            copy={data.address}
+            tooltipLabel="Copy address"
+            successMessage="Address copied to clipboard!"
+          >
+            <IconMapPin className="shrink-0" />
+            {data.address}
+          </InfoWithCopy>
+          <OpeningHours
+            highligtedDay={new Date().getDay()}
+            hours={data.openingHours?.text}
+          />
+          {data.website && (
             <InfoWithCopy
-              copy={data.address}
-              tooltipLabel="Copy address"
-              successMessage="Address copied to clipboard!"
+              copy={data.website}
+              tooltipLabel="Copy website URL"
+              successMessage="Website URL copied to clipboard!"
+              asChild
             >
-              <IconMapPin className="shrink-0" />
-              {data.address}
+              <Link
+                href={data.website}
+                target="_blank"
+                className="ring-offset-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+              >
+                <IconWorld className="shrink-0" />
+                {data.website}
+              </Link>
             </InfoWithCopy>
-            <OpeningHours
-              highligtedDay={new Date().getDay()}
-              hours={data.openingHours?.text}
-            />
-            {data.website && (
-              <InfoWithCopy
-                copy={data.website}
-                tooltipLabel="Copy website URL"
-                successMessage="Website URL copied to clipboard!"
-                asChild
-              >
-                <Link
-                  href={data.website}
-                  target="_blank"
-                  className="ring-offset-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
-                >
-                  <IconWorld className="shrink-0" />
-                  {data.website}
-                </Link>
-              </InfoWithCopy>
-            )}
-            {data.phone && (
-              <InfoWithCopy
-                copy={data.phone}
-                tooltipLabel="Copy phone number"
-                successMessage="Phone number copied to clipboard!"
-              >
-                <IconPhone className="shrink-0" />
-                {data.phone}
-              </InfoWithCopy>
-            )}
-          </TooltipProvider>
+          )}
+          {data.phone && (
+            <InfoWithCopy
+              copy={data.phone}
+              tooltipLabel="Copy phone number"
+              successMessage="Phone number copied to clipboard!"
+            >
+              <IconPhone className="shrink-0" />
+              {data.phone}
+            </InfoWithCopy>
+          )}
         </div>
         {(data.accessibilityOptions ||
           data.parkingOptions ||
