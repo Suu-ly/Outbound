@@ -69,12 +69,11 @@ export async function GET(request: NextRequest) {
       placeId: data.data.id,
       tripId: tripId,
       order: sql`insert_after(
-                (SELECT ${tripPlace.order} from ${tripPlace} WHERE 
+                (SELECT MAX(${tripPlace.order}) from ${tripPlace} WHERE 
                 ${tripPlace.tripId} = ${tripId} AND 
                 ${tripPlace.dayId} = ${dayId} AND 
-                ${tripPlace.type} = 'saved' AND
-                ${tripPlace.order} IS NOT NULL 
-                ORDER BY ${tripPlace.order} DESC LIMIT 1))`,
+                ${tripPlace.type} = 'saved')
+                )`,
       type: "saved" as const,
       dayId: dayId,
     };
@@ -207,12 +206,11 @@ export async function GET(request: NextRequest) {
       placeId: place.id,
       tripId: tripId,
       order: sql`insert_after(
-                (SELECT ${tripPlace.order} from ${tripPlace} WHERE 
+                (SELECT MAX(${tripPlace.order}) from ${tripPlace} WHERE 
                 ${tripPlace.tripId} = ${tripId} AND 
                 ${tripPlace.dayId} = ${dayId} AND 
-                ${tripPlace.type} = 'saved' AND
-                ${tripPlace.order} IS NOT NULL 
-                ORDER BY ${tripPlace.order} DESC LIMIT 1))`,
+                ${tripPlace.type} = 'saved')
+                )`,
       type: "saved" as const,
       dayId: dayId,
     };
