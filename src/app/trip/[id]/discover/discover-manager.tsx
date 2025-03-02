@@ -4,7 +4,7 @@ import { updateTripWindows } from "@/server/actions";
 import { ApiResponse, DiscoverReturn } from "@/server/types";
 import { useQuery } from "@tanstack/react-query";
 import { useAtom, useAtomValue } from "jotai";
-import { redirect, useParams, usePathname } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -22,7 +22,7 @@ type QueryValue = {
   currentSearchIndex: number;
   nextPageToken: string[] | null;
 };
-export default function DiscoverManager() {
+export default function DiscoverManager({ tripId }: { tripId: string }) {
   const path = usePathname();
   const isAdmin = useAtomValue(isTripAdminAtom);
   if (!isAdmin) redirect(path.substring(0, 18));
@@ -36,8 +36,6 @@ export default function DiscoverManager() {
     currentSearchIndex: tripWindows.currentSearchIndex,
     nextPageToken: tripWindows.nextPageToken,
   });
-
-  const id = useParams<{ id: string }>().id;
 
   const getNextIndex = useCallback(
     (prev: QueryValue, windowsLength: number) => {
@@ -98,7 +96,7 @@ export default function DiscoverManager() {
         data.data.nextPageToken,
       ),
     };
-    const res = await updateTripWindows(newWindows, id);
+    const res = await updateTripWindows(newWindows, tripId);
     if (res.status === "success") {
       setTripWindows((prev) => ({
         ...prev,
@@ -122,7 +120,7 @@ export default function DiscoverManager() {
     if (discoverLocations.length - activePlaceIndex < 10 && !isFetching) {
       const queryUrl = new URLSearchParams([
         ["location", tripWindows.name],
-        ["id", id],
+        ["id", tripId],
       ]);
       if (
         tripWindows.nextPageToken &&

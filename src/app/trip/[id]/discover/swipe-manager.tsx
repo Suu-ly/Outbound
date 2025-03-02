@@ -20,7 +20,7 @@ import {
   useSpring,
   useTransform,
 } from "motion/react";
-import { useParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { forwardRef, useCallback, useRef, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import {
@@ -50,10 +50,9 @@ const Magnet = forwardRef<HTMLDivElement, MagnetProps>(
 
 Magnet.displayName = "Magnet";
 
-export default function SwipeManager() {
+export default function SwipeManager({ tripId }: { tripId: string }) {
   const path = usePathname();
   const isLarge = useMediaQuery("(min-width: 640px)");
-  const tripId = useParams<{ id: string }>().id;
 
   const cardRef = useRef<{
     triggerAccept: () => void;
