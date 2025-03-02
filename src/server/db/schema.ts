@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  foreignKey,
   integer,
   jsonb,
   pgEnum,
@@ -12,7 +13,7 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
-import { BoundingBox, PlacesReview } from "../types";
+import { BoundingBox, PlacesResult, PlacesReview } from "../types";
 
 export const loginTypeEnum = pgEnum("login_type_enum", [
   "gmail",
@@ -119,11 +120,10 @@ export const place = pgTable("place", {
   address: text("address").notNull(),
   location: jsonb("location")
     .notNull()
-    .$type<{ latitude: number; longitude: number }>(),
-  viewport: jsonb("viewport").notNull().$type<{
-    low: { latitude: number; longitude: number };
-    high: { latitude: number; longitude: number };
-  }>(),
+    .$type<PlacesResult["places"][number]["location"]>(),
+  viewport: jsonb("viewport")
+    .notNull()
+    .$type<PlacesResult["places"][number]["viewport"]>(),
   coverImg: text("cover_img").notNull(),
   coverImgSmall: text("cover_img_small").notNull(),
   rating: real("rating"),
@@ -248,6 +248,12 @@ export const tripPlace = pgTable(
     type: tripPlaceTypeEnum("type").default("undecided").notNull(),
     // TIME SPENT
     order: text("order"), // SET COLLATE TO POSIX OR C!
+    updatedAt: timestamp("updated_at", {
+      mode: "date",
+      precision: 3,
+    })
+      .notNull()
+      .$onUpdateFn(() => new Date()),
     createdAt: timestamp("created_at", {
       mode: "date",
       precision: 3,
@@ -268,35 +274,68 @@ export const tripPlace = pgTable(
 export type InsertTripPlace = typeof tripPlace.$inferInsert;
 export type SelectTripPlace = typeof tripPlace.$inferSelect;
 
+type DistanceType = {
+  distance: string;
+  duration: string;
+};
+
+// TODO create another table to store user preference
+export const travelTime = pgTable(
+  "travel_time",
+  {
+    from: text("from")
+      .references(() => place.id, { onDelete: "cascade" })
+      .notNull(),
+    to: text("to")
+      .references(() => place.id, { onDelete: "cascade" })
+      .notNull(),
+    walk: jsonb("walk").$type<DistanceType>(),
+    cycle: jsonb("cycle").$type<DistanceType>(),
+    drive: jsonb("drive").$type<DistanceType>(),
+  },
+  (table) => {
+    return [
+      primaryKey({
+        name: "travel_time_id",
+        columns: [table.from, table.to],
+      }),
+    ];
+  },
+);
+
+export type InsertTravelTime = typeof travelTime.$inferInsert;
+export type SelectTravelTime = typeof travelTime.$inferSelect;
+
 export const tripTravelTimeTypeEnum = pgEnum("trip_travel_time_type_enum", [
   "drive",
   "walk",
   "cycle",
 ]);
 
-// TODO create another table to store user preference
-export const tripTravelTime = pgTable("trip_travel_time", {
-  id: serial("id").primaryKey(),
-  from: text("from")
-    .references(() => place.id, { onDelete: "cascade" })
-    .notNull(),
-  to: text("to")
-    .references(() => place.id, { onDelete: "cascade" })
-    .notNull(),
-  type: tripTravelTimeTypeEnum("type").default("drive").notNull(),
-  walk: jsonb("walk").$type<{
-    distance: string;
-    duration: string;
-  }>(),
-  cycle: jsonb("cycle").$type<{
-    distance: string;
-    duration: string;
-  }>(),
-  drive: jsonb("drive").$type<{
-    distance: string;
-    duration: string;
-  }>(),
-});
+export const tripTravelTime = pgTable(
+  "trip_travel_time",
+  {
+    from: text("from").notNull(),
+    to: text("to").notNull(),
+    tripId: varchar("trip_id", { length: 12 })
+      .references(() => trip.id, { onDelete: "cascade" })
+      .notNull(),
+    type: tripTravelTimeTypeEnum("type").default("drive").notNull(),
+  },
+  (table) => {
+    return [
+      primaryKey({
+        name: "trip_travel_time_id",
+        columns: [table.from, table.to, table.tripId],
+      }),
+      foreignKey({
+        name: "trip_travel_time_fk",
+        columns: [table.from, table.to],
+        foreignColumns: [travelTime.from, travelTime.to],
+      }).onDelete("cascade"),
+    ];
+  },
+);
 
 export type InsertTripTravelTime = typeof tripTravelTime.$inferInsert;
 export type SelectTripTravelTime = typeof tripTravelTime.$inferSelect;
