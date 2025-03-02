@@ -919,7 +919,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               {places.saved.map((place, index) => (
                 <div
                   key={place.placeInfo.placeId}
-                  className={"relative ml-6 border-l-2 border-zinc-50 pl-6"}
+                  className={"relative ml-5 border-l-2 border-zinc-50 pl-6"}
                 >
                   <div
                     className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
@@ -976,7 +976,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                     <React.Fragment key={place.placeInfo.placeId}>
                       <div
                         className={cn(
-                          "relative ml-6 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
+                          "relative ml-5 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
                           activeId &&
                             !isSortingContainer &&
                             "border-transparent",
