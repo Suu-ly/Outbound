@@ -999,6 +999,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                           isInDay={day.dayId}
                           disabled={isSortingContainer}
                           id={place.placeInfo.placeId!}
+                          date={addDays(startDate, dayIndex)}
                           onRemove={onRemove}
                           handleMove={handleMove}
                           handleNoteChange={handleNoteChange}

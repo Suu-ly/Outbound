@@ -48,6 +48,7 @@ import {
 export type PlaceDetailsCompactProps = {
   data: PlaceDataEntry;
   isInDay?: number | string;
+  date?: Date;
   isDragging?: boolean;
   onRemove?: (isInDay: number | string, placeId: string) => void;
   handleMove?: (
@@ -62,12 +63,14 @@ export type PlaceDetailsCompactProps = {
   ) => void;
 };
 
+// TODO show red if place is closed
 const PlaceDetailsCompact = memo(
   forwardRef<HTMLDivElement, PlaceDetailsCompactProps>(
     (
       {
         data,
         isInDay = "saved",
+        date,
         isDragging,
         onRemove,
         handleMove,
@@ -147,7 +150,7 @@ const PlaceDetailsCompact = memo(
         }
       }, [isLarge]);
 
-      const dayIndex = (((new Date().getDay() - 1) % 7) + 7) % 7;
+      const dayIndex = date ? date.getDay() : new Date().getDay();
       return (
         <div
           ref={ref}
@@ -191,9 +194,9 @@ const PlaceDetailsCompact = memo(
                   {data.placeInfo.openingHours && (
                     <div className="text-xs font-medium text-slate-700">
                       {
-                        data.placeInfo.openingHours.text[dayIndex].split(
-                          ": ",
-                        )[1]
+                        data.placeInfo.openingHours.text[
+                          (((dayIndex - 1) % 7) + 7) % 7
+                        ].split(": ")[1]
                       }
                     </div>
                   )}
@@ -361,7 +364,7 @@ const PlaceDetailsCompact = memo(
                 </Button>
                 <OpeningHours
                   collapsible={false}
-                  highligtedDay={new Date().getDay()}
+                  highligtedDay={dayIndex}
                   hours={data.placeInfo.openingHours?.text}
                   className="gap-1.5 rounded-lg pl-1.5 pr-2"
                   contentClassName="pl-8"
@@ -380,16 +383,15 @@ const PlaceDetailsCompact = memo(
     },
   ),
   (prev, next) => {
-    if (
+    return !(
       prev.data.placeInfo.placeId !== next.data.placeInfo.placeId ||
       prev.onRemove !== next.onRemove ||
       prev.handleMove !== next.handleMove ||
       prev.handleNoteChange !== next.handleNoteChange ||
       prev.isDragging !== next.isDragging ||
-      prev.isInDay !== next.isInDay
-    )
-      return false;
-    return true;
+      prev.isInDay !== next.isInDay ||
+      prev.date?.getDay() !== next.date?.getDay()
+    );
   },
 );
 
