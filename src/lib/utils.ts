@@ -90,3 +90,13 @@ export function hoursToString(hours: number) {
 export function digitStringToHours(input: string) {
   return parseInt(input.substring(0, 2)) + parseInt(input.substring(2)) / 60;
 }
+
+export function hoursTo24HourFormat(hours: number) {
+  if (hours < 0) throw new Error("Invalid hour");
+  return {
+    value:
+      `${Math.floor(hours) % 24}`.padStart(2, "0") +
+      `${Math.ceil((hours - Math.floor(hours)) * 60)}`.padStart(2, "0"),
+    overflow: hours >= 24,
+  };
+}

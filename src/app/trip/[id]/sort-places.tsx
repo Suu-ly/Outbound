@@ -71,6 +71,7 @@ import { toast } from "sonner";
 import { dayPlacesAtom, tripPlacesAtom, tripStartDateAtom } from "../atoms";
 import PlaceDetailsSkeletonLoader from "./place-details-skeleton-loader";
 import PlaceDetailsSortWrapper from "./place-details-sort-wrapper";
+import TravelTimeIndicator from "./travel-time-indicator";
 
 const directions: string[] = [KeyboardCode.Down, KeyboardCode.Up];
 
@@ -972,29 +973,38 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               >
                 {places[day.dayId].map((place, index) => {
                   return (
-                    <div
-                      key={place.placeInfo.placeId}
-                      className={cn(
-                        "relative ml-6 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
-                        activeId && !isSortingContainer && "border-transparent",
-                      )}
-                    >
+                    <React.Fragment key={place.placeInfo.placeId}>
                       <div
-                        className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length]}`}
-                        aria-label={`Saved place ${index + 1}`}
+                        className={cn(
+                          "relative ml-6 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
+                          activeId &&
+                            !isSortingContainer &&
+                            "border-transparent",
+                        )}
                       >
-                        {index + 1}
+                        <div
+                          className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length]}`}
+                          aria-label={`Saved place ${index + 1}`}
+                        >
+                          {index + 1}
+                        </div>
+                        <TravelTimeIndicator
+                          places={places[day.dayId]}
+                          index={index}
+                          startTime={day.dayStartTime}
+                          shouldHide={Boolean(activeId && !isSortingContainer)}
+                        />
+                        <SortableItem
+                          data={place}
+                          isInDay={day.dayId}
+                          disabled={isSortingContainer}
+                          id={place.placeInfo.placeId!}
+                          onRemove={onRemove}
+                          handleMove={handleMove}
+                          handleNoteChange={handleNoteChange}
+                        />
                       </div>
-                      <SortableItem
-                        data={place}
-                        isInDay={day.dayId}
-                        disabled={isSortingContainer}
-                        id={place.placeInfo.placeId!}
-                        onRemove={onRemove}
-                        handleMove={handleMove}
-                        handleNoteChange={handleNoteChange}
-                      />
-                    </div>
+                    </React.Fragment>
                   );
                 })}
               </SortableContext>
