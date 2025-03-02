@@ -63,7 +63,10 @@ export default function DrawerDialog({
         onOpenChange={onOpenChange ? onOpenChange : setInternalOpen}
       >
         {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => loading && e.preventDefault()}
+          onEscapeKeyDown={(e) => loading && e.preventDefault()}
+        >
           <DialogTitle>{header}</DialogTitle>
           <div>{content}</div>
           <DialogFooter>
@@ -94,7 +97,10 @@ export default function DrawerDialog({
       onOpenChange={open !== undefined ? onOpenChange : setInternalOpen}
     >
       {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
-      <DrawerContent>
+      <DrawerContent
+        onInteractOutside={(e) => loading && e.preventDefault()}
+        onEscapeKeyDown={(e) => loading && e.preventDefault()}
+      >
         <div className="space-y-6">
           <DrawerTitle>{header}</DrawerTitle>
           <div>{content}</div>
