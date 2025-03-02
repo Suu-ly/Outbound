@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Textarea from "@/components/ui/textarea";
 import { useMediaQuery } from "@/lib/use-media-query";
+import { hoursToString } from "@/lib/utils";
 import { PlaceDataEntry } from "@/server/types";
 import {
   IconCalendarRepeat,
@@ -356,7 +357,7 @@ const PlaceDetailsCompact = memo(
                   disabled={!isAdmin}
                 >
                   <IconHourglass />
-                  Allocated time: 2 Hrs
+                  Allocated time: {hoursToString(data.userPlaceInfo.timeSpent)}
                 </Button>
                 <OpeningHours
                   collapsible={false}

@@ -76,3 +76,17 @@ export const defaultTripPlaceUserInfo = {
   note: null,
   timeSpent: 2,
 };
+
+export function hoursToString(hours: number) {
+  const numHours = Math.floor(hours);
+  const minutes = Math.ceil((hours - numHours) * 60);
+  let output = "";
+  if (numHours) output += `${numHours} hr${numHours > 1 ? "s" : ""}`;
+  if (numHours && minutes) output += " ";
+  if (minutes) output += `${minutes} min${minutes > 1 ? "s" : ""}`;
+  return output;
+}
+
+export function digitStringToHours(input: string) {
+  return parseInt(input.substring(0, 2)) + parseInt(input.substring(2)) / 60;
+}
