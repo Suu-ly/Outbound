@@ -271,6 +271,7 @@ export type InitialQuery = {
     placeId: string | null;
     dayId: number | null;
     note: string | null;
+    timeSpent: number | null;
     type: "saved" | "skipped" | "undecided" | null;
     tripOrder: string;
     dayOrder: string;
@@ -329,7 +330,7 @@ export type PlaceDataPlaceInfo = {
 
 type PlaceDataUserPlaceInfo = {
   note: string | null;
-  // time spent
+  timeSpent: number;
   tripOrder: string;
 };
 

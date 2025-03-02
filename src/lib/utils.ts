@@ -71,3 +71,8 @@ export function insertAfter(index: string | undefined) {
 export function insertBetween(left: string, right: string) {
   return averageStrings(left, right);
 }
+
+export const defaultTripPlaceUserInfo = {
+  note: null,
+  timeSpent: 2,
+};

@@ -1,6 +1,6 @@
 import AutoComplete from "@/components/ui/autocomplete";
 import useDebouncedFunction from "@/lib/use-debounced-function";
-import { getStartingIndex } from "@/lib/utils";
+import { defaultTripPlaceUserInfo, getStartingIndex } from "@/lib/utils";
 import {
   ApiResponse,
   AutocompleteReturn,
@@ -124,7 +124,7 @@ export default function TripAutocomplete({
             openingHours: data.data.place.openingHours,
           },
           userPlaceInfo: {
-            note: "",
+            ...defaultTripPlaceUserInfo,
             tripOrder: data.data.order ?? getStartingIndex(), // should never be null
           },
         },

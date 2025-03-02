@@ -1,0 +1,1 @@
+ALTER TABLE "trip_place" ADD COLUMN "time_spent" double precision DEFAULT 2 NOT NULL;

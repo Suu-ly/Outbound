@@ -3,6 +3,7 @@ import "server-only";
 import {
   boolean,
   date,
+  doublePrecision,
   foreignKey,
   integer,
   jsonb,
@@ -250,6 +251,7 @@ export const tripPlace = pgTable(
     type: tripPlaceTypeEnum("type").default("undecided").notNull(),
     // TIME SPENT
     order: text("order"), // SET COLLATE TO POSIX OR C!
+    timeSpent: doublePrecision("time_spent").default(2).notNull(),
     updatedAt: timestamp("updated_at", {
       mode: "date",
       precision: 3,

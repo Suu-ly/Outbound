@@ -4,7 +4,11 @@ import TabDisable from "@/components/tab-disable";
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { getStartingIndex, insertAfter } from "@/lib/utils";
+import {
+  defaultTripPlaceUserInfo,
+  getStartingIndex,
+  insertAfter,
+} from "@/lib/utils";
 import { setPlaceAsInterested, setPlaceAsUninterested } from "@/server/actions";
 import { TripPlaceDetails } from "@/server/types";
 import { IconHeart, IconX } from "@tabler/icons-react";
@@ -91,7 +95,7 @@ export default function SwipeManager() {
             ...prev.saved,
             {
               userPlaceInfo: {
-                note: null,
+                ...defaultTripPlaceUserInfo,
                 tripOrder:
                   prev.saved.length > 0
                     ? insertAfter(

@@ -543,7 +543,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           {
             placeInfo: data.placeInfo,
             userPlaceInfo: {
-              note: data.userPlaceInfo.note,
+              ...data.userPlaceInfo,
               tripOrder: newOrder,
             },
           },
@@ -582,7 +582,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
             return {
               placeInfo: place.placeInfo,
               userPlaceInfo: {
-                tripOrder: place.userPlaceInfo.tripOrder,
+                ...place.userPlaceInfo,
                 note: note,
               },
             };

@@ -45,6 +45,7 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
       });
       placeData[rowData.inner.dayId!] = [];
     } else {
+      // Place exists
       const tempPlaceData = {
         placeInfo: {
           placeId: rowData.inner.placeId!,
@@ -60,6 +61,7 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
         },
         userPlaceInfo: {
           note: rowData.inner.note,
+          timeSpent: rowData.inner.timeSpent!,
           tripOrder: rowData.inner.tripOrder,
         },
       };
@@ -109,6 +111,7 @@ export default async function TripLayout({
         dayId: tripDay.id,
         note: tripPlace.note,
         type: tripPlace.type,
+        timeSpent: tripPlace.timeSpent,
         tripOrder: sql<string>`${tripPlace.order}`.as("tripOrder"),
         dayOrder: sql<string>`${tripDay.order}`.as("dayOrder"),
         tripPlaceCreated: tripPlace.createdAt,
@@ -142,6 +145,7 @@ export default async function TripLayout({
           placeId: inner.placeId,
           dayId: inner.dayId,
           note: inner.note,
+          timeSpent: inner.timeSpent,
           type: inner.type,
           tripOrder: inner.tripOrder,
           dayOrder: inner.dayOrder,

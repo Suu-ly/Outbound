@@ -1,7 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { insertAfter } from "@/lib/utils";
+import { defaultTripPlaceUserInfo, insertAfter } from "@/lib/utils";
 import { setPlaceAsInterested } from "@/server/actions";
 import { PlaceDataPlaceInfo } from "@/server/types";
 import { IconSearch } from "@tabler/icons-react";
@@ -50,7 +50,7 @@ export default function SkipPlaceSearch({
             {
               placeInfo: data,
               userPlaceInfo: {
-                note: null,
+                ...defaultTripPlaceUserInfo,
                 tripOrder: insertAfter(
                   prev.saved[prev.saved.length - 1]?.userPlaceInfo.tripOrder,
                 ),
