@@ -27,6 +27,7 @@ import {
   ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -82,17 +83,41 @@ const InfoWithCopy = ({
 const Review = ({ review }: { review: PlacesReview }) => {
   const [expanded, setExpanded] = useState(false);
   const [scrollHeight, setScrollHeight] = useState(72);
-  const [isOverflowing, setIsOverflowing] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(true);
   const textNode = useRef<HTMLDivElement>(null);
+
+  const isMountAnimationPreventedRef = useRef(true);
+  const originalStylesRef = useRef<Record<string, string>>(undefined);
 
   const handleOnClick = useCallback(() => {
     setExpanded((prev) => !prev);
   }, []);
 
+  // Code referenced from https://github.com/radix-ui/primitives/blob/main/packages/react/collapsible/src/collapsible.tsx
+  useLayoutEffect(() => {
+    const node = textNode.current;
+    if (node) {
+      originalStylesRef.current = originalStylesRef.current || {
+        transitionDuration: node.style.transitionDuration,
+        animationName: node.style.animationName,
+      };
+      // block any animations/transitions so the element renders at its full dimensions
+      node.style.transitionDuration = "0s";
+      node.style.animationName = "none";
+      setScrollHeight(node.scrollHeight);
+
+      // kick off any animations/transitions that were originally set up if it isn't the initial mount
+      if (!isMountAnimationPreventedRef.current) {
+        node.style.transitionDuration =
+          originalStylesRef.current.transitionDuration;
+        node.style.animationName = originalStylesRef.current.animationName;
+      }
+    }
+  }, [expanded]);
+
   useEffect(() => {
     const handleResize = () => {
       if (textNode.current) {
-        setScrollHeight(textNode.current.scrollHeight);
         setIsOverflowing(textNode.current.scrollHeight > 72);
       }
     };
@@ -100,8 +125,14 @@ const Review = ({ review }: { review: PlacesReview }) => {
     window.addEventListener("resize", handleResize);
 
     handleResize();
+    const rAF = requestAnimationFrame(
+      () => (isMountAnimationPreventedRef.current = false),
+    );
 
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      cancelAnimationFrame(rAF);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   return (
