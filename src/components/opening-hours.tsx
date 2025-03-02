@@ -79,6 +79,9 @@ export default function OpeningHours({
                 className={cn(
                   "flex gap-4",
                   dayIndex === index && "font-medium text-slate-900",
+                  dayIndex === index &&
+                    splitDay[1] === "Closed" &&
+                    "text-rose-600",
                 )}
               >
                 <span className="w-20 shrink-0">{splitDay[0]}</span>

@@ -41,7 +41,7 @@ const TravelTimeIndicator = memo(
     return (
       <Comp
         aria-label={`Arrive at ${time.value}`}
-        className={`absolute left-0 top-10 flex w-12 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-white text-sm font-medium ${time.overflow ? "text-rose-500" : "text-slate-700"}`}
+        className={`absolute left-0 top-10 flex w-12 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-white text-sm font-medium ${time.overflow ? "text-rose-600" : "text-slate-700"}`}
       >
         {time.value}
       </Comp>

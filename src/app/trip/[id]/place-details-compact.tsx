@@ -63,7 +63,6 @@ export type PlaceDetailsCompactProps = {
   ) => void;
 };
 
-// TODO show red if place is closed
 const PlaceDetailsCompact = memo(
   forwardRef<HTMLDivElement, PlaceDetailsCompactProps>(
     (
@@ -151,6 +150,11 @@ const PlaceDetailsCompact = memo(
       }, [isLarge]);
 
       const dayIndex = date ? date.getDay() : new Date().getDay();
+
+      const currentHours =
+        data.placeInfo.openingHours?.text[(((dayIndex - 1) % 7) + 7) % 7].split(
+          ": ",
+        )[1];
       return (
         <div
           ref={ref}
@@ -192,12 +196,10 @@ const PlaceDetailsCompact = memo(
                     </h3>
                   </div>
                   {data.placeInfo.openingHours && (
-                    <div className="text-xs font-medium text-slate-700">
-                      {
-                        data.placeInfo.openingHours.text[
-                          (((dayIndex - 1) % 7) + 7) % 7
-                        ].split(": ")[1]
-                      }
+                    <div
+                      className={`text-xs font-medium ${currentHours === "Closed" ? "text-rose-600" : "text-slate-700"}`}
+                    >
+                      {currentHours}
                     </div>
                   )}
                 </button>
