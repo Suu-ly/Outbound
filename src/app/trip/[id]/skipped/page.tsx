@@ -1,11 +1,9 @@
 import BackButton from "@/components/back-button";
-import { Input } from "@/components/ui/input";
 import { db } from "@/server/db";
 import { location, place, trip, tripPlace } from "@/server/db/schema";
-import { IconSearch } from "@tabler/icons-react";
-import { and, eq } from "drizzle-orm";
-import PlaceDetailsSkipped from "../place-details-skipped";
+import { and, desc, eq } from "drizzle-orm";
 import ViewMapToggle from "../view-map-toggle";
+import SkipPlaceSearch from "./skip-place-search";
 
 export default async function TripPage({
   params,
@@ -13,7 +11,7 @@ export default async function TripPage({
   params: Promise<{ id: string }>;
 }) {
   const id = (await params).id;
-  const skippedPlaces = await db
+  const skippedPlacesInitial = await db
     .select({
       placeId: place.id,
       name: place.name,
@@ -32,8 +30,9 @@ export default async function TripPage({
     .innerJoin(place, eq(tripPlace.placeId, place.id))
     .innerJoin(location, eq(trip.locationId, location.id))
     .where(and(eq(tripPlace.type, "skipped"), eq(trip.id, id)))
-    .orderBy(tripPlace.createdAt);
+    .orderBy(desc(tripPlace.updatedAt));
 
+  console.log(skippedPlacesInitial);
   return (
     <ViewMapToggle>
       <div className="space-y-4 p-4 xl:space-y-6">
@@ -41,15 +40,10 @@ export default async function TripPage({
         <h1 className="font-display text-2xl font-semibold xl:text-4xl">
           Skipped Places
         </h1>
-        <Input
-          left={<IconSearch />}
-          placeholder="Search for a skipped place..."
+        <SkipPlaceSearch
+          skippedPlacesInitial={skippedPlacesInitial}
+          tripId={id}
         />
-        <div className="space-y-2">
-          {skippedPlaces.map((place) => (
-            <PlaceDetailsSkipped key={place.placeId} data={place} />
-          ))}
-        </div>
       </div>
     </ViewMapToggle>
   );

@@ -336,7 +336,7 @@ const PlaceDetailsCompact = memo(
             <motion.div
               initial={{ height: 0 }}
               animate={
-                expanded === "min" || expanded === "mid"
+                expanded === "min" || expanded === "mid" || isDragging
                   ? { height: 0 }
                   : { height: "auto" }
               }
@@ -350,7 +350,7 @@ const PlaceDetailsCompact = memo(
                 active={expanded === "max"}
               >
                 <Button
-                  className="h-9 justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600 hover:[&_svg]:text-slate-700"
+                  className="h-9 justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600"
                   size="small"
                   variant="ghost"
                   disabled={!isAdmin}
@@ -367,7 +367,7 @@ const PlaceDetailsCompact = memo(
                 />
                 <Link
                   href="#"
-                  className="inline-flex gap-1.5 rounded-lg p-2 pl-1.5 text-sm font-medium text-slate-700 ring-offset-white transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 active:ring-2 active:ring-slate-200 active:ring-offset-0 [&_svg]:size-5 [&_svg]:text-slate-600 hover:[&_svg]:text-slate-700"
+                  className="inline-flex gap-1.5 rounded-lg p-2 pl-1.5 text-sm font-medium text-slate-700 ring-offset-white transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 active:ring-2 active:ring-slate-200 active:ring-offset-0 [&_svg]:size-5 [&_svg]:text-slate-600"
                 >
                   <IconExternalLink /> View full information
                 </Link>

@@ -77,7 +77,9 @@ export default function DrawerDialog({
             </Button>
             {canCancel && (
               <DialogClose asChild>
-                <Button variant="ghost">{cancelAction}</Button>
+                <Button variant="ghost" disabled={loading}>
+                  {cancelAction}
+                </Button>
               </DialogClose>
             )}
           </DialogFooter>
@@ -109,7 +111,9 @@ export default function DrawerDialog({
             </DrawerClose>
             {canCancel && (
               <DrawerClose asChild>
-                <Button variant="ghost">{cancelAction}</Button>
+                <Button variant="ghost" disabled={loading}>
+                  {cancelAction}
+                </Button>
               </DrawerClose>
             )}
           </DrawerFooter>

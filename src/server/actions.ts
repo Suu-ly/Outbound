@@ -117,6 +117,9 @@ export async function setPlaceAsUninterested(
       .update(tripPlace)
       .set({
         type: "skipped",
+        dayId: null,
+        order: null,
+        note: null,
       })
       .where(
         and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
@@ -148,32 +151,6 @@ export async function setPlaceAsInterested(
         ${tripPlace.type} = 'saved')
         )`,
         type: "saved",
-      })
-      .where(
-        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
-      );
-    return {
-      status: "success",
-      data: true,
-    };
-  } catch {
-    return {
-      status: "error",
-      message: "Unable to update place preferences",
-    };
-  }
-}
-
-export async function removePlaceFromInterested(
-  tripId: string,
-  tripPlaceId: string,
-): Promise<ApiResponse<true>> {
-  try {
-    await db
-      .update(tripPlace)
-      .set({
-        order: null,
-        type: "skipped",
       })
       .where(
         and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),

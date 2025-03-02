@@ -19,7 +19,7 @@ import {
   insertBetween,
 } from "@/lib/utils";
 import {
-  removePlaceFromInterested,
+  setPlaceAsUninterested,
   updateTripDayOrder,
   updateTripPlaceNote,
   updateTripPlaceOrder,
@@ -385,6 +385,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     isInDay: string | number;
     placeId: string;
   }>();
+  const [isRemovingPlace, setIsRemovingPlace] = useState(false);
   const [loadingState, setLoadingState] = useState<
     Record<keyof typeof places, string[]>
   >({});
@@ -497,17 +498,18 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   };
 
   const removePlace = useCallback(
-    (isInDay: number | string, placeId: string) => {
-      setPlaces((prev) => ({
-        ...prev,
-        [isInDay]: prev[isInDay].filter(
-          (place) => place.placeInfo.placeId !== placeId,
-        ),
-      }));
-
-      removePlaceFromInterested(tripId, placeId).then((data) => {
-        if (data.status === "error") toast.error(data.message);
-      });
+    async (isInDay: number | string, placeId: string) => {
+      setIsRemovingPlace(true);
+      const response = await setPlaceAsUninterested(placeId, tripId);
+      if (response.status === "error") toast.error(response.message);
+      else
+        setPlaces((prev) => ({
+          ...prev,
+          [isInDay]: prev[isInDay].filter(
+            (place) => place.placeInfo.placeId !== placeId,
+          ),
+        }));
+      setIsRemovingPlace(false);
     },
     [setPlaces, tripId],
   );
@@ -1019,6 +1021,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       </Portal>
       <DrawerDialog
         open={!!toBeRemoved}
+        loading={isRemovingPlace}
         onOpenChange={(open) => !open && setToBeRemoved(undefined)}
         header="Remove from saved places?"
         content={
@@ -1027,8 +1030,10 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         mainActionLabel="Remove"
         onMainAction={() => {
           if (toBeRemoved)
-            removePlace(toBeRemoved.isInDay, toBeRemoved.placeId);
-          setToBeRemoved(undefined);
+            removePlace(toBeRemoved.isInDay, toBeRemoved.placeId).then(() =>
+              setToBeRemoved(undefined),
+            );
+          else setToBeRemoved(undefined);
         }}
         destructive
       />
