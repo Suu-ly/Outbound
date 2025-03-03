@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import DrawerDialog from "@/components/ui/drawer-dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -187,9 +194,16 @@ type SortableItemProps = {
     placeId: string,
     note: string,
   ) => void;
+  children?: ReactNode;
 } & PlaceDetailsCompactProps;
 
-function SortableItem({ disabled, id, data, ...rest }: SortableItemProps) {
+function SortableItem({
+  disabled,
+  id,
+  data,
+  children,
+  ...rest
+}: SortableItemProps) {
   const { setNodeRef, listeners, isDragging, transform, transition } =
     useSortable({
       id,
@@ -210,7 +224,9 @@ function SortableItem({ disabled, id, data, ...rest }: SortableItemProps) {
       data={data}
       fadeIn={mountedWhileDragging}
       listeners={listeners}
-    />
+    >
+      {children}
+    </PlaceDetailsSortWrapper>
   );
 }
 
@@ -973,39 +989,60 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               >
                 {places[day.dayId].map((place, index) => {
                   return (
-                    <React.Fragment key={place.placeInfo.placeId}>
+                    <div
+                      key={place.placeInfo.placeId}
+                      className={cn(
+                        "relative ml-5 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
+                        activeId && !isSortingContainer && "border-transparent",
+                      )}
+                    >
                       <div
-                        className={cn(
-                          "relative ml-5 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
-                          activeId &&
-                            !isSortingContainer &&
-                            "border-transparent",
-                        )}
+                        className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length]}`}
+                        aria-label={`Saved place ${index + 1}`}
                       >
-                        <div
-                          className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length]}`}
-                          aria-label={`Saved place ${index + 1}`}
-                        >
-                          {index + 1}
-                        </div>
-                        <TravelTimeIndicator
-                          places={places[day.dayId]}
-                          index={index}
-                          startTime={day.dayStartTime}
-                          shouldHide={Boolean(activeId && !isSortingContainer)}
-                        />
-                        <SortableItem
-                          data={place}
-                          isInDay={day.dayId}
-                          disabled={isSortingContainer}
-                          id={place.placeInfo.placeId!}
-                          date={addDays(startDate, dayIndex)}
-                          onRemove={onRemove}
-                          handleMove={handleMove}
-                          handleNoteChange={handleNoteChange}
-                        />
+                        {index + 1}
                       </div>
-                    </React.Fragment>
+                      <TravelTimeIndicator
+                        places={places[day.dayId]}
+                        index={index}
+                        startTime={day.dayStartTime}
+                        shouldHide={Boolean(activeId && !isSortingContainer)}
+                      />
+                      <SortableItem
+                        data={place}
+                        isInDay={day.dayId}
+                        disabled={isSortingContainer}
+                        id={place.placeInfo.placeId!}
+                        date={addDays(startDate, dayIndex)}
+                        onRemove={onRemove}
+                        handleMove={handleMove}
+                        handleNoteChange={handleNoteChange}
+                      >
+                        {index < places[day.dayId].length - 1 && ( // Not the last item
+                          <Select>
+                            <SelectTrigger
+                              variant="ghost"
+                              size="small"
+                              className="mt-2"
+                            >
+                              <SelectValue placeholder="Transport mode" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="drive">Drive</SelectItem>
+                              <SelectItem value="cycle">Cycle</SelectItem>
+                              <SelectItem value="walk">Walk</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </SortableItem>
+                      {/* <TravelTimeIndicator
+                        places={places[day.dayId]}
+                        index={index}
+                        startTime={day.dayStartTime}
+                        shouldHide={Boolean(activeId && !isSortingContainer)}
+                        bottom
+                      /> */}
+                    </div>
                   );
                 })}
               </SortableContext>
