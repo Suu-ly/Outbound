@@ -3,11 +3,11 @@ import Skeleton from "@/components/ui/skeleton";
 export default function PlaceDetailsSkeletonLoader() {
   return (
     <div
-      className="relative ml-[50px] flex items-start rounded-xl bg-white p-2 duration-300 animate-in fade-in-0"
+      className="relative ml-[46px] flex items-start rounded-xl bg-white p-2 duration-300 animate-in fade-in-0"
       role="presentation"
     >
       <span className="sr-only">Loading place</span>
-      <Skeleton className="absolute -left-10 top-0 size-8 rounded-full border-2 border-zinc-50"></Skeleton>
+      <Skeleton className="absolute -left-[41px] top-0 size-8 rounded-full border-2 border-zinc-50"></Skeleton>
       <Skeleton className="relative mr-2 max-h-full w-20 shrink-0 self-stretch overflow-hidden rounded-lg xl:mr-3 xl:w-36"></Skeleton>
       <div className="w-full xl:min-h-24">
         <div className="flex gap-3">

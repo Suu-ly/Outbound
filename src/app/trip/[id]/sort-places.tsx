@@ -938,7 +938,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                   className={"relative ml-5 border-l-2 border-zinc-50 pl-6"}
                 >
                   <div
-                    className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
+                    className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
                     aria-label={`Saved place ${index + 1}`}
                   >
                     {index + 1}
@@ -997,7 +997,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                       )}
                     >
                       <div
-                        className={`absolute left-0 top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length]}`}
+                        className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length]}`}
                         aria-label={`Saved place ${index + 1}`}
                       >
                         {index + 1}

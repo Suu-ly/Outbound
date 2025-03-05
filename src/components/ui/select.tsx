@@ -14,7 +14,7 @@ const SelectGroup = SelectPrimitive.Group;
 const SelectValue = SelectPrimitive.Value;
 
 const selectVariants = cva(
-  "flex w-full items-center gap-1 text-left font-medium text-slate-700 ring-offset-zinc-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-70 data-[placeholder]:text-slate-400 [&>span]:w-full [&>span]:overflow-hidden [&>span]:text-ellipsis [&>span]:whitespace-nowrap [&_svg]:text-slate-600",
+  "flex w-full items-center gap-1 text-left font-medium text-slate-700 transition ring-offset-zinc-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-70 data-[placeholder]:text-slate-400 [&>span]:w-full [&>span]:overflow-hidden [&>span]:text-ellipsis [&>span]:whitespace-nowrap [&_svg]:text-slate-600",
   {
     variants: {
       variant: {
