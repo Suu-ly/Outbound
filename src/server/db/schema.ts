@@ -16,7 +16,12 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
-import { BoundingBox, PlacesResult, PlacesReview } from "../types";
+import {
+  BoundingBox,
+  DistanceType,
+  PlacesResult,
+  PlacesReview,
+} from "../types";
 
 export const loginTypeEnum = pgEnum("login_type_enum", [
   "gmail",
@@ -277,11 +282,6 @@ export const tripPlace = pgTable(
 
 export type InsertTripPlace = typeof tripPlace.$inferInsert;
 export type SelectTripPlace = typeof tripPlace.$inferSelect;
-
-type DistanceType = {
-  distance: string;
-  duration: string;
-};
 
 // TODO create another table to store user preference
 export const travelTime = pgTable(

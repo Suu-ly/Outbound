@@ -135,25 +135,21 @@ export type PlacesPhoto = {
   googleMapsUri: string;
 };
 
+export type Coordinates = {
+  latitude: number;
+  longitude: number;
+};
+
 export type PlacesResult = {
   places: {
     name: string;
     id: string;
     types: string[];
     internationalPhoneNumber?: string;
-    location: {
-      latitude: number;
-      longitude: number;
-    };
+    location: Coordinates;
     viewport: {
-      low: {
-        latitude: number;
-        longitude: number;
-      };
-      high: {
-        latitude: number;
-        longitude: number;
-      };
+      low: Coordinates;
+      high: Coordinates;
     };
     rating?: number;
     userRatingCount?: number;
@@ -311,10 +307,10 @@ export type PlaceDataPlaceInfo = {
   displayName: string;
   primaryTypeDisplayName: string;
   typeColor: string;
-  location: { latitude: number; longitude: number };
+  location: Coordinates;
   viewport: {
-    low: { latitude: number; longitude: number };
-    high: { latitude: number; longitude: number };
+    low: Coordinates;
+    high: Coordinates;
   };
   coverImgSmall: string;
   rating: number | null;
@@ -394,3 +390,18 @@ export type NominatimResponse = {
 }[];
 
 export type BoundingBox = [[number, number], [number, number]];
+
+export type DistanceType =
+  | {
+      route: true;
+      distance: number;
+      distanceDisplay: string;
+      duration: number;
+      durationDisplay: string;
+      geometry: {
+        coordinates: [number, number][];
+        type: "LineString";
+      };
+      summary: string | null;
+    }
+  | { route: false };

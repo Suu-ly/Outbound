@@ -6,13 +6,6 @@ import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import DrawerDialog from "@/components/ui/drawer-dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -79,6 +72,7 @@ import { dayPlacesAtom, tripPlacesAtom, tripStartDateAtom } from "../atoms";
 import PlaceDetailsSkeletonLoader from "./place-details-skeleton-loader";
 import PlaceDetailsSortWrapper from "./place-details-sort-wrapper";
 import TravelTimeIndicator from "./travel-time-indicator";
+import TravelTimeSelect from "./travel-time-select";
 
 const directions: string[] = [KeyboardCode.Down, KeyboardCode.Up];
 
@@ -1019,20 +1013,20 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                         handleNoteChange={handleNoteChange}
                       >
                         {index < places[day.dayId].length - 1 && ( // Not the last item
-                          <Select>
-                            <SelectTrigger
-                              variant="ghost"
-                              size="small"
-                              className="mt-2"
-                            >
-                              <SelectValue placeholder="Transport mode" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="drive">Drive</SelectItem>
-                              <SelectItem value="cycle">Cycle</SelectItem>
-                              <SelectItem value="walk">Walk</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <TravelTimeSelect
+                            fromId={place.placeInfo.placeId}
+                            fromCoords={place.placeInfo.location}
+                            toId={
+                              places[day.dayId][index + 1].placeInfo.placeId
+                            }
+                            toCoords={
+                              places[day.dayId][index + 1].placeInfo.location
+                            }
+                            tripId={tripId}
+                            isDragging={Boolean(
+                              activeId && !isSortingContainer,
+                            )}
+                          />
                         )}
                       </SortableItem>
                       {/* <TravelTimeIndicator
