@@ -173,10 +173,6 @@ const coordinateGetter: KeyboardCoordinateGetter = (
 
   return undefined;
 };
-
-const animateLayoutChanges: AnimateLayoutChanges = (args) =>
-  defaultAnimateLayoutChanges({ ...args, wasDragging: true });
-
 type SortableItemProps = {
   id: UniqueIdentifier;
   disabled?: boolean;
@@ -226,6 +222,9 @@ function SortableItem({
     </PlaceDetailsSortWrapper>
   );
 }
+
+const animateLayoutChanges: AnimateLayoutChanges = (args) =>
+  defaultAnimateLayoutChanges({ ...args, wasDragging: true });
 
 function DroppableContainer({
   children,
@@ -467,6 +466,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       // to the id of the draggable item that was moved to the new container, otherwise
       // the previous `overId` will be returned which can cause items to incorrectly shift positions
       if (recentlyMovedToNewContainer.current) {
+        console.log("RECENTLY MOVED INTO NEW CONTAINER");
         lastOverId.current = activeId ? activeId.id : activeId;
       }
 
@@ -625,7 +625,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     requestAnimationFrame(() => {
       recentlyMovedToNewContainer.current = false;
     });
-  }, []);
+  }, [places]);
 
   return (
     <DndContext
@@ -663,6 +663,9 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
             over?.data.current?.isOpen)
         ) {
           setPlaces((currentPlaces) => {
+            recentlyMovedToNewContainer.current = true;
+            console.log("Over", overContainer);
+            console.log("Active", activeContainer);
             // let newIndex: number;
 
             // // Over a day or saved places
@@ -693,7 +696,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                     currentPlaces[activeContainer][activeIndex],
                     ...currentPlaces[overContainer],
                   ];
-            recentlyMovedToNewContainer.current = true;
 
             return {
               ...currentPlaces,
@@ -1005,22 +1007,23 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                         handleMove={handleMove}
                         handleNoteChange={handleNoteChange}
                       >
-                        {index < places[day.dayId].length - 1 && ( // Not the last item
-                          <TravelTimeSelect
-                            isInDay={day.dayId}
-                            fromId={place.placeInfo.placeId}
-                            fromCoords={place.placeInfo.location}
-                            toId={
-                              places[day.dayId][index + 1].placeInfo.placeId
-                            }
-                            toCoords={
-                              places[day.dayId][index + 1].placeInfo.location
-                            }
-                            isDragging={Boolean(
-                              activeId && !isSortingContainer,
-                            )}
-                          />
-                        )}
+                        {index < places[day.dayId].length - 1 &&
+                          activeId?.id !== place.placeInfo.placeId && ( // Not the last item
+                            <TravelTimeSelect
+                              isInDay={day.dayId}
+                              fromId={place.placeInfo.placeId}
+                              fromCoords={place.placeInfo.location}
+                              toId={
+                                places[day.dayId][index + 1].placeInfo.placeId
+                              }
+                              toCoords={
+                                places[day.dayId][index + 1].placeInfo.location
+                              }
+                              isDragging={Boolean(
+                                activeId && !isSortingContainer,
+                              )}
+                            />
+                          )}
                       </SortableItem>
                       {/* <TravelTimeIndicator
                         places={places[day.dayId]}
