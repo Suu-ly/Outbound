@@ -1,6 +1,5 @@
 "use client";
 
-import DayFolder from "@/app/trip/[id]/day-folder";
 import { PlaceDetailsCompactProps } from "@/app/trip/[id]/place-details-compact";
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
@@ -58,7 +57,7 @@ import { Portal } from "@radix-ui/react-portal";
 import { IconMapPinSearch, IconWand } from "@tabler/icons-react";
 import { addDays } from "date-fns";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import React, {
+import {
   Dispatch,
   ReactNode,
   SetStateAction,
@@ -69,6 +68,10 @@ import React, {
 } from "react";
 import { toast } from "sonner";
 import { dayPlacesAtom, tripPlacesAtom, tripStartDateAtom } from "../atoms";
+import {
+  DayFolderSortWrapper,
+  SavedPlacesWrapper,
+} from "./day-folder-sort-wrapper";
 import PlaceDetailsSkeletonLoader from "./place-details-skeleton-loader";
 import PlaceDetailsSortWrapper from "./place-details-sort-wrapper";
 import TravelTimeIndicator from "./travel-time-indicator";
@@ -229,12 +232,12 @@ function DroppableContainer({
   disabled,
   id,
   items,
-  style,
   ...rest
 }:
   | {
       day: true;
-      date: Date;
+      startDate: Date;
+      index: number;
       children: ReactNode;
       disabled?: boolean;
       id: UniqueIdentifier;
@@ -247,7 +250,6 @@ function DroppableContainer({
       setLoadingState: Dispatch<
         SetStateAction<Record<keyof PlaceData, string[]>>
       >;
-      style?: React.CSSProperties;
     }
   | {
       day: false;
@@ -255,7 +257,6 @@ function DroppableContainer({
       disabled?: boolean;
       id: UniqueIdentifier;
       items: UniqueIdentifier[];
-      style?: React.CSSProperties;
     }) {
   const [open, setOpen] = useState(true);
   const timer = useRef<NodeJS.Timeout>(null);
@@ -319,22 +320,20 @@ function DroppableContainer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOverContainer]);
 
-  if (rest.day === false)
+  if (!rest.day)
     return (
-      <div
-        className="flex min-h-32 flex-col gap-2 rounded-xl ring-brand-400 ring-offset-8 ring-offset-zinc-50 transition data-[hover=true]:ring-2"
+      <SavedPlacesWrapper
         ref={disabled ? undefined : setNodeRef}
-        data-hover={isOverContainer}
+        hover={isOverContainer}
       >
         {children}
-      </div>
+      </SavedPlacesWrapper>
     );
 
   return (
-    <DayFolder
+    <DayFolderSortWrapper
       ref={disabled ? undefined : setNodeRef}
       style={{
-        ...style,
         transition,
         transform: CSS.Translate.toString(transform),
       }}
@@ -343,16 +342,14 @@ function DroppableContainer({
       onOpenChange={setOpen}
       isDragging={isDragging}
       hover={isOverContainer}
-      handleMove={rest.handleMove}
-      setLoadingState={rest.setLoadingState}
       handleProps={{
         ...attributes,
         ...listeners,
       }}
-      date={rest.date}
+      {...rest}
     >
       {children}
-    </DayFolder>
+    </DayFolderSortWrapper>
   );
 }
 
@@ -487,14 +484,20 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       coordinateGetter,
     }),
   );
-  const findContainer = (id: UniqueIdentifier) => {
+  const findContainerAndIndex = (id: UniqueIdentifier) => {
     if (id in places) {
-      return id;
+      const index = days.findIndex((day) => day.dayId === id);
+      return { container: id, index: index };
     }
+    let index = 0;
+    const container = Object.keys(places).find((placesGroup) => {
+      index = places[placesGroup].findIndex(
+        (place) => place.placeInfo.placeId === id,
+      );
+      return index !== -1;
+    });
 
-    return Object.keys(places).find((placesGroup) =>
-      places[placesGroup].some((place) => place.placeInfo.placeId === id),
-    );
+    return { container: container, index: index };
   };
 
   const onDragCancel = () => {
@@ -609,8 +612,15 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     return <PlaceDetailsSortWrapper isDragOverlay data={data} />;
   }
 
-  function renderContainerDragOverlay(date: Date) {
-    return <DayFolder date={date} isDragOverlay />;
+  function renderContainerDragOverlay(startDate: Date, index: number) {
+    return (
+      <DayFolderSortWrapper
+        startDate={startDate}
+        index={index}
+        isDragOverlay
+        isOpen={false}
+      />
+    );
   }
 
   useEffect(() => {
@@ -640,8 +650,10 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           return;
         }
 
-        const overContainer = findContainer(overId);
-        const activeContainer = findContainer(active.id);
+        const { container: overContainer, index: overIndex } =
+          findContainerAndIndex(overId);
+        const { container: activeContainer, index: activeIndex } =
+          findContainerAndIndex(active.id);
 
         if (!overContainer || !activeContainer) {
           return;
@@ -653,34 +665,36 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
             over?.data.current?.isOpen)
         ) {
           setPlaces((currentPlaces) => {
-            const activeItems = currentPlaces[activeContainer];
-            const overItems = currentPlaces[overContainer];
-            const overIndex = overItems.findIndex(
-              (item) => item.placeInfo.placeId === overId,
-            );
-            const activeIndex = activeItems.findIndex(
-              (item) => item.placeInfo.placeId === active.id,
-            );
+            // let newIndex: number;
 
-            let newIndex: number;
+            // // Over a day or saved places
+            // if (overId in currentPlaces) {
+            //   newIndex = overItems.length;
+            // } else {
+            //   // dragging item is currently below the item we are dragging over
+            //   const isBelowOverItem =
+            //     over &&
+            //     active.rect.current.translated &&
+            //     active.rect.current.translated.top >
+            //       over.rect.top + over.rect.height / 2;
 
-            // Over a day or saved places
-            if (overId in currentPlaces) {
-              newIndex = overItems.length;
-            } else {
-              // dragging item is currently below the item we are dragging over
-              const isBelowOverItem =
-                over &&
-                active.rect.current.translated &&
-                active.rect.current.translated.top >
-                  over.rect.top + over.rect.height / 2;
+            //   const modifier = isBelowOverItem ? 1 : 0;
 
-              const modifier = isBelowOverItem ? 1 : 0;
+            //   // If cannot find the index, set as last item
+            //   newIndex =
+            //     overIndex >= 0 ? overIndex + modifier : overItems.length;
+            // }
 
-              // If cannot find the index, set as last item
-              newIndex =
-                overIndex >= 0 ? overIndex + modifier : overItems.length;
-            }
+            const overContainerResult =
+              overIndex > currentPlaces[overContainer].length / 2
+                ? [
+                    ...currentPlaces[overContainer],
+                    currentPlaces[activeContainer][activeIndex],
+                  ]
+                : [
+                    currentPlaces[activeContainer][activeIndex],
+                    ...currentPlaces[overContainer],
+                  ];
             recentlyMovedToNewContainer.current = true;
 
             return {
@@ -688,15 +702,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               [activeContainer]: currentPlaces[activeContainer].filter(
                 (place) => place.placeInfo.placeId !== active.id,
               ), // remove item from current container
-              [overContainer]: [
-                // and add item to new container at the index
-                ...currentPlaces[overContainer].slice(0, newIndex),
-                currentPlaces[activeContainer][activeIndex],
-                ...currentPlaces[overContainer].slice(
-                  newIndex,
-                  currentPlaces[overContainer].length,
-                ),
-              ],
+              [overContainer]: overContainerResult, // Add to new container
             };
           });
         }
@@ -742,7 +748,8 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           return;
         }
 
-        const activeContainer = findContainer(active.id);
+        const { container: activeContainer, index: activeIndex } =
+          findContainerAndIndex(active.id);
 
         if (!activeContainer) {
           return;
@@ -754,16 +761,11 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           return;
         }
 
-        const overContainer = findContainer(overId);
+        const { container: overContainer, index: overIndex } =
+          findContainerAndIndex(overId);
 
         // Dragging a place
         if (overContainer) {
-          const activeIndex = places[activeContainer].findIndex(
-            (place) => place.placeInfo.placeId === active.id,
-          );
-          const overIndex = places[overContainer].findIndex(
-            (place) => place.placeInfo.placeId === overId,
-          );
           console.log(
             "Containers and indexes",
             activeContainer,
@@ -971,7 +973,8 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               key={day.dayId}
               id={day.dayId}
               items={places[day.dayId].map((place) => place.placeInfo.placeId!)}
-              date={addDays(startDate, dayIndex)}
+              startDate={startDate}
+              index={dayIndex}
               handleMove={handleMove}
               setLoadingState={setLoadingState}
             >
@@ -1022,7 +1025,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                             toCoords={
                               places[day.dayId][index + 1].placeInfo.location
                             }
-                            tripId={tripId}
                             isDragging={Boolean(
                               activeId && !isSortingContainer,
                             )}
@@ -1052,10 +1054,8 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           {activeId
             ? days.some((day) => day.dayId === activeId.id)
               ? renderContainerDragOverlay(
-                  addDays(
-                    startDate,
-                    days.findIndex((day) => day.dayId === activeId.id),
-                  ),
+                  startDate,
+                  days.findIndex((day) => day.dayId === activeId.id),
                 )
               : renderSortableItemDragOverlay(activeId.data)
             : null}

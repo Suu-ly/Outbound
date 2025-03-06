@@ -3,7 +3,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ButtonLink from "@/components/ui/button-link";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
-import { location, place, trip, tripDay, tripPlace } from "@/server/db/schema";
+import {
+  location,
+  place,
+  travelTime,
+  trip,
+  tripDay,
+  tripPlace,
+  tripTravelTime,
+} from "@/server/db/schema";
 import {
   DayData,
   InitialQuery,
@@ -62,6 +70,7 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
         userPlaceInfo: {
           note: rowData.inner.note,
           timeSpent: rowData.inner.timeSpent!,
+          // timeToNextPlace: rowData.travelTime,
           tripOrder: rowData.inner.tripOrder,
         },
       };
@@ -114,11 +123,21 @@ export default async function TripLayout({
         timeSpent: tripPlace.timeSpent,
         tripOrder: sql<string>`${tripPlace.order}`.as("tripOrder"),
         dayOrder: sql<string>`${tripDay.order}`.as("dayOrder"),
-        tripPlaceCreated: tripPlace.createdAt,
+        tripPlaceUpdated: tripPlace.updatedAt,
         dayStartTime: tripDay.startTime,
+        nextId:
+          sql`CASE WHEN ${tripDay.id} = LEAD(${tripDay.id}) OVER (PARTITION BY ${tripDay.id} ORDER BY ${tripDay.order}, ${tripPlace.order}) 
+                    THEN LEAD(${tripPlace.placeId}) OVER (PARTITION BY ${tripDay.id} ORDER BY ${tripDay.order}, ${tripPlace.order}) 
+                    END`.as("next_id"),
       })
       .from(tripDay)
-      .fullJoin(tripPlace, eq(tripPlace.dayId, tripDay.id)),
+      .fullJoin(tripPlace, eq(tripPlace.dayId, tripDay.id))
+      .where(
+        and(
+          or(isNull(tripPlace.type), ne(tripPlace.type, "skipped")),
+          or(eq(tripDay.tripId, id), eq(tripPlace.tripId, id)),
+        ),
+      ),
   );
 
   const [userSession, data] = await Promise.all([
@@ -140,6 +159,12 @@ export default async function TripLayout({
           nextPageToken: trip.nextPageToken,
           startTime: trip.startTime,
           endTime: trip.endTime,
+        },
+        travelTime: {
+          drive: travelTime.drive,
+          cycle: travelTime.cycle,
+          walk: travelTime.walk,
+          selectedMode: tripTravelTime.type,
         },
         inner: {
           placeId: inner.placeId,
@@ -189,14 +214,23 @@ export default async function TripLayout({
       .innerJoin(inner, eq(inner.tripId, trip.id))
       .leftJoin(place, eq(inner.placeId, place.id))
       .innerJoin(location, eq(trip.locationId, location.id))
-      .where(
-        and(or(isNull(inner.type), ne(inner.type, "skipped")), eq(trip.id, id)),
+      .leftJoin(
+        travelTime,
+        and(
+          eq(travelTime.from, inner.placeId),
+          eq(travelTime.to, inner.nextId),
+        ),
       )
-      .orderBy(
-        asc(inner.dayOrder),
-        asc(inner.tripOrder),
-        asc(inner.dayStartTime),
-      ),
+      .leftJoin(
+        tripTravelTime,
+        and(
+          eq(tripTravelTime.from, travelTime.from),
+          eq(tripTravelTime.to, travelTime.to),
+          eq(tripTravelTime.tripId, trip.id),
+        ),
+      )
+      .where(eq(trip.id, id))
+      .orderBy(asc(inner.dayOrder), asc(inner.tripOrder), asc(inner)),
   ]);
 
   if (data.length === 0)

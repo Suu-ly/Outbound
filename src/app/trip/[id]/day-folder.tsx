@@ -1,28 +1,28 @@
-import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import { PlaceData, PlaceDataEntry } from "@/server/types";
-import { IconChevronRight, IconGripVertical } from "@tabler/icons-react";
+import { IconChevronRight } from "@tabler/icons-react";
+import { addDays } from "date-fns";
 import { useAtomValue } from "jotai";
 import {
-  ComponentPropsWithoutRef,
   ComponentRef,
   CSSProperties,
   Dispatch,
   forwardRef,
   memo,
+  ReactNode,
   SetStateAction,
+  useMemo,
   useState,
 } from "react";
 import { isTripAdminAtom } from "../atoms";
 import TripAutocomplete from "./trip-autocomplete";
 
-type DayFolderProps = {
+export type DayFolderProps = {
   handleMove?: (
     isInDay: number | string,
     data: PlaceDataEntry,
@@ -31,19 +31,14 @@ type DayFolderProps = {
   setLoadingState?: Dispatch<SetStateAction<Record<keyof PlaceData, string[]>>>;
   isOpen?: boolean;
   onOpenChange?: Dispatch<SetStateAction<boolean>>;
-  date: Date;
-  hover?: boolean;
-  handleProps?: ComponentPropsWithoutRef<"button">;
-  isDragOverlay?: boolean;
-  isDragging?: boolean;
+  startDate: Date;
+  index: number;
   dayId?: number | string;
+  children?: ReactNode;
 };
 
 const DayFolder = memo(
-  forwardRef<
-    ComponentRef<typeof Collapsible>,
-    ComponentPropsWithoutRef<typeof Collapsible> & DayFolderProps
-  >(
+  forwardRef<ComponentRef<typeof Collapsible>, DayFolderProps>(
     (
       {
         isOpen,
@@ -51,104 +46,70 @@ const DayFolder = memo(
         dayId,
         handleMove,
         setLoadingState,
-        className,
-        date,
+        startDate,
+        index,
         children,
-        handleProps,
-        hover,
-        isDragOverlay,
-        isDragging,
-        ...props
       },
       ref,
     ) => {
       const [open, setOpen] = useState(true);
       const isAdmin = useAtomValue(isTripAdminAtom);
+      const date = useMemo(() => addDays(startDate, index), [startDate, index]);
       return (
-        <div
-          data-drag-node="true"
-          className={`${isDragOverlay ? "animate-pickup cursor-grabbing fill-mode-forwards" : ""}`}
+        <Collapsible
+          ref={ref}
+          open={isOpen !== undefined ? isOpen : open}
+          onOpenChange={!!onOpenChange ? onOpenChange : setOpen}
         >
-          <Collapsible
-            ref={ref}
-            {...props}
-            className={cn(
-              "rounded-xl ring-brand-400 ring-offset-8 ring-offset-zinc-50 transition",
-              hover && "ring-2",
-              isDragging && "opacity-50",
-            )}
-            open={
-              isOpen !== undefined
-                ? isOpen
-                : open && !isDragOverlay && !isDragging
-            }
-            onOpenChange={!!onOpenChange ? onOpenChange : setOpen}
-          >
-            <div
-              className={cn(
-                "flex items-center gap-1 rounded-lg bg-white p-2 pr-1",
-                className,
-              )}
+          <div className="flex items-center gap-1 rounded-lg bg-white p-2 pr-1">
+            <CollapsibleTrigger
+              aria-label="Show or hide places in this day"
+              className="-m-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full ring-offset-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 data-[state=open]:rotate-90"
             >
-              <CollapsibleTrigger
-                aria-label="Show or hide places in this day"
-                className="-m-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full ring-offset-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 data-[state=open]:rotate-90"
-              >
-                <IconChevronRight className="text-slate-700" />
-              </CollapsibleTrigger>
-              <div className="flex w-full gap-4 font-display text-lg font-medium text-slate-900">
-                <span>
-                  {date.toLocaleDateString(undefined, {
-                    day: "numeric",
-                    month: "short",
-                    year: "2-digit",
-                  })}
-                </span>
-                <Separator orientation="vertical" className="h-auto" />
-                <span>
-                  {date.toLocaleDateString(undefined, {
-                    weekday: "short",
-                  })}
-                </span>
-              </div>
-              <Button
-                iconOnly
-                variant="ghost"
-                size="small"
-                aria-label="Drag handle"
-                className={`shrink-0 ${isDragOverlay ? "cursor-grabbing" : "cursor-grab"} touch-manipulation active:cursor-grabbing`}
-                {...handleProps}
-              >
-                <IconGripVertical />
-              </Button>
+              <IconChevronRight className="text-slate-700" />
+            </CollapsibleTrigger>
+            <div className="flex w-full gap-4 font-display text-lg font-medium text-slate-900">
+              <span>
+                {date.toLocaleDateString(undefined, {
+                  day: "numeric",
+                  month: "short",
+                  year: "2-digit",
+                })}
+              </span>
+              <Separator orientation="vertical" className="h-auto" />
+              <span>
+                {date.toLocaleDateString(undefined, {
+                  weekday: "short",
+                })}
+              </span>
             </div>
-            <CollapsibleContent
-              className={
-                "overflow-hidden data-[state=closed]:animate-minimise data-[state=open]:animate-expand"
-              }
-              style={
-                {
-                  "--content-height": `var(--radix-collapsible-content-height)`,
-                  "--content-closed": "0px",
-                } as CSSProperties
-              }
-            >
-              <div className="mt-4">
-                {children}
-                {isAdmin &&
-                  dayId !== undefined &&
-                  handleMove &&
-                  setLoadingState && (
-                    <TripAutocomplete
-                      isInDay={dayId}
-                      handleMove={handleMove}
-                      setLoadingState={setLoadingState}
-                    />
-                  )}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
+          </div>
+          <CollapsibleContent
+            className={
+              "overflow-hidden data-[state=closed]:animate-minimise data-[state=open]:animate-expand"
+            }
+            style={
+              {
+                "--content-height": `var(--radix-collapsible-content-height)`,
+                "--content-closed": "0px",
+              } as CSSProperties
+            }
+          >
+            <div className="mt-4">
+              {children}
+              {isAdmin &&
+                dayId !== undefined &&
+                handleMove &&
+                setLoadingState && (
+                  <TripAutocomplete
+                    isInDay={dayId}
+                    handleMove={handleMove}
+                    setLoadingState={setLoadingState}
+                  />
+                )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       );
     },
   ),
