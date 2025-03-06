@@ -10,11 +10,12 @@ import {
 import Spinner from "@/components/ui/spinner";
 import { getTravelTimesFromObject } from "@/lib/utils";
 import { updatePreferredTravelMode } from "@/server/actions";
+import type { SelectTripTravelTime } from "@/server/db/schema";
 import { ApiResponse, Coordinates, DistanceType } from "@/server/types";
 import { IconBike, IconCar, IconWalk } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { memo } from "react";
+import { memo, useState } from "react";
 import { toast } from "sonner";
 import { travelTimesAtom, tripDetailsAtom, tripPlacesAtom } from "../atoms";
 
@@ -45,10 +46,14 @@ export const TravelTimeSelect = memo(
       travelTimes[fromId] && travelTimes[fromId][toId]
         ? travelTimes[fromId][toId]
         : undefined;
+    const [value, setValue] = useState<SelectTripTravelTime["type"]>(
+      data?.mode ?? "drive",
+    );
 
-    const handleValueChange = (value: "walk" | "drive" | "cycle") => {
+    const handleValueChange = (newValue: "walk" | "drive" | "cycle") => {
       if (!data) return;
-      const duration = getTravelTimesFromObject(value, data);
+      setValue(newValue);
+      const duration = getTravelTimesFromObject(newValue, data);
       setPlaces((prev) => ({
         ...prev,
         [isInDay]: prev[isInDay].map((place) => {
@@ -62,7 +67,7 @@ export const TravelTimeSelect = memo(
           };
         }),
       }));
-      updatePreferredTravelMode(fromId, toId, tripId, value).then((data) => {
+      updatePreferredTravelMode(fromId, toId, tripId, newValue).then((data) => {
         if (data.status === "error") {
           toast.error(data.message);
         }
@@ -82,6 +87,7 @@ export const TravelTimeSelect = memo(
         ["toId", toId],
         ["toCoords", `${toCoords.longitude},${toCoords.latitude}`],
         ["tripId", tripId],
+        ["mode", value],
       ]);
 
       const travelTimesNew = await fetch(
@@ -111,10 +117,24 @@ export const TravelTimeSelect = memo(
           },
         },
       }));
+      const duration = getTravelTimesFromObject(value, travelTimesNew.data);
+      setPlaces((prev) => ({
+        ...prev,
+        [isInDay]: prev[isInDay].map((place) => {
+          if (place.placeInfo.placeId !== fromId) return place;
+          return {
+            ...place,
+            userPlaceInfo: {
+              ...place.userPlaceInfo,
+              timeToNextPlace: duration,
+            },
+          };
+        }),
+      }));
       return travelTimesNew.data;
     };
 
-    useQuery({
+    const { isFetching } = useQuery({
       queryKey: ["traveltime", fromId, toId],
       queryFn: () => getTravelTime(fromId, fromCoords, toId, toCoords, tripId),
       enabled:
@@ -123,13 +143,11 @@ export const TravelTimeSelect = memo(
         errorMessage: "Unable to fetch travel time information",
       },
     });
+
     return (
-      <Select
-        defaultValue={data?.mode ?? "drive"}
-        onValueChange={handleValueChange}
-      >
+      <Select defaultValue={value} onValueChange={handleValueChange}>
         <SelectTrigger variant="ghost" size="small" className="mt-2">
-          {!data && <Spinner />}
+          {!data && isFetching && <Spinner />}
           <SelectValue placeholder="Transport mode" />
         </SelectTrigger>
         <SelectContent>

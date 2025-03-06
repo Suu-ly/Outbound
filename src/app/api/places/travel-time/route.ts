@@ -2,7 +2,11 @@ import { hoursToString } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { redis } from "@/server/cache";
 import { db } from "@/server/db";
-import { travelTime, tripTravelTime } from "@/server/db/schema";
+import {
+  SelectTripTravelTime,
+  travelTime,
+  tripTravelTime,
+} from "@/server/db/schema";
 import { DistanceType } from "@/server/types";
 import { sql } from "drizzle-orm";
 import { headers } from "next/headers";
@@ -123,6 +127,7 @@ export async function GET(request: NextRequest) {
   const fromCoords = searchParams.get("fromCoords");
   const toCoords = searchParams.get("toCoords");
   const tripId = searchParams.get("tripId");
+  const mode = searchParams.get("mode");
 
   if (!fromId || !toId || !fromCoords || !toCoords || !tripId) {
     return Response.json(
@@ -144,6 +149,7 @@ export async function GET(request: NextRequest) {
         from: fromId,
         to: toId,
         tripId: tripId,
+        type: (mode as SelectTripTravelTime["type"]) ?? undefined,
       })
       .onConflictDoNothing();
 
@@ -226,6 +232,7 @@ export async function GET(request: NextRequest) {
       from: fromId,
       to: toId,
       tripId: tripId,
+      type: (mode as SelectTripTravelTime["type"]) ?? undefined,
     }),
     redis.set(`${fromCoords};${toCoords}`, result, { ex: 2624016 }), // 1 month expiry
   ]);

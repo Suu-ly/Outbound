@@ -80,10 +80,14 @@ export const defaultTripPlaceUserInfo = {
 };
 
 export function hoursToString(hours: number, roundUp?: boolean) {
-  const numHours = Math.floor(hours);
-  const minutes = roundUp
+  let numHours = Math.floor(hours);
+  let minutes = roundUp
     ? Math.ceil((hours - numHours) / 0.25) * 0.25 * 60
     : Math.ceil((hours - numHours) * 60);
+  if (minutes === 60) {
+    numHours += 1;
+    minutes = 0;
+  }
   let output = roundUp ? "~" : "";
   if (numHours) output += `${numHours} hr${numHours > 1 ? "s" : ""}`;
   if (numHours && minutes) output += " ";

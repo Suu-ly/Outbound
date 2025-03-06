@@ -89,8 +89,9 @@ export async function GET(request: NextRequest) {
       }
       if ("photos" in currentImages.data) {
         redisSet.push(
-          redis.set(currentImages.id + " image", currentImages.data.photos),
-          { ex: 259200 },
+          redis.set(currentImages.id + " image", currentImages.data.photos, {
+            ex: 259200,
+          }),
         );
         result[currentImages.id] = currentImages.data.photos;
       }

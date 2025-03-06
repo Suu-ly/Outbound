@@ -424,7 +424,7 @@ export type TravelTimeGraphType = Record<
       drive: DistanceType;
       cycle: DistanceType;
       walk: DistanceType;
-      mode?: string;
+      mode?: SelectTripTravelTime["type"];
     }
   >
 >;
