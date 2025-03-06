@@ -4,6 +4,7 @@ import { redis } from "@/server/cache";
 import { db } from "@/server/db";
 import { travelTime, tripTravelTime } from "@/server/db/schema";
 import { DistanceType } from "@/server/types";
+import { sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
 
@@ -73,9 +74,16 @@ const getTravelTimesFromResponse = (
       route: true,
       geometry: data.routes[0].geometry,
       distance: data.routes[0].distance / 1000,
-      distanceDisplay: (data.routes[0].distance / 1000).toFixed(1) + " km",
+      distanceDisplay:
+        data.routes[0].distance >= 1000
+          ? (data.routes[0].distance / 1000).toFixed(1) + " km"
+          : Math.round(data.routes[0].distance) + " m",
       duration: Math.round((data.routes[0].duration / 60 / 60) * 1000) / 1000,
       durationDisplay: hoursToString(data.routes[0].duration / 60 / 60),
+      durationDisplayRoundUp: hoursToString(
+        data.routes[0].duration / 60 / 60,
+        true,
+      ),
       summary:
         data.routes[0].legs.length > 0 && data.routes[0].legs[0].summary
           ? data.routes[0].legs[0].summary
@@ -130,11 +138,14 @@ export async function GET(request: NextRequest) {
 
   const data = await redis.get<DistanceType>(`${fromCoords};${toCoords}`);
   if (data) {
-    await db.insert(tripTravelTime).values({
-      from: fromId,
-      to: toId,
-      tripId: tripId,
-    });
+    await db
+      .insert(tripTravelTime)
+      .values({
+        from: fromId,
+        to: toId,
+        tripId: tripId,
+      })
+      .onConflictDoNothing();
 
     return Response.json({
       data: data,
@@ -185,8 +196,6 @@ export async function GET(request: NextRequest) {
     });
 
   const result = {
-    from: fromId,
-    to: toId,
     drive: getTravelTimesFromResponse(driving),
     cycle: getTravelTimesFromResponse(cycling),
     walk: getTravelTimesFromResponse(walking),
@@ -194,7 +203,17 @@ export async function GET(request: NextRequest) {
 
   // Ensure that the travel time is inserted
   try {
-    await db.insert(travelTime).values(result);
+    await db
+      .insert(travelTime)
+      .values({ ...result, from: fromId, to: toId })
+      .onConflictDoUpdate({
+        target: [travelTime.to, travelTime.from],
+        set: {
+          drive: sql`excluded.drive`,
+          cycle: sql`excluded.cycle`,
+          walk: sql`excluded.walk`,
+        },
+      });
   } catch {
     return Response.json({
       message: "An error has occurred when fetching travel times",
@@ -208,7 +227,7 @@ export async function GET(request: NextRequest) {
       to: toId,
       tripId: tripId,
     }),
-    redis.set(`${fromCoords};${toCoords}`, result),
+    redis.set(`${fromCoords};${toCoords}`, result, { ex: 2624016 }), // 1 month expiry
   ]);
 
   return Response.json({

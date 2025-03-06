@@ -1000,7 +1000,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                         {index + 1}
                       </div>
                       <TravelTimeIndicator
-                        places={places[day.dayId]}
+                        isInDay={day.dayId}
                         index={index}
                         startTime={day.dayStartTime}
                         shouldHide={Boolean(activeId && !isSortingContainer)}
@@ -1017,6 +1017,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                       >
                         {index < places[day.dayId].length - 1 && ( // Not the last item
                           <TravelTimeSelect
+                            isInDay={day.dayId}
                             fromId={place.placeInfo.placeId}
                             fromCoords={place.placeInfo.location}
                             toId={

@@ -10,6 +10,7 @@ import {
   dayPlacesAtom,
   discoverPlacesAtom,
   isTripAdminAtom,
+  travelTimesAtom,
   tripDetailsAtom,
   tripPlacesAtom,
   tripWindowsAtom,
@@ -52,6 +53,7 @@ const HydrateAtoms = ({
     ],
     [tripPlacesAtom, data.placeData],
     [dayPlacesAtom, data.dayData],
+    [travelTimesAtom, data.travelTimeData],
   ]);
   return null;
 };

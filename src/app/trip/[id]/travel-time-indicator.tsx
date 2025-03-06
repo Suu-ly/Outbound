@@ -1,11 +1,10 @@
 import { digitStringToHours, hoursTo24HourFormat } from "@/lib/utils";
-import { PlaceDataEntry } from "@/server/types";
 import { useAtomValue } from "jotai";
 import { memo } from "react";
-import { tripDetailsAtom } from "../atoms";
+import { computedTravelTimesAtom, tripDetailsAtom } from "../atoms";
 
 type TravelTimeIndicatorProps = {
-  places: PlaceDataEntry[];
+  isInDay: string | number;
   index: number;
   startTime: string;
   shouldHide: boolean;
@@ -14,34 +13,32 @@ type TravelTimeIndicatorProps = {
 
 const TravelTimeIndicator = memo(
   ({
-    places,
+    isInDay,
     index,
     startTime,
     shouldHide,
     bottom,
   }: TravelTimeIndicatorProps) => {
-    const tripDetails = useAtomValue(tripDetailsAtom);
+    const defaultStartTime = useAtomValue(tripDetailsAtom).startTime;
+    const computedTimes = useAtomValue(computedTravelTimesAtom);
+    console.log(computedTimes);
 
     if (shouldHide) return null; // Avoid doing any calculation while dragging
 
-    const defaultStartTime = tripDetails.startTime;
-    const shouldRoundUp = tripDetails.roundUpTime;
+    const baseHours =
+      startTime === "auto"
+        ? digitStringToHours(defaultStartTime)
+        : digitStringToHours(startTime);
 
-    // This should not have to be calculated again and again, move to derived atom when possible
     const getTime = () => {
-      let hourOfDay =
-        startTime === "auto"
-          ? digitStringToHours(defaultStartTime)
-          : digitStringToHours(startTime);
-      for (let i = 0; i < index; i++) {
-        hourOfDay += shouldRoundUp
-          ? Math.ceil(places[i].userPlaceInfo.timeSpent / 0.25) * 0.25
-          : places[i].userPlaceInfo.timeSpent;
-      }
-      return hoursTo24HourFormat(hourOfDay);
+      return computedTimes[isInDay][index] !== null
+        ? hoursTo24HourFormat(baseHours + computedTimes[isInDay][index])
+        : null;
     };
 
     const time = getTime();
+
+    if (time === null) return null;
 
     const Comp = index === 0 ? "button" : "div";
 

@@ -2,6 +2,7 @@ import {
   BoundingBox,
   DayData,
   PlaceData,
+  TravelTimeGraphType,
   TripData,
   TripPlaceDetails,
   WindowData,
@@ -60,6 +61,36 @@ export const savedPlacesAmountAtom = atom((get) => {
   );
 });
 export const dayPlacesAtom = atom<DayData[]>([]);
+export const travelTimesAtom = atom<TravelTimeGraphType>({});
+export const computedTravelTimesAtom = atom((get) => {
+  const places = get(tripPlacesAtom);
+  const shouldRoundUp = get(tripDetailsAtom).roundUpTime;
+  const times: Record<keyof typeof places, (number | null)[]> = {};
+  const keys = Object.keys(places);
+  for (let i = 0, length = keys.length; i < length; i++) {
+    let currentTimeSum = 0;
+    const items = places[keys[i]];
+    const currentTimes = new Array(items.length);
+    currentTimes[0] = 0;
+    for (let j = 0, placesLength = items.length - 1; j < placesLength; j++) {
+      if (items[j].userPlaceInfo.timeToNextPlace) {
+        if (shouldRoundUp)
+          currentTimeSum +=
+            Math.ceil(items[j].userPlaceInfo.timeSpent / 0.25) * 0.25 +
+            Math.ceil(items[j].userPlaceInfo.timeToNextPlace! / 0.25) * 0.25;
+        else
+          currentTimeSum +=
+            items[j].userPlaceInfo.timeSpent +
+            items[j].userPlaceInfo.timeToNextPlace!;
+        currentTimes[j + 1] = currentTimeSum;
+      } else {
+        currentTimes[j + 1] = null;
+      }
+    }
+    times[keys[i]] = currentTimes;
+  }
+  return times;
+});
 
 // For the discover page
 export const discoverPlacesAtom = atom<TripPlaceDetails[]>([]);

@@ -1,3 +1,5 @@
+import { SelectTripTravelTime } from "@/server/db/schema";
+import { DistanceType } from "@/server/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -77,10 +79,12 @@ export const defaultTripPlaceUserInfo = {
   timeSpent: 2,
 };
 
-export function hoursToString(hours: number) {
+export function hoursToString(hours: number, roundUp?: boolean) {
   const numHours = Math.floor(hours);
-  const minutes = Math.ceil((hours - numHours) * 60);
-  let output = "";
+  const minutes = roundUp
+    ? Math.ceil((hours - numHours) / 0.25) * 0.25 * 60
+    : Math.ceil((hours - numHours) * 60);
+  let output = roundUp ? "~" : "";
   if (numHours) output += `${numHours} hr${numHours > 1 ? "s" : ""}`;
   if (numHours && minutes) output += " ";
   if (minutes) output += `${minutes} min${minutes > 1 ? "s" : ""}`;
@@ -99,4 +103,14 @@ export function hoursTo24HourFormat(hours: number) {
       `${Math.ceil((hours - Math.floor(hours)) * 60)}`.padStart(2, "0"),
     overflow: hours >= 24,
   };
+}
+
+export function getTravelTimesFromObject(
+  mode: SelectTripTravelTime["type"] | null,
+  times: Record<SelectTripTravelTime["type"], DistanceType>,
+) {
+  if (!mode) mode = "drive";
+  const modeTimes = times[mode];
+  if (!modeTimes.route || !modeTimes) return 0;
+  return modeTimes.duration;
 }

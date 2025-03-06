@@ -1,4 +1,4 @@
-import { SelectPlace } from "./db/schema";
+import { SelectPlace, SelectTripTravelTime } from "./db/schema";
 
 export type ApiResponse<T> =
   | {
@@ -273,6 +273,13 @@ export type InitialQuery = {
     dayOrder: string;
     dayStartTime: string | null;
   };
+  travelTime: {
+    nextId: string | null;
+    drive: DistanceType | null;
+    cycle: DistanceType | null;
+    walk: DistanceType | null;
+    selectedMode: SelectTripTravelTime["type"] | null;
+  };
 };
 
 export type TripData = {
@@ -326,8 +333,9 @@ export type PlaceDataPlaceInfo = {
 
 type PlaceDataUserPlaceInfo = {
   note: string | null;
-  timeSpent: number;
   tripOrder: string;
+  timeSpent: number;
+  timeToNextPlace: number | null;
 };
 
 export type PlaceDataEntry = {
@@ -346,6 +354,7 @@ export type InitialQueryPrepared = {
   dayData: DayData[];
   discoverData: TripPlaceDetails[];
   placeData: PlaceData;
+  travelTimeData: TravelTimeGraphType;
 };
 
 export type TripPlaceDetails = SelectPlace & {
@@ -398,6 +407,7 @@ export type DistanceType =
       distanceDisplay: string;
       duration: number;
       durationDisplay: string;
+      durationDisplayRoundUp: string;
       geometry: {
         coordinates: [number, number][];
         type: "LineString";
@@ -405,3 +415,16 @@ export type DistanceType =
       summary: string | null;
     }
   | { route: false };
+
+export type TravelTimeGraphType = Record<
+  string,
+  Record<
+    string,
+    {
+      drive: DistanceType;
+      cycle: DistanceType;
+      walk: DistanceType;
+      mode?: string;
+    }
+  >
+>;

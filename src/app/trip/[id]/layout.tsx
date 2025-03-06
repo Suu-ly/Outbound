@@ -1,6 +1,7 @@
 import Header from "@/components/header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ButtonLink from "@/components/ui/button-link";
+import { getTravelTimesFromObject } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import {
@@ -17,6 +18,7 @@ import {
   InitialQuery,
   InitialQueryPrepared,
   PlaceData,
+  TravelTimeGraphType,
   TripPlaceDetails,
 } from "@/server/types";
 import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
@@ -41,7 +43,9 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
   const dayData: DayData[] = [];
   const discoverData: TripPlaceDetails[] = [];
   const placeData: PlaceData = { saved: [] };
+  const travelTimeData: TravelTimeGraphType = {};
 
+  let timeToNextPlace: number | null = null;
   for (let i = 0, length = data.length; i < length; i++) {
     const rowData = data[i];
     // Day with no place
@@ -54,6 +58,23 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
       placeData[rowData.inner.dayId!] = [];
     } else {
       // Place exists
+      if (rowData.travelTime.drive) {
+        const travelTimes = {
+          drive: rowData.travelTime.drive!,
+          cycle: rowData.travelTime.cycle!,
+          walk: rowData.travelTime.walk!,
+          mode: rowData.travelTime.selectedMode ?? undefined,
+        };
+        travelTimeData[rowData.inner.placeId!] = {
+          [rowData.travelTime.nextId!]: travelTimes,
+        };
+        timeToNextPlace = getTravelTimesFromObject(
+          rowData.travelTime.selectedMode,
+          travelTimes,
+        );
+      } else {
+        timeToNextPlace = null;
+      }
       const tempPlaceData = {
         placeInfo: {
           placeId: rowData.inner.placeId!,
@@ -70,7 +91,7 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
         userPlaceInfo: {
           note: rowData.inner.note,
           timeSpent: rowData.inner.timeSpent!,
-          // timeToNextPlace: rowData.travelTime,
+          timeToNextPlace: timeToNextPlace,
           tripOrder: rowData.inner.tripOrder,
         },
       };
@@ -96,7 +117,14 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
     }
   }
 
-  return { tripData, windowData, dayData, discoverData, placeData };
+  return {
+    tripData,
+    windowData,
+    dayData,
+    discoverData,
+    placeData,
+    travelTimeData,
+  };
 }
 
 export default async function TripLayout({
@@ -126,7 +154,7 @@ export default async function TripLayout({
         tripPlaceUpdated: tripPlace.updatedAt,
         dayStartTime: tripDay.startTime,
         nextId:
-          sql`CASE WHEN ${tripDay.id} = LEAD(${tripDay.id}) OVER (PARTITION BY ${tripDay.id} ORDER BY ${tripDay.order}, ${tripPlace.order}) 
+          sql<string>`CASE WHEN ${tripDay.id} = LEAD(${tripDay.id}) OVER (PARTITION BY ${tripDay.id} ORDER BY ${tripDay.order}, ${tripPlace.order}) 
                     THEN LEAD(${tripPlace.placeId}) OVER (PARTITION BY ${tripDay.id} ORDER BY ${tripDay.order}, ${tripPlace.order}) 
                     END`.as("next_id"),
       })
@@ -161,6 +189,7 @@ export default async function TripLayout({
           endTime: trip.endTime,
         },
         travelTime: {
+          nextId: inner.nextId,
           drive: travelTime.drive,
           cycle: travelTime.cycle,
           walk: travelTime.walk,

@@ -11,9 +11,11 @@ import {
   InsertTrip,
   InsertTripDay,
   SelectTrip,
+  SelectTripTravelTime,
   trip,
   tripDay,
   tripPlace,
+  tripTravelTime,
 } from "./db/schema";
 import { ApiResponse, DayData } from "./types";
 
@@ -353,6 +355,36 @@ export async function updateTripDates(
     return {
       status: "error",
       message: "Unable to update trip dates",
+    };
+  }
+}
+
+export async function updatePreferredTravelMode(
+  fromId: string,
+  toId: string,
+  tripId: string,
+  mode: SelectTripTravelTime["type"],
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(tripTravelTime)
+      .set({ type: mode })
+      .where(
+        and(
+          eq(tripTravelTime.from, fromId),
+          eq(tripTravelTime.to, toId),
+          eq(tripTravelTime.tripId, tripId),
+        ),
+      );
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      status: "error",
+      message: "Unable to preferred travel method",
     };
   }
 }
