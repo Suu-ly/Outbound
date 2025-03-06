@@ -21,7 +21,6 @@ const TravelTimeIndicator = memo(
   }: TravelTimeIndicatorProps) => {
     const defaultStartTime = useAtomValue(tripDetailsAtom).startTime;
     const computedTimes = useAtomValue(computedTravelTimesAtom);
-    console.log(computedTimes);
 
     if (shouldHide) return null; // Avoid doing any calculation while dragging
 

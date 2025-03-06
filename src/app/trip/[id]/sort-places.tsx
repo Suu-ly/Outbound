@@ -18,6 +18,7 @@ import {
   insertBetween,
 } from "@/lib/utils";
 import {
+  moveTripPlace,
   setPlaceAsUninterested,
   updateTripDayOrder,
   updateTripPlaceNote,
@@ -55,7 +56,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Portal } from "@radix-ui/react-portal";
 import { IconMapPinSearch, IconWand } from "@tabler/icons-react";
-import { addDays } from "date-fns";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   Dispatch,
@@ -541,12 +541,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       data: PlaceDataEntry,
       newDay: number | string,
     ) => {
-      const newOrder =
-        places[newDay].length > 0
-          ? insertAfter(
-              places[newDay][places[newDay].length - 1].userPlaceInfo.tripOrder,
-            )
-          : getStartingIndex(); // No items in day
       setPlaces((prev) => ({
         ...prev,
         [isInDay]: prev[isInDay].filter(
@@ -558,23 +552,27 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
             placeInfo: data.placeInfo,
             userPlaceInfo: {
               ...data.userPlaceInfo,
-              tripOrder: newOrder,
+              tripOrder:
+                prev[newDay].length > 0
+                  ? insertAfter(
+                      prev[newDay][prev[newDay].length - 1].userPlaceInfo
+                        .tripOrder,
+                    )
+                  : getStartingIndex(),
             },
           },
         ], // Add to the end of the new day with updated details
       }));
-      console.log("Handlemove New order", newOrder);
-      updateTripPlaceOrder(
+      moveTripPlace(
         tripId,
         data.placeInfo.placeId,
-        newOrder,
         newDay !== "saved" ? Number(newDay) : null,
       ).then((data) => {
         if (data.status === "error") toast.error(data.message);
       });
     },
 
-    [places, setPlaces, tripId],
+    [setPlaces, tripId],
   );
 
   const handleNoteChange = useCallback(
@@ -766,14 +764,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
 
         // Dragging a place
         if (overContainer) {
-          console.log(
-            "Containers and indexes",
-            activeContainer,
-            activeIndex,
-            overContainer,
-            overIndex,
-          );
-
           // Nothing happened
           if (
             activeContainer === overContainer &&
@@ -1010,7 +1000,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                         isInDay={day.dayId}
                         disabled={isSortingContainer}
                         id={place.placeInfo.placeId!}
-                        date={addDays(startDate, dayIndex)}
+                        dayIndex={dayIndex}
                         onRemove={onRemove}
                         handleMove={handleMove}
                         handleNoteChange={handleNoteChange}

@@ -43,6 +43,12 @@ const PlaceDetailsSortWrapper = forwardRef<
             // Prevent the keyboard sensor from picking up space or enter
             if (e.code === "Space" || e.code === "Enter") e.stopPropagation();
           }}
+          onMouseDown={(e) => {
+            if (e.target instanceof HTMLTextAreaElement) e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            if (e.target instanceof HTMLTextAreaElement) e.stopPropagation();
+          }}
         >
           <PlaceDetailsCompact isDragging={isDragging} {...rest} />
           {children}

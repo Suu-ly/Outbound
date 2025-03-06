@@ -197,6 +197,45 @@ export async function updateTripPlaceOrder(
   }
 }
 
+export async function moveTripPlace(
+  tripId: string,
+  tripPlaceId: string,
+  newDay: number | null,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(tripPlace)
+      .set({
+        order: newDay
+          ? sql`insert_after(
+        (SELECT MAX(${tripPlace.order}) from ${tripPlace} WHERE 
+        ${tripPlace.tripId} = ${tripId} AND 
+        ${tripPlace.dayId} = ${Number(newDay)} AND 
+        ${tripPlace.type} = 'saved')
+        )`
+          : sql`insert_after(
+          (SELECT MAX(${tripPlace.order}) from ${tripPlace} WHERE 
+          ${tripPlace.tripId} = ${tripId} AND 
+          ${tripPlace.dayId} IS NULL AND 
+          ${tripPlace.type} = 'saved')
+          )`,
+        dayId: newDay,
+      })
+      .where(
+        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+      );
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update place preferences",
+    };
+  }
+}
+
 export async function updateTripPlaceNote(
   tripId: string,
   tripPlaceId: string,

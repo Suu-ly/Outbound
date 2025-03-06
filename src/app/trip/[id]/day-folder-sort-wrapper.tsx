@@ -20,7 +20,7 @@ export const SavedPlacesWrapper = memo(
   >(({ children, hover }, ref) => {
     return (
       <div
-        className={`flex min-h-32 flex-col gap-2 rounded-xl ring-brand-400 ring-offset-zinc-50 transition ${hover ? "ring-2 ring-offset-8" : ""}`}
+        className={`flex min-h-32 flex-col gap-2 rounded-xl ring-brand-400 ring-offset-zinc-50 transition ${hover ? "ring-2 ring-offset-8" : "ring-0 ring-offset-0"}`}
         ref={ref}
       >
         {children}
@@ -76,7 +76,7 @@ export const DayFolderSortWrapper = forwardRef<
         ref={ref}
         data-drag-node="true"
         className={cn(
-          "relative rounded-xl ring-brand-400 ring-offset-zinc-50 transition",
+          "relative rounded-xl ring-0 ring-brand-400 ring-offset-0 ring-offset-zinc-50 transition",
           isDragOverlay && "animate-pickup cursor-grabbing fill-mode-forwards",
           hover && "ring-2 ring-offset-8",
           isDragging && "opacity-50",

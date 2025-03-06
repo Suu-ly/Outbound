@@ -114,7 +114,6 @@ export default function TripPage({ tripId }: { tripId: string }) {
                 };
               },
             );
-            console.log(placesToAdd);
             savedPlaces = savedPlaces.concat(placesToAdd);
           }
           return {

@@ -32,7 +32,6 @@ export default async function TripPage({
     .where(and(eq(tripPlace.type, "skipped"), eq(trip.id, id)))
     .orderBy(desc(tripPlace.updatedAt));
 
-  console.log(skippedPlacesInitial);
   return (
     <ViewMapToggle>
       <div className="space-y-4 p-4 xl:space-y-6">

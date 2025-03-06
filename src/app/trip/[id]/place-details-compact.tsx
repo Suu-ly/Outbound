@@ -48,7 +48,7 @@ import {
 export type PlaceDetailsCompactProps = {
   data: PlaceDataEntry;
   isInDay?: number | string;
-  date?: Date;
+  dayIndex?: number;
   isDragging?: boolean;
   onRemove?: (isInDay: number | string, placeId: string) => void;
   handleMove?: (
@@ -69,7 +69,7 @@ const PlaceDetailsCompact = memo(
       {
         data,
         isInDay = "saved",
-        date,
+        dayIndex,
         isDragging,
         onRemove,
         handleMove,
@@ -149,12 +149,15 @@ const PlaceDetailsCompact = memo(
         }
       }, [isLarge]);
 
-      const dayIndex = date ? date.getDay() : new Date().getDay();
+      const hoursDayIndex =
+        dayIndex !== undefined
+          ? addDays(startDate, dayIndex).getDay()
+          : new Date().getDay();
 
       const currentHours =
-        data.placeInfo.openingHours?.text[(((dayIndex - 1) % 7) + 7) % 7].split(
-          ": ",
-        )[1];
+        data.placeInfo.openingHours?.text[
+          (((hoursDayIndex - 1) % 7) + 7) % 7
+        ].split(": ")[1];
       return (
         <div
           ref={ref}
@@ -366,7 +369,7 @@ const PlaceDetailsCompact = memo(
                 </Button>
                 <OpeningHours
                   collapsible={false}
-                  highligtedDay={dayIndex}
+                  highligtedDay={hoursDayIndex}
                   hours={data.placeInfo.openingHours?.text}
                   className="gap-1.5 rounded-lg pl-1.5 pr-2"
                   contentClassName="pl-8"
@@ -392,7 +395,7 @@ const PlaceDetailsCompact = memo(
       prev.handleNoteChange !== next.handleNoteChange ||
       prev.isDragging !== next.isDragging ||
       prev.isInDay !== next.isInDay ||
-      prev.date?.getDay() !== next.date?.getDay()
+      prev.dayIndex !== next.dayIndex
     );
   },
 );
