@@ -103,6 +103,7 @@ export const TravelTimeSelect = memo(
       setTravelTimes((prev) => ({
         ...prev,
         [fromId]: {
+          ...prev[fromId],
           [toId]: {
             drive: travelTimesNew.data.drive,
             cycle: travelTimesNew.data.cycle,

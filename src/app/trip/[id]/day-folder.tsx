@@ -60,8 +60,9 @@ const DayFolder = memo(
           ref={ref}
           open={isOpen !== undefined ? isOpen : open}
           onOpenChange={!!onOpenChange ? onOpenChange : setOpen}
+          className="-mx-4"
         >
-          <div className="flex items-center gap-1 rounded-lg bg-white p-2 pr-1">
+          <div className="mx-4 flex items-center gap-1 rounded-lg bg-white p-2 pr-1">
             <CollapsibleTrigger
               aria-label="Show or hide places in this day"
               className="-m-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full ring-offset-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 data-[state=open]:rotate-90"
@@ -95,7 +96,7 @@ const DayFolder = memo(
               } as CSSProperties
             }
           >
-            <div className="mt-4">
+            <div className="mt-4 px-4">
               {children}
               {isAdmin &&
                 dayId !== undefined &&
