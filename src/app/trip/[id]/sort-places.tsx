@@ -281,7 +281,7 @@ function DroppableContainer({
       children: items,
       isOpen: open,
     },
-    animateLayoutChanges: () => true,
+    animateLayoutChanges: () => false,
   });
   const isOverContainer = over
     ? (id === over.id && active?.data.current?.type !== "container") ||
