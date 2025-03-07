@@ -342,7 +342,7 @@ function DroppableContainer({
         transform: CSS.Translate.toString(transform),
       }}
       dayId={id}
-      isOpen={open && !isDragging}
+      isOpen={open}
       onOpenChange={setOpen}
       isDragging={isDragging}
       hover={isOverContainer}
@@ -405,6 +405,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   >({});
 
   const [activeId, setActiveId] = useState<Active | null>(null);
+  const isSortingContainer = activeId?.data.current?.type === "container";
 
   /**
    * Custom collision detection strategy optimized for multiple containers
@@ -703,6 +704,24 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
             if (overPlaces.length > 0)
               newOrder = insertAfter(getOrder(overPlaces.length - 1));
             else newOrder = getStartingIndex();
+            setPlaces((currentPlaces) => ({
+              ...currentPlaces,
+              [activeContainer]: currentPlaces[activeContainer].filter(
+                (place) => place.placeInfo.placeId !== active.id,
+              ), // remove item from current container
+              [overContainer]: [
+                // and add item to new container at the end
+                ...currentPlaces[overContainer],
+                {
+                  ...currentPlaces[activeContainer][activeIndex],
+                  userPlaceInfo: {
+                    ...currentPlaces[activeContainer][activeIndex]
+                      .userPlaceInfo,
+                    tripOrder: newOrder,
+                  },
+                },
+              ],
+            }));
           } else if (activeContainer !== overContainer) {
             // If cannot find the index, set as last item
             newIndex =
@@ -831,7 +850,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           </div>
           <DroppableContainer
             id={SAVED_ID}
-            disabled={activeId?.data.current?.type === "container"}
+            disabled={isSortingContainer}
             items={places.saved.map((place) => place.placeInfo.placeId!)}
             day={false}
           >
@@ -845,14 +864,14 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                   className={"relative ml-5 border-l-2 border-zinc-50 pl-6"}
                 >
                   <div
-                    className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && activeId?.data.current?.type !== "container" ? "opacity-0" : ""}`}
+                    className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
                     aria-label={`Saved place ${index + 1}`}
                   >
                     {index + 1}
                   </div>
                   <SortableItem
                     data={place}
-                    disabled={activeId?.data.current?.type === "container"}
+                    disabled={isSortingContainer}
                     id={place.placeInfo.placeId!}
                     below={
                       indicator && indicator.id === place.placeInfo.placeId
@@ -906,13 +925,11 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                       key={place.placeInfo.placeId}
                       className={cn(
                         "relative ml-5 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
-                        activeId &&
-                          activeId?.data.current?.type !== "container" &&
-                          "border-transparent",
+                        activeId && !isSortingContainer && "border-transparent",
                       )}
                     >
                       <div
-                        className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && activeId?.data.current?.type !== "container" ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length]}`}
+                        className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length]}`}
                         aria-label={`Saved place ${index + 1}`}
                       >
                         {index + 1}
@@ -921,15 +938,12 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                         isInDay={day.dayId}
                         index={index}
                         startTime={day.dayStartTime}
-                        shouldHide={Boolean(
-                          activeId &&
-                            activeId?.data.current?.type !== "container",
-                        )}
+                        shouldHide={Boolean(activeId && !isSortingContainer)}
                       />
                       <SortableItem
                         data={place}
                         isInDay={day.dayId}
-                        disabled={activeId?.data.current?.type === "container"}
+                        disabled={isSortingContainer}
                         id={place.placeInfo.placeId!}
                         below={
                           indicator && indicator.id === place.placeInfo.placeId
@@ -953,8 +967,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                               places[day.dayId][index + 1].placeInfo.location
                             }
                             isDragging={Boolean(
-                              activeId &&
-                                activeId?.data.current?.type !== "container",
+                              activeId && !isSortingContainer,
                             )}
                           />
                         )}
