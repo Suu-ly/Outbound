@@ -12,6 +12,7 @@ type PlaceDetailsSortWrapperProps = {
   listeners?: DraggableSyntheticListeners;
   style?: React.CSSProperties;
   children?: ReactNode;
+  below?: boolean;
 } & PlaceDetailsCompactProps;
 
 const PlaceDetailsSortWrapper = forwardRef<
@@ -19,7 +20,16 @@ const PlaceDetailsSortWrapper = forwardRef<
   PlaceDetailsSortWrapperProps
 >(
   (
-    { isDragOverlay, isDragging, fadeIn, style, listeners, children, ...rest },
+    {
+      isDragOverlay,
+      isDragging,
+      fadeIn,
+      style,
+      listeners,
+      children,
+      below,
+      ...rest
+    },
     ref,
   ) => {
     return (
@@ -32,10 +42,14 @@ const PlaceDetailsSortWrapper = forwardRef<
         {...listeners}
         style={style}
         className={cn(
-          "cursor-grab touch-manipulation rounded-xl ring-offset-zinc-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-4 active:cursor-grabbing",
+          "relative cursor-grab touch-manipulation rounded-xl ring-offset-zinc-50 transition after:absolute after:inset-x-3 after:h-0 after:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-4 active:cursor-grabbing",
           isDragOverlay && "animate-pickup cursor-grabbing fill-mode-forwards",
           isDragging && "opacity-50",
           fadeIn && "duration-300 animate-in fade-in-0",
+          below &&
+            "rounded-full after:-bottom-1 after:h-0.5 after:translate-y-1/2 after:bg-brand-400",
+          below === false &&
+            "rounded-full after:-top-1 after:h-0.5 after:-translate-y-1/2 after:bg-brand-400",
         )}
       >
         <div

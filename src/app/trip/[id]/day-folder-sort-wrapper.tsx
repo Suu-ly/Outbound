@@ -75,38 +75,46 @@ export const DayFolderSortWrapper = forwardRef<
       <div
         ref={ref}
         data-drag-node="true"
-        className={cn(
-          "relative rounded-xl ring-0 ring-brand-400 ring-offset-0 ring-offset-zinc-50 transition",
-          isDragOverlay && "animate-pickup cursor-grabbing fill-mode-forwards",
-          hover && "ring-2 ring-offset-8",
-          isDragging && "opacity-50",
-        )}
         style={style}
+        className={
+          isDragOverlay
+            ? "animate-pickup cursor-grabbing rounded-xl fill-mode-forwards"
+            : ""
+        }
       >
-        <Button
-          iconOnly
-          variant="ghost"
-          size="small"
-          aria-label="Drag handle"
+        <div
           className={cn(
-            `absolute right-1 top-1.5 shrink-0 cursor-grab touch-manipulation active:cursor-grabbing`,
-            isDragOverlay && "cursor-grabbing",
+            "relative rounded-xl ring-0 ring-brand-400 ring-offset-0 ring-offset-zinc-50 transition",
+
+            hover && "ring-2 ring-offset-8",
+            isDragging && "opacity-50",
           )}
-          {...handleProps}
         >
-          <IconGripVertical />
-        </Button>
-        <DayFolder
-          dayId={dayId}
-          startDate={startDate}
-          index={index}
-          handleMove={handleMove}
-          setLoadingState={setLoadingState}
-          isOpen={Boolean(isOpen && !isDragging)}
-          onOpenChange={onOpenChange}
-        >
-          {children}
-        </DayFolder>
+          <Button
+            iconOnly
+            variant="ghost"
+            size="small"
+            aria-label="Drag handle"
+            className={cn(
+              `absolute right-1 top-1.5 shrink-0 cursor-grab touch-manipulation active:cursor-grabbing`,
+              isDragOverlay && "cursor-grabbing",
+            )}
+            {...handleProps}
+          >
+            <IconGripVertical />
+          </Button>
+          <DayFolder
+            dayId={dayId}
+            startDate={startDate}
+            index={index}
+            handleMove={handleMove}
+            setLoadingState={setLoadingState}
+            isOpen={isOpen}
+            onOpenChange={onOpenChange}
+          >
+            {children}
+          </DayFolder>
+        </div>
       </div>
     );
   },
