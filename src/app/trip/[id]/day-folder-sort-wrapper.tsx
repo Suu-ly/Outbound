@@ -35,7 +35,16 @@ export const DayFolderSortWrapper = forwardRef<
   DayFolderSortWrapperProps
 >(
   (
-    { children, handleProps, style, hover, isDragging, isDragOverlay, ...rest },
+    {
+      children,
+      handleProps,
+      style,
+      hover,
+      isDragging,
+      isDragOverlay,
+      isOpen,
+      ...rest
+    },
     ref,
   ) => {
     return (
@@ -70,7 +79,9 @@ export const DayFolderSortWrapper = forwardRef<
           >
             <IconGripVertical />
           </Button>
-          <DayFolder {...rest}>{children}</DayFolder>
+          <DayFolder isOpen={isOpen && !isDragging} {...rest}>
+            {children}
+          </DayFolder>
         </div>
       </div>
     );
