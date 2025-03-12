@@ -256,7 +256,7 @@ export const tripPlace = pgTable(
     type: tripPlaceTypeEnum("type").default("undecided").notNull(),
     // TIME SPENT
     order: text("order"), // SET COLLATE TO POSIX OR C!
-    timeSpent: doublePrecision("time_spent").default(2).notNull(),
+    timeSpent: doublePrecision("time_spent").default(120).notNull(),
     updatedAt: timestamp("updated_at", {
       mode: "date",
       precision: 3,

@@ -1,0 +1,1 @@
+ALTER TABLE "trip_place" ALTER COLUMN "time_spent" SET DEFAULT 120;
