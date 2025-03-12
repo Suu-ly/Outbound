@@ -3,7 +3,7 @@ import Skeleton from "@/components/ui/skeleton";
 export default function PlaceDetailsSkeletonLoader() {
   return (
     <div
-      className="relative ml-[46px] flex items-start rounded-xl bg-white p-2 duration-300 animate-in fade-in-0"
+      className="relative mb-2 ml-[46px] flex items-start rounded-xl bg-white p-2 duration-300 animate-in fade-in-0"
       role="presentation"
     >
       <span className="sr-only">Loading place</span>

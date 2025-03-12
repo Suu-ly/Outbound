@@ -97,6 +97,7 @@ const PlaceDetailsCompact = memo(
       const [note, setNote] = useState(
         data.userPlaceInfo.note ? data.userPlaceInfo.note : "",
       );
+      const [timePickerOpen, setTimePickerOpen] = useState(false);
 
       const noteRef = useRef<HTMLTextAreaElement | null>(null);
       const inputIsFocused = useRef(false);
@@ -371,38 +372,16 @@ const PlaceDetailsCompact = memo(
                   onMouseDown={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
                 >
-                  <TimePicker
-                    header="Select time spent"
-                    description={`Change the amount of time spent at ${data.placeInfo.displayName}.`}
-                    startHours={Math.floor(data.userPlaceInfo.timeSpent / 60)}
-                    hoursLength={12}
-                    hoursLoop={false}
-                    startMinutes={data.userPlaceInfo.timeSpent % 60}
-                    isDuration
-                    onConfirm={(close, hours, mins) => {
-                      if (
-                        handleDurationChange &&
-                        hours * 60 + mins !== data.userPlaceInfo.timeSpent
-                      )
-                        handleDurationChange(
-                          isInDay,
-                          data.placeInfo.placeId,
-                          hours * 60 + mins,
-                        );
-                      close();
-                    }}
+                  <Button
+                    className="h-9 w-full justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600"
+                    size="small"
+                    variant="ghost"
+                    onClick={() => setTimePickerOpen(true)}
+                    disabled={!isAdmin}
                   >
-                    <Button
-                      className="h-9 w-full justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600"
-                      size="small"
-                      variant="ghost"
-                      disabled={!isAdmin}
-                    >
-                      <IconHourglass />
-                      Allocated time:{" "}
-                      {minsToString(data.userPlaceInfo.timeSpent)}
-                    </Button>
-                  </TimePicker>
+                    <IconHourglass />
+                    Allocated time: {minsToString(data.userPlaceInfo.timeSpent)}
+                  </Button>
                 </div>
                 <OpeningHours
                   collapsible={false}
@@ -420,6 +399,29 @@ const PlaceDetailsCompact = memo(
               </TabDisable>
             </motion.div>
           </motion.div>
+          <TimePicker
+            onOpenChange={setTimePickerOpen}
+            open={timePickerOpen}
+            header="Select time spent"
+            description={`Change the amount of time spent at ${data.placeInfo.displayName}.`}
+            startHours={Math.floor(data.userPlaceInfo.timeSpent / 60)}
+            hoursLength={12}
+            hoursLoop={false}
+            startMinutes={data.userPlaceInfo.timeSpent % 60}
+            isDuration
+            onConfirm={(close, hours, mins) => {
+              if (
+                handleDurationChange &&
+                hours * 60 + mins !== data.userPlaceInfo.timeSpent
+              )
+                handleDurationChange(
+                  isInDay,
+                  data.placeInfo.placeId,
+                  hours * 60 + mins,
+                );
+              close();
+            }}
+          />
         </div>
       );
     },

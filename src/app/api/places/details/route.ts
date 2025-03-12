@@ -80,7 +80,15 @@ export async function GET(request: NextRequest) {
     const order = await db
       .insert(tripPlace)
       .values(toInsert)
-      .onConflictDoNothing()
+      .onConflictDoUpdate({
+        target: [tripPlace.tripId, tripPlace.placeId],
+        set: {
+          order: sql`excluded.order`,
+          type: sql`excluded.type`,
+          dayId: sql`excluded.day_id`,
+        },
+        setWhere: sql`${tripPlace.type} != 'saved'`,
+      })
       .returning({ order: tripPlace.order });
 
     if (order.length === 0)
@@ -224,7 +232,15 @@ export async function GET(request: NextRequest) {
       db
         .insert(tripPlace)
         .values(toInsert)
-        .onConflictDoNothing()
+        .onConflictDoUpdate({
+          target: [tripPlace.tripId, tripPlace.placeId],
+          set: {
+            order: sql`excluded.order`,
+            type: sql`excluded.type`,
+            dayId: sql`excluded.day_id`,
+          },
+          setWhere: sql`${tripPlace.type} != 'saved'`,
+        })
         .returning({ order: tripPlace.order }),
       redis.set(
         name + secondary + "details",
