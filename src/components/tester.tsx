@@ -71,7 +71,7 @@ const Tester = () => {
       </Button>
       <DrawerDialog
         header="Responsive Dialog"
-        content={
+        description={
           "This is to tell you that there is a certain action that will happen and is asking you to confirm."
         }
         mainActionLabel="Confirm"
@@ -162,7 +162,7 @@ const Tester = () => {
         startHours={9}
         startMinutes={10}
         header="Select Time"
-        mainActionLabel="Confirm"
+        description="Let's pick a time"
         isDuration
       >
         <Button variant="ghost">Pick time</Button>

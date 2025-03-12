@@ -590,7 +590,6 @@ const CarouselTimeSlider = React.forwardRef<HTMLDivElement, TimeSliderProps>(
                 }
               });
             }
-
             const tweenValue = 1 - Math.abs(diffToTarget * tweenFactor.current);
             const opacity = numberWithinRange(tweenValue, 0, 1).toString();
             emblaApi.slideNodes()[slideIndex].style.opacity = opacity;

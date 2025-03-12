@@ -373,6 +373,7 @@ const PlaceDetailsCompact = memo(
                 >
                   <TimePicker
                     header="Select time spent"
+                    description={`Change the amount of time spent at ${data.placeInfo.displayName}.`}
                     startHours={Math.floor(data.userPlaceInfo.timeSpent / 60)}
                     hoursLength={12}
                     hoursLoop={false}

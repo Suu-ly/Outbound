@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogTitle,
   DialogTrigger,
@@ -13,6 +14,7 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerDescription,
   DrawerFooter,
   DrawerTitle,
   DrawerTrigger,
@@ -23,7 +25,8 @@ import { useState } from "react";
 
 export type DrawerDialogProps = {
   header: string;
-  content: React.ReactNode;
+  content?: React.ReactNode;
+  description: string;
   mainActionLabel: string;
   onMainAction: (close: () => void) => void;
   cancelAction?: string;
@@ -37,6 +40,7 @@ export type DrawerDialogProps = {
 
 export default function DrawerDialog({
   header,
+  description,
   content,
   mainActionLabel,
   onMainAction,
@@ -68,7 +72,8 @@ export default function DrawerDialog({
           onEscapeKeyDown={(e) => loading && e.preventDefault()}
         >
           <DialogTitle>{header}</DialogTitle>
-          <div>{content}</div>
+          <DialogDescription>{description}</DialogDescription>
+          {content && <div>{content}</div>}
           <DialogFooter>
             <Button
               className={cn(destructive && "border-rose-900 bg-rose-600")}
@@ -103,7 +108,8 @@ export default function DrawerDialog({
       >
         <div className="space-y-6">
           <DrawerTitle>{header}</DrawerTitle>
-          <div>{content}</div>
+          <DrawerDescription>{description}</DrawerDescription>
+          {content && <div>{content}</div>}
           <DrawerFooter>
             <DrawerClose asChild>
               <Button

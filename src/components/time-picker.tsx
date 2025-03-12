@@ -68,6 +68,7 @@ export default function TimePicker({
               loop: minutesLoop,
               skipSnaps: true,
               align: "center",
+              containScroll: false,
               startIndex: Math.floor(startMinutes / 5),
             }}
           >

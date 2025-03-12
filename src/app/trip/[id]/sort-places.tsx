@@ -1035,9 +1035,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         loading={isRemovingPlace}
         onOpenChange={(open) => !open && setToBeRemoved(undefined)}
         header="Remove from saved places?"
-        content={
-          "To undo this action, you can go to the “View Skipped Places” page."
-        }
+        description="To undo this action, you can go to the “View Skipped Places” page."
         mainActionLabel="Remove"
         onMainAction={() => {
           if (toBeRemoved)
