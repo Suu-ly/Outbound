@@ -23,6 +23,7 @@ import {
   updateTripDayOrder,
   updateTripPlaceNote,
   updateTripPlaceOrder,
+  updateTripTimeSpent,
 } from "@/server/actions";
 import { PlaceData, PlaceDataEntry } from "@/server/types";
 import {
@@ -186,6 +187,11 @@ type SortableItemProps = {
     isInDay: number | string,
     placeId: string,
     note: string,
+  ) => void;
+  handleDurationChange: (
+    isInDay: number | string,
+    placeId: string,
+    timeSpent: number,
   ) => void;
   children?: ReactNode;
 } & PlaceDetailsCompactProps;
@@ -565,28 +571,48 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       let newNote = false;
       setPlaces((prev) => ({
         ...prev,
-        [isInDay]: [
-          ...prev[isInDay].map((place) => {
-            if (place.placeInfo.placeId !== placeId) return place;
-            // Null and "" are not the same but functionally they are, so we do this check to make sure
-            // we do not consider it a new note
-            if (
-              place.userPlaceInfo.note !== note &&
-              (place.userPlaceInfo.note !== null || note !== "")
-            )
-              newNote = true;
-            return {
-              placeInfo: place.placeInfo,
-              userPlaceInfo: {
-                ...place.userPlaceInfo,
-                note: note,
-              },
-            };
-          }),
-        ],
+        [isInDay]: prev[isInDay].map((place) => {
+          if (place.placeInfo.placeId !== placeId) return place;
+          // Null and "" are not the same but functionally they are, so we do this check to make sure
+          // we do not consider it a new note
+          if (
+            place.userPlaceInfo.note !== note &&
+            (place.userPlaceInfo.note !== null || note !== "")
+          )
+            newNote = true;
+          return {
+            placeInfo: place.placeInfo,
+            userPlaceInfo: {
+              ...place.userPlaceInfo,
+              note: note,
+            },
+          };
+        }),
       }));
       if (newNote) updateTripPlaceNote(tripId, placeId, note ? note : null);
     },
+    [setPlaces, tripId],
+  );
+
+  const handleDurationChange = useCallback(
+    (isInDay: number | string, placeId: string, timeSpent: number) => {
+      console.log("Running");
+      setPlaces((prev) => ({
+        ...prev,
+        [isInDay]: prev[isInDay].map((place) => {
+          if (place.placeInfo.placeId !== placeId) return place;
+          return {
+            placeInfo: place.placeInfo,
+            userPlaceInfo: {
+              ...place.userPlaceInfo,
+              timeSpent: timeSpent,
+            },
+          };
+        }),
+      }));
+      updateTripTimeSpent(tripId, placeId, timeSpent);
+    },
+
     [setPlaces, tripId],
   );
 
@@ -604,26 +630,26 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       onDragStart={({ active }) => {
         setActiveId(active);
       }}
-      onDragMove={({ active, over }) => {
-        if (!over || active.id === over.id) {
-          setIndicator(null);
-          return;
-        }
+      // onDragMove={({ active, over }) => {
+      //   if (!over || active.id === over.id) {
+      //     setIndicator(null);
+      //     return;
+      //   }
 
-        const isBelowOverItem =
-          active.rect.current.translated &&
-          active.rect.current.translated.top >
-            over.rect.top + (over.rect.height / 4 - 32);
+      //   const isBelowOverItem =
+      //     active.rect.current.translated &&
+      //     active.rect.current.translated.top >
+      //       over.rect.top + (over.rect.height / 4 - 32);
 
-        if (isBelowOverItem === null) {
-          setIndicator(null);
-          return;
-        }
-        setIndicator({
-          id: over.id,
-          below: isBelowOverItem,
-        });
-      }}
+      //   if (isBelowOverItem === null) {
+      //     setIndicator(null);
+      //     return;
+      //   }
+      //   setIndicator({
+      //     id: over.id,
+      //     below: isBelowOverItem,
+      //   });
+      // }}
       onDragEnd={({ active, over }) => {
         setActiveId(null);
         setIndicator(null);
@@ -881,6 +907,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                     onRemove={onRemove}
                     handleMove={handleMove}
                     handleNoteChange={handleNoteChange}
+                    handleDurationChange={handleDurationChange}
                   />
                 </div>
               ))}
@@ -954,6 +981,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                         onRemove={onRemove}
                         handleMove={handleMove}
                         handleNoteChange={handleNoteChange}
+                        handleDurationChange={handleDurationChange}
                       >
                         {index < places[day.dayId].length - 1 && ( // Not the last item
                           <TravelTimeSelect

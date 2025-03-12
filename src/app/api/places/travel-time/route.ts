@@ -1,4 +1,4 @@
-import { hoursToString } from "@/lib/utils";
+import { minsToString } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { redis } from "@/server/cache";
 import { db } from "@/server/db";
@@ -82,12 +82,9 @@ const getTravelTimesFromResponse = (
         data.routes[0].distance >= 1000
           ? (data.routes[0].distance / 1000).toFixed(1) + " km"
           : Math.round(data.routes[0].distance) + " m",
-      duration: Math.round((data.routes[0].duration / 60 / 60) * 1000) / 1000,
-      durationDisplay: hoursToString(data.routes[0].duration / 60 / 60),
-      durationDisplayRoundUp: hoursToString(
-        data.routes[0].duration / 60 / 60,
-        true,
-      ),
+      duration: Math.round((data.routes[0].duration / 60) * 1000) / 1000, // Round to 3dp
+      durationDisplay: minsToString(data.routes[0].duration / 60),
+      durationDisplayRoundUp: minsToString(data.routes[0].duration / 60, true),
       summary:
         data.routes[0].legs.length > 0 && data.routes[0].legs[0].summary
           ? data.routes[0].legs[0].summary

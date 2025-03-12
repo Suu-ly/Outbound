@@ -14,7 +14,7 @@ export default function TimePicker({
   minutesLoop = true,
   isDuration = false,
   ...rest
-}: Omit<DrawerDialogProps, "onMainAction" | "content"> & {
+}: Omit<DrawerDialogProps, "onMainAction" | "content" | "mainActionLabel"> & {
   onConfirm: (close: () => void, hours: number, minutes: number) => void;
   startHours: number;
   startMinutes: number;
@@ -28,6 +28,7 @@ export default function TimePicker({
   return (
     <DrawerDialog
       {...rest}
+      mainActionLabel="Confirm"
       onMainAction={(close) => {
         onConfirm(close, hours.current, minutes.current);
       }}
@@ -40,7 +41,8 @@ export default function TimePicker({
               loop: hoursLoop,
               skipSnaps: true,
               align: "center",
-              startIndex: 9,
+              startIndex: startHours,
+              containScroll: false,
             }}
           >
             <CarouselTimeSlider
@@ -66,7 +68,7 @@ export default function TimePicker({
               loop: minutesLoop,
               skipSnaps: true,
               align: "center",
-              startIndex: Math.floor(startMinutes / 10),
+              startIndex: Math.floor(startMinutes / 5),
             }}
           >
             <CarouselTimeSlider

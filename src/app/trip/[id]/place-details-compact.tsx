@@ -8,6 +8,7 @@ import {
 import OpeningHours from "@/components/opening-hours";
 import ShareButton from "@/components/share-button";
 import TabDisable from "@/components/tab-disable";
+import TimePicker from "@/components/time-picker";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Textarea from "@/components/ui/textarea";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { hoursToString } from "@/lib/utils";
+import { minsToString } from "@/lib/utils";
 import { PlaceDataEntry } from "@/server/types";
 import {
   IconCalendarRepeat,
@@ -62,6 +63,11 @@ export type PlaceDetailsCompactProps = {
     placeId: string,
     note: string,
   ) => void;
+  handleDurationChange?: (
+    isInDay: number | string,
+    placeId: string,
+    timeSpent: number,
+  ) => void;
 };
 
 const PlaceDetailsCompact = memo(
@@ -75,6 +81,7 @@ const PlaceDetailsCompact = memo(
         onRemove,
         handleMove,
         handleNoteChange,
+        handleDurationChange,
       },
       ref,
     ) => {
@@ -360,15 +367,42 @@ const PlaceDetailsCompact = memo(
                 className="flex flex-col pt-2 xl:pt-2"
                 active={expanded === "max"}
               >
-                <Button
-                  className="h-9 justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600"
-                  size="small"
-                  variant="ghost"
-                  disabled={!isAdmin}
+                <div
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                 >
-                  <IconHourglass />
-                  Allocated time: {hoursToString(data.userPlaceInfo.timeSpent)}
-                </Button>
+                  <TimePicker
+                    header="Select time spent"
+                    startHours={Math.floor(data.userPlaceInfo.timeSpent / 60)}
+                    hoursLength={12}
+                    hoursLoop={false}
+                    startMinutes={data.userPlaceInfo.timeSpent % 60}
+                    isDuration
+                    onConfirm={(close, hours, mins) => {
+                      if (
+                        handleDurationChange &&
+                        hours * 60 + mins !== data.userPlaceInfo.timeSpent
+                      )
+                        handleDurationChange(
+                          isInDay,
+                          data.placeInfo.placeId,
+                          hours * 60 + mins,
+                        );
+                      close();
+                    }}
+                  >
+                    <Button
+                      className="h-9 w-full justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600"
+                      size="small"
+                      variant="ghost"
+                      disabled={!isAdmin}
+                    >
+                      <IconHourglass />
+                      Allocated time:{" "}
+                      {minsToString(data.userPlaceInfo.timeSpent)}
+                    </Button>
+                  </TimePicker>
+                </div>
                 <OpeningHours
                   collapsible={false}
                   highligtedDay={hoursDayIndex}
@@ -389,17 +423,6 @@ const PlaceDetailsCompact = memo(
       );
     },
   ),
-  (prev, next) => {
-    return !(
-      prev.data.placeInfo.placeId !== next.data.placeInfo.placeId ||
-      prev.onRemove !== next.onRemove ||
-      prev.handleMove !== next.handleMove ||
-      prev.handleNoteChange !== next.handleNoteChange ||
-      prev.isDragging !== next.isDragging ||
-      prev.isInDay !== next.isInDay ||
-      prev.dayIndex !== next.dayIndex
-    );
-  },
 );
 
 PlaceDetailsCompact.displayName = "PlaceDetailsCompact";

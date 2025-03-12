@@ -80,32 +80,27 @@ export const defaultTripPlaceUserInfo = {
   timeToNextPlace: null,
 };
 
-export function hoursToString(hours: number, roundUp?: boolean) {
-  let numHours = Math.floor(hours);
-  let minutes = roundUp
-    ? Math.ceil((hours - numHours) / 0.25) * 0.25 * 60
-    : Math.ceil((hours - numHours) * 60);
-  if (minutes === 60) {
-    numHours += 1;
-    minutes = 0;
-  }
+export function minsToString(minutes: number, roundUp?: boolean) {
+  const numHours = Math.floor(minutes / 60);
+  const mins = roundUp ? Math.ceil((minutes % 60) / 15) * 15 : minutes % 60;
   let output = roundUp ? "~" : "";
   if (numHours) output += `${numHours} hr${numHours > 1 ? "s" : ""}`;
-  if (numHours && minutes) output += " ";
-  if (minutes) output += `${minutes} min${minutes > 1 ? "s" : ""}`;
+  if (numHours && mins) output += " ";
+  if (mins) output += `${mins} min${mins > 1 ? "s" : ""}`;
+  if (!output) output = "none";
   return output;
 }
 
-export function digitStringToHours(input: string) {
-  return parseInt(input.substring(0, 2)) + parseInt(input.substring(2)) / 60;
+export function digitStringToMins(input: string) {
+  return parseInt(input.substring(0, 2)) * 60 + parseInt(input.substring(2));
 }
 
-export function hoursTo24HourFormat(hours: number) {
-  if (hours < 0) throw new Error("Invalid hour");
+export function minsTo24HourFormat(minutes: number) {
+  if (minutes < 0) throw new Error("Invalid minutes");
+  const hours = Math.floor(minutes / 60);
   return {
     value:
-      `${Math.floor(hours) % 24}`.padStart(2, "0") +
-      `${Math.ceil((hours - Math.floor(hours)) * 60)}`.padStart(2, "0"),
+      `${hours % 24}`.padStart(2, "0") + `${minutes % 60}`.padStart(2, "0"),
     overflow: hours >= 24,
   };
 }

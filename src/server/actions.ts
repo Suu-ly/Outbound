@@ -427,3 +427,29 @@ export async function updatePreferredTravelMode(
     };
   }
 }
+
+export async function updateTripTimeSpent(
+  tripId: string,
+  tripPlaceId: string,
+  timeSpent: number,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(tripPlace)
+      .set({
+        timeSpent: timeSpent,
+      })
+      .where(
+        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+      );
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update time spent",
+    };
+  }
+}

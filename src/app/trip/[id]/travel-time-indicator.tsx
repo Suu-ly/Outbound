@@ -1,4 +1,4 @@
-import { digitStringToHours, hoursTo24HourFormat } from "@/lib/utils";
+import { digitStringToMins, minsTo24HourFormat } from "@/lib/utils";
 import { useAtomValue } from "jotai";
 import { memo } from "react";
 import { computedTravelTimesAtom, tripDetailsAtom } from "../atoms";
@@ -24,14 +24,14 @@ const TravelTimeIndicator = memo(
 
     if (shouldHide) return null; // Avoid doing any calculation while dragging
 
-    const baseHours =
+    const baseMins =
       startTime === "auto"
-        ? digitStringToHours(defaultStartTime)
-        : digitStringToHours(startTime);
+        ? digitStringToMins(defaultStartTime)
+        : digitStringToMins(startTime);
 
     const getTime = () => {
       return computedTimes[isInDay][index] !== null
-        ? hoursTo24HourFormat(baseHours + computedTimes[isInDay][index])
+        ? minsTo24HourFormat(baseMins + computedTimes[isInDay][index])
         : null;
     };
 
