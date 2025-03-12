@@ -81,6 +81,17 @@ export default function TripAutocomplete({
     selectedId: AutocompleteReturn | undefined,
   ) => {
     if (!selectedId) throw new Error("Selected place is not valid");
+    setLoadingState((prev) => {
+      if (!prev[isInDay])
+        return {
+          ...prev,
+          [isInDay]: [selectedId.id],
+        };
+      return {
+        ...prev,
+        [isInDay]: [...prev[isInDay], selectedId.id],
+      };
+    });
     const urlParams = new URLSearchParams([
       ["name", selectedId.label],
       ["secondary", selectedId.subtitle ?? ""],
@@ -96,9 +107,6 @@ export default function TripAutocomplete({
             order: string | null;
           }>,
       );
-    if (data.status === "error") {
-      throw new Error(data.message);
-    }
     setLoadingState((prev) => {
       if (!prev[isInDay]) return prev;
       return {
@@ -106,6 +114,9 @@ export default function TripAutocomplete({
         [isInDay]: prev[isInDay].filter((data) => data !== selectedId.id),
       };
     });
+    if (data.status === "error") {
+      throw new Error(data.message);
+    }
     setPlaces((prev) => ({
       ...prev,
       [isInDay]: [
@@ -184,17 +195,6 @@ export default function TripAutocomplete({
         onSelectItem: (data) => {
           if (!checkIfPlaceExists(data.id)) {
             setSelectedId(data);
-            setLoadingState((prev) => {
-              if (!prev[isInDay])
-                return {
-                  ...prev,
-                  [isInDay]: [data.id],
-                };
-              return {
-                ...prev,
-                [isInDay]: [...prev[isInDay], data.id],
-              };
-            });
           } else toast.error("Place already added!");
         },
         header: "From the web",

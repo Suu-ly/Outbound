@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useAtom, useAtomValue } from "jotai";
 import { redirect, usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import {
   activePlaceIndexAtom,
   discoverPlacesAtom,
@@ -103,7 +102,7 @@ export default function DiscoverManager({ tripId }: { tripId: string }) {
         ...newWindows,
       }));
     } else {
-      toast.error(res.message);
+      throw new Error(res.message);
     }
     return data.data;
   };

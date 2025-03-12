@@ -22,7 +22,11 @@ function makeQueryClient() {
     },
     queryCache: new QueryCache({
       onError: (error, query) => {
-        if (query.meta?.errorMessage)
+        if (error.message)
+          toast.error(`Something went wrong: ${error.message}`, {
+            id: error.name,
+          });
+        else if (query.meta?.errorMessage)
           toast.error(`Something went wrong: ${query.meta.errorMessage}`, {
             id: error.name,
           });
