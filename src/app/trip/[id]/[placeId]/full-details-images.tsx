@@ -8,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import Skeleton from "@/components/ui/skeleton";
 import { ApiResponse, PlacesPhoto } from "@/server/types";
 import { useQuery } from "@tanstack/react-query";
 
@@ -39,7 +40,10 @@ export default function FullPlaceDetailsImages({
     },
   });
 
-  if (!data) return;
+  if (!data)
+    return (
+      <Skeleton className="mx-4 h-[400px] rounded-xl bg-white sm:h-[520px]" />
+    );
 
   return (
     <Carousel orientation="vertical" disabled={true} className="mx-4">

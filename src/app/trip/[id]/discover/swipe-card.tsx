@@ -9,6 +9,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import Skeleton from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { TripPlaceDetails } from "@/server/types";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -354,6 +355,9 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
                   : { paddingTop: 12, paddingBottom: 12 }
               }
             >
+              {data.photos === undefined && (
+                <Skeleton className="mx-4 h-[400px] rounded-xl bg-white sm:h-[520px]" />
+              )}
               {data.photos && (
                 <motion.div
                   style={mobile ? { height: imageHeight } : undefined}
