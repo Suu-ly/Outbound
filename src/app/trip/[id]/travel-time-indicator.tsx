@@ -4,11 +4,12 @@ import { memo } from "react";
 import { computedTravelTimesAtom, tripDetailsAtom } from "../atoms";
 
 type TravelTimeIndicatorProps = {
-  isInDay: string | number;
+  isInDay: number;
   index: number;
   startTime: string;
   shouldHide: boolean;
   bottom?: boolean;
+  startTimeClick?: (isInDay: number) => void;
 };
 
 const TravelTimeIndicator = memo(
@@ -18,6 +19,7 @@ const TravelTimeIndicator = memo(
     startTime,
     shouldHide,
     bottom,
+    startTimeClick,
   }: TravelTimeIndicatorProps) => {
     const defaultStartTime = useAtomValue(tripDetailsAtom).startTime;
     const computedTimes = useAtomValue(computedTravelTimesAtom);
@@ -44,6 +46,11 @@ const TravelTimeIndicator = memo(
     return (
       <Comp
         aria-label={`Arrive at ${time.value}`}
+        onClick={
+          index === 0 && startTimeClick
+            ? () => startTimeClick(isInDay)
+            : undefined
+        }
         className={`absolute -left-px ${bottom ? "bottom-3" : "top-10"} flex w-11 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-white text-sm font-medium ${time.overflow ? "text-rose-600" : "text-slate-700"} ${index === 0 ? "ring-offset-zinc-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2" : ""}`}
       >
         {time.value}

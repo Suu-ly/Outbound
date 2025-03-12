@@ -1,6 +1,7 @@
 "use client";
 
 import { PlaceDetailsCompactProps } from "@/app/trip/[id]/place-details-compact";
+import TimePicker from "@/components/time-picker";
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import DrawerDialog from "@/components/ui/drawer-dialog";
@@ -12,20 +13,23 @@ import {
 import { markerColorLookup } from "@/lib/color-lookups";
 import {
   cn,
+  digitStringToMins,
   getStartingIndex,
   insertAfter,
   insertBefore,
   insertBetween,
+  minsTo24HourFormat,
 } from "@/lib/utils";
 import {
   moveTripPlace,
   setPlaceAsUninterested,
+  updateDayStartTime,
   updateTripDayOrder,
   updateTripPlaceNote,
   updateTripPlaceOrder,
   updateTripTimeSpent,
 } from "@/server/actions";
-import { PlaceData, PlaceDataEntry } from "@/server/types";
+import { DayData, PlaceData, PlaceDataEntry } from "@/server/types";
 import {
   Active,
   closestCenter,
@@ -67,7 +71,12 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { dayPlacesAtom, tripPlacesAtom, tripStartDateAtom } from "../atoms";
+import {
+  dayPlacesAtom,
+  tripDetailsAtom,
+  tripPlacesAtom,
+  tripStartDateAtom,
+} from "../atoms";
 import {
   DayFolderSortWrapper,
   SavedPlacesWrapper,
@@ -241,7 +250,6 @@ function SortableItem({
 function DroppableContainer({
   children,
   disabled,
-  id,
   items,
   ...rest
 }:
@@ -251,7 +259,7 @@ function DroppableContainer({
       index: number;
       children: ReactNode;
       disabled?: boolean;
-      id: UniqueIdentifier;
+      id: number;
       items: UniqueIdentifier[];
       handleMove: (
         isInDay: number | string,
@@ -261,12 +269,13 @@ function DroppableContainer({
       setLoadingState: Dispatch<
         SetStateAction<Record<keyof PlaceData, string[]>>
       >;
+      startTimeChange: (dayId: number) => void;
     }
   | {
       day: false;
       children: ReactNode;
       disabled?: boolean;
-      id: UniqueIdentifier;
+      id: string;
       items: UniqueIdentifier[];
     }) {
   const [open, setOpen] = useState(true);
@@ -281,7 +290,7 @@ function DroppableContainer({
     transform,
     transition,
   } = useSortable({
-    id,
+    id: rest.id,
     data: {
       type: "container",
       children: items,
@@ -290,7 +299,7 @@ function DroppableContainer({
     animateLayoutChanges: () => false,
   });
   const isOverContainer = over
-    ? (id === over.id && active?.data.current?.type !== "container") ||
+    ? (rest.id === over.id && active?.data.current?.type !== "container") ||
       items.includes(over.id)
     : false;
 
@@ -347,7 +356,7 @@ function DroppableContainer({
         transition,
         transform: CSS.Translate.toString(transform),
       }}
-      dayId={id}
+      dayId={rest.id}
       isOpen={open}
       onOpenChange={setOpen}
       isDragging={isDragging}
@@ -393,6 +402,7 @@ const dropAnimation: DropAnimation = {
 const SAVED_ID = "saved";
 
 export default function SortPlaces({ tripId }: { tripId: string }) {
+  const defaultStartTime = useAtomValue(tripDetailsAtom).startTime;
   const [places, setPlaces] = useAtom(tripPlacesAtom);
   const [days, setDays] = useAtom(dayPlacesAtom);
   const [indicator, setIndicator] = useState<{
@@ -405,6 +415,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     isInDay: string | number;
     placeId: string;
   }>();
+  const [changingDayTime, setChangingDayTime] = useState<DayData>();
   const [isRemovingPlace, setIsRemovingPlace] = useState(false);
   const [loadingState, setLoadingState] = useState<
     Record<keyof typeof places, string[]>
@@ -614,6 +625,30 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     },
 
     [setPlaces, tripId],
+  );
+
+  const setChangingDayFromIndex = useCallback(
+    (dayId: number) => {
+      const day = days.find((day) => day.dayId === dayId);
+      if (!day) return;
+      if (day.dayStartTime === "auto")
+        setChangingDayTime({ ...day, dayStartTime: defaultStartTime });
+      else setChangingDayTime(day);
+    },
+    [days, defaultStartTime],
+  );
+
+  const onChangeDayTimeConfirm = useCallback(
+    (dayId: number, newTime: string) => {
+      updateDayStartTime(dayId, newTime);
+      setDays((prev) =>
+        prev.map((day) => {
+          if (day.dayId !== dayId) return day;
+          return { ...day, dayStartTime: newTime };
+        }),
+      );
+    },
+    [setDays],
   );
 
   return (
@@ -939,6 +974,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               index={dayIndex}
               handleMove={handleMove}
               setLoadingState={setLoadingState}
+              startTimeChange={setChangingDayFromIndex}
             >
               <SortableContext
                 items={places[day.dayId].map(
@@ -966,6 +1002,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                         index={index}
                         startTime={day.dayStartTime}
                         shouldHide={Boolean(activeId && !isSortingContainer)}
+                        startTimeClick={setChangingDayFromIndex}
                       />
                       <SortableItem
                         data={place}
@@ -1045,6 +1082,31 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           else setToBeRemoved(undefined);
         }}
         destructive
+      />
+      <TimePicker
+        open={!!changingDayTime}
+        onOpenChange={(open) => !open && setChangingDayTime(undefined)}
+        header="Change start time"
+        description="Change the time your day will start at."
+        startHours={Math.floor(
+          digitStringToMins(
+            changingDayTime ? changingDayTime.dayStartTime : "0900",
+          ) / 60,
+        )}
+        startMinutes={
+          digitStringToMins(
+            changingDayTime ? changingDayTime.dayStartTime : "0000",
+          ) % 60
+        }
+        onConfirm={(close, hours, mins) => {
+          if (!changingDayTime) return;
+          console.log(minsTo24HourFormat(hours * 60 + mins).value);
+          onChangeDayTimeConfirm(
+            changingDayTime.dayId,
+            minsTo24HourFormat(hours * 60 + mins).value,
+          );
+          close();
+        }}
       />
     </DndContext>
   );

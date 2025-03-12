@@ -541,17 +541,20 @@ const TWEEN_FACTOR_BASE = 0.45;
 const numberWithinRange = (number: number, min: number, max: number): number =>
   Math.min(Math.max(number, min), max);
 
-type TimeSliderProps =
-  | { type: "minutes"; className?: string; onSelect: (time: number) => void }
+type TimeSliderProps = {
+  className?: string;
+  onSelect: (time: number) => void;
+  isDuration?: boolean;
+} & (
+  | { type: "minutes" }
   | {
       type: "hours";
       length: number;
-      className?: string;
-      onSelect: (time: number) => void;
-    };
+    }
+);
 
 const CarouselTimeSlider = React.forwardRef<HTMLDivElement, TimeSliderProps>(
-  ({ className, onSelect, ...props }, ref) => {
+  ({ className, onSelect, isDuration = false, ...props }, ref) => {
     const { api } = useCarousel();
     const tweenFactor = React.useRef(0);
 
@@ -642,7 +645,7 @@ const CarouselTimeSlider = React.forwardRef<HTMLDivElement, TimeSliderProps>(
                 className,
               )}
             >
-              {index * 5}
+              {isDuration ? index * 5 : `${index * 5}`.padStart(2, "0")}
             </CarouselItem>
           ))}
         {props.type === "hours" &&

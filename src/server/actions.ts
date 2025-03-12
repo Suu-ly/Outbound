@@ -453,3 +453,23 @@ export async function updateTripTimeSpent(
     };
   }
 }
+
+export async function updateDayStartTime(dayId: number, newTime: string) {
+  try {
+    await db
+      .update(tripDay)
+      .set({
+        startTime: newTime,
+      })
+      .where(eq(tripDay.id, dayId));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update time spent",
+    };
+  }
+}

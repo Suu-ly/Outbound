@@ -1,16 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PlaceData, PlaceDataEntry } from "@/server/types";
-import { UniqueIdentifier } from "@dnd-kit/core";
 import { IconGripVertical } from "@tabler/icons-react";
-import {
-  ComponentPropsWithoutRef,
-  Dispatch,
-  forwardRef,
-  memo,
-  ReactNode,
-  SetStateAction,
-} from "react";
+import { ComponentPropsWithoutRef, forwardRef, memo, ReactNode } from "react";
 import DayFolder, { DayFolderProps } from "./day-folder";
 
 export const SavedPlacesWrapper = memo(
@@ -32,16 +23,6 @@ export const SavedPlacesWrapper = memo(
 SavedPlacesWrapper.displayName = "SavedPlacesWrapper";
 
 type DayFolderSortWrapperProps = {
-  startDate: Date;
-  index: number;
-  children?: ReactNode;
-  dayId?: UniqueIdentifier;
-  handleMove?: (
-    isInDay: number | string,
-    data: PlaceDataEntry,
-    newDay: number | string,
-  ) => void;
-  setLoadingState?: Dispatch<SetStateAction<Record<keyof PlaceData, string[]>>>;
   handleProps?: ComponentPropsWithoutRef<"button">;
   style?: React.CSSProperties;
   hover?: boolean;
@@ -54,21 +35,7 @@ export const DayFolderSortWrapper = forwardRef<
   DayFolderSortWrapperProps
 >(
   (
-    {
-      startDate,
-      index,
-      children,
-      dayId,
-      handleMove,
-      setLoadingState,
-      handleProps,
-      style,
-      hover,
-      isDragging,
-      isDragOverlay,
-      isOpen,
-      onOpenChange,
-    },
+    { children, handleProps, style, hover, isDragging, isDragOverlay, ...rest },
     ref,
   ) => {
     return (
@@ -103,17 +70,7 @@ export const DayFolderSortWrapper = forwardRef<
           >
             <IconGripVertical />
           </Button>
-          <DayFolder
-            dayId={dayId}
-            startDate={startDate}
-            index={index}
-            handleMove={handleMove}
-            setLoadingState={setLoadingState}
-            isOpen={isOpen}
-            onOpenChange={onOpenChange}
-          >
-            {children}
-          </DayFolder>
+          <DayFolder {...rest}>{children}</DayFolder>
         </div>
       </div>
     );

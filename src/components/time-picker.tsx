@@ -73,6 +73,7 @@ export default function TimePicker({
             }}
           >
             <CarouselTimeSlider
+              isDuration={isDuration}
               type="minutes"
               onSelect={(num) => (minutes.current = num)}
             />
