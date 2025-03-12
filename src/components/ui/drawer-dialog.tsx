@@ -21,7 +21,7 @@ import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
-type DrawerDialogProps = {
+export type DrawerDialogProps = {
   header: string;
   content: React.ReactNode;
   mainActionLabel: string;

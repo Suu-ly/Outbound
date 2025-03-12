@@ -75,14 +75,11 @@ export const computedTravelTimesAtom = atom((get) => {
     let stopCalculation = false;
     for (let j = 0, placesLength = items.length - 1; j < placesLength; j++) {
       if (items[j].userPlaceInfo.timeToNextPlace && !stopCalculation) {
+        currentTimeSum += items[j].userPlaceInfo.timeSpent;
         if (shouldRoundUp)
           currentTimeSum +=
-            Math.ceil(items[j].userPlaceInfo.timeSpent / 0.25) * 0.25 +
             Math.ceil(items[j].userPlaceInfo.timeToNextPlace! / 0.25) * 0.25;
-        else
-          currentTimeSum +=
-            items[j].userPlaceInfo.timeSpent +
-            items[j].userPlaceInfo.timeToNextPlace!;
+        else currentTimeSum += items[j].userPlaceInfo.timeToNextPlace!;
         currentTimes[j + 1] = currentTimeSum;
       } else {
         currentTimes[j + 1] = null;

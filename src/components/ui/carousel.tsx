@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { ApiResponse, PlacesPhoto } from "@/server/types";
 import { IconArrowLeft, IconArrowRight } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { EmblaCarouselType } from "embla-carousel";
+import { EmblaCarouselType, EmblaEventType } from "embla-carousel";
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
@@ -186,8 +186,12 @@ const Carousel = React.forwardRef<
         <div
           ref={ref}
           onKeyDownCapture={handleKeyDown}
-          className={cn("relative", className)}
+          className={cn(
+            "relative ring-slate-400 ring-offset-white transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-4",
+            className,
+          )}
           role="region"
+          tabIndex={0}
           aria-roledescription="carousel"
           {...props}
         >
@@ -532,6 +536,135 @@ const CarouselIndicator = React.forwardRef<
 
 CarouselIndicator.displayName = "CarouselIndicator";
 
+const TWEEN_FACTOR_BASE = 0.45;
+
+const numberWithinRange = (number: number, min: number, max: number): number =>
+  Math.min(Math.max(number, min), max);
+
+type TimeSliderProps =
+  | { type: "minutes"; className?: string; onSelect: (time: number) => void }
+  | {
+      type: "hours";
+      length: number;
+      className?: string;
+      onSelect: (time: number) => void;
+    };
+
+const CarouselTimeSlider = React.forwardRef<HTMLDivElement, TimeSliderProps>(
+  ({ className, onSelect, ...props }, ref) => {
+    const { api } = useCarousel();
+    const tweenFactor = React.useRef(0);
+
+    const setTweenFactor = React.useCallback((emblaApi: EmblaCarouselType) => {
+      tweenFactor.current =
+        TWEEN_FACTOR_BASE * emblaApi.scrollSnapList().length;
+    }, []);
+
+    const tweenOpacity = React.useCallback(
+      (emblaApi: EmblaCarouselType, eventName?: EmblaEventType) => {
+        const engine = emblaApi.internalEngine();
+        const scrollProgress = emblaApi.scrollProgress();
+        const slidesInView = emblaApi.slidesInView();
+        const isScrollEvent = eventName === "scroll";
+
+        emblaApi.scrollSnapList().forEach((scrollSnap, snapIndex) => {
+          let diffToTarget = scrollSnap - scrollProgress;
+          const slidesInSnap = engine.slideRegistry[snapIndex];
+
+          slidesInSnap.forEach((slideIndex) => {
+            if (isScrollEvent && !slidesInView.includes(slideIndex)) return;
+
+            if (engine.options.loop) {
+              engine.slideLooper.loopPoints.forEach((loopItem) => {
+                const target = loopItem.target();
+
+                if (slideIndex === loopItem.index && target !== 0) {
+                  const sign = Math.sign(target);
+
+                  if (sign === -1) {
+                    diffToTarget = scrollSnap - (1 + scrollProgress);
+                  }
+                  if (sign === 1) {
+                    diffToTarget = scrollSnap + (1 - scrollProgress);
+                  }
+                }
+              });
+            }
+
+            const tweenValue = 1 - Math.abs(diffToTarget * tweenFactor.current);
+            const opacity = numberWithinRange(tweenValue, 0, 1).toString();
+            emblaApi.slideNodes()[slideIndex].style.opacity = opacity;
+          });
+        });
+      },
+      [],
+    );
+    const selectEvent = React.useCallback(
+      (e: EmblaCarouselType) => {
+        const time =
+          props.type === "minutes"
+            ? e.selectedScrollSnap() * 5
+            : e.selectedScrollSnap();
+        onSelect(time);
+      },
+      [onSelect, props.type],
+    );
+
+    React.useEffect(() => {
+      if (!api) return;
+
+      setTweenFactor(api);
+      tweenOpacity(api);
+      api
+        .on("reInit", setTweenFactor)
+        .on("reInit", tweenOpacity)
+        .on("scroll", tweenOpacity)
+        .on("slideFocus", tweenOpacity)
+        .on("select", selectEvent);
+
+      return () => {
+        api
+          .off("reInit", setTweenFactor)
+          .off("reInit", tweenOpacity)
+          .off("scroll", tweenOpacity)
+          .off("slideFocus", tweenOpacity)
+          .off("select", selectEvent);
+      };
+    }, [api, onSelect, selectEvent, setTweenFactor, tweenOpacity]);
+
+    return (
+      <CarouselContent className="-mt-2 h-48" ref={ref}>
+        {props.type === "minutes" &&
+          Array.from({ length: 12 }).map((_, index) => (
+            <CarouselItem
+              key={index}
+              className={cn(
+                "w-8 basis-1/5 select-none pt-2 text-center text-2xl font-medium text-slate-900",
+                className,
+              )}
+            >
+              {index * 5}
+            </CarouselItem>
+          ))}
+        {props.type === "hours" &&
+          Array.from({ length: props.length }).map((_, index) => (
+            <CarouselItem
+              key={index}
+              className={cn(
+                "w-8 basis-1/5 select-none pt-2 text-center text-2xl font-medium text-slate-900",
+                className,
+              )}
+            >
+              {index}
+            </CarouselItem>
+          ))}
+      </CarouselContent>
+    );
+  },
+);
+
+CarouselTimeSlider.displayName = "CarouselTimeSlider";
+
 export {
   Carousel,
   CarouselContent,
@@ -540,5 +673,6 @@ export {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  CarouselTimeSlider,
   type CarouselApi,
 };

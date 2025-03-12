@@ -13,7 +13,7 @@ export default async function FullPlaceDetailsPage({
   const ids = await params;
 
   const [data] = await db.select().from(place).where(eq(place.id, ids.placeId));
-
+  // TODO: Maybe add some buttons to move to saved places or something
   return (
     <ViewMapToggle>
       <div className="space-y-4 pb-[72px] pt-4 sm:pb-4">

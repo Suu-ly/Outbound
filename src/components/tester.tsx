@@ -3,6 +3,7 @@
 import { IconDotsVertical } from "@tabler/icons-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import TimePicker from "./time-picker";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Button } from "./ui/button";
 import {
@@ -153,6 +154,19 @@ const Tester = () => {
           <SelectItem value="pineapple">Pineapple</SelectItem>
         </SelectContent>
       </Select>
+      <TimePicker
+        onConfirm={(close, hours, minutes) => {
+          console.log(hours, minutes);
+          close();
+        }}
+        startHours={9}
+        startMinutes={10}
+        header="Select Time"
+        mainActionLabel="Confirm"
+        isDuration
+      >
+        <Button variant="ghost">Pick time</Button>
+      </TimePicker>
     </>
   );
 };
