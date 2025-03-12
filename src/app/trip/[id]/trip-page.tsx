@@ -250,7 +250,7 @@ export default function TripPage({ tripId }: { tripId: string }) {
           className="absolute size-full object-cover"
         />
       </div>
-      <div className="flex flex-col gap-4 p-4 pb-14 sm:pb-4">
+      <div className="flex flex-col gap-4 p-4 pb-[72px] sm:pb-4">
         <SortPlaces tripId={tripId} />
       </div>
     </ViewMapToggle>

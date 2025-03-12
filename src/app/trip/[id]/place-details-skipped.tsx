@@ -16,6 +16,7 @@ import {
   IconStarFilled,
 } from "@tabler/icons-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { CSSProperties, forwardRef, memo, useCallback, useState } from "react";
 
 export type PlaceDetailsSkippedProps = {
@@ -27,7 +28,7 @@ const PlaceDetailsSkipped = memo(
   forwardRef<HTMLDivElement, PlaceDetailsSkippedProps>(
     ({ data, onMoveToInterested }, ref) => {
       const [expanded, setExpanded] = useState(false);
-
+      const tripId = useParams<{ id: string }>().id;
       const [isMovingToInterested, setIsMovingToInterested] = useState(false);
 
       const handleOnClick = useCallback(() => {
@@ -140,7 +141,7 @@ const PlaceDetailsSkipped = memo(
                 contentClassName="pl-8"
               />
               <Link
-                href="#"
+                href={`/trip/${tripId}/${data.placeId}`}
                 className="inline-flex gap-1.5 rounded-lg p-2 pl-1.5 text-sm font-medium text-slate-700 ring-offset-white transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 active:ring-2 active:ring-slate-200 active:ring-offset-0 [&_svg]:size-5 [&_svg]:text-slate-600"
               >
                 <IconExternalLink /> View full information

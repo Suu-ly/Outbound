@@ -35,6 +35,7 @@ import { addDays } from "date-fns";
 import { useAtomValue } from "jotai";
 import { motion } from "motion/react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   ChangeEvent,
   forwardRef,
@@ -80,6 +81,7 @@ const PlaceDetailsCompact = memo(
       const [expanded, setExpanded] = useState<"min" | "mid" | "max">(
         data.userPlaceInfo.note ? "mid" : "min",
       );
+      const tripId = useParams<{ id: string }>().id;
       const startDate = useAtomValue(tripStartDateAtom);
       const days = useAtomValue(dayPlacesAtom);
       const isAdmin = useAtomValue(isTripAdminAtom);
@@ -375,7 +377,7 @@ const PlaceDetailsCompact = memo(
                   contentClassName="pl-8"
                 />
                 <Link
-                  href="#"
+                  href={`/trip/${tripId}/${data.placeInfo.placeId}`}
                   className="inline-flex gap-1.5 rounded-lg p-2 pl-1.5 text-sm font-medium text-slate-700 ring-offset-white transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 active:ring-2 active:ring-slate-200 active:ring-offset-0 [&_svg]:size-5 [&_svg]:text-slate-600"
                 >
                   <IconExternalLink /> View full information
