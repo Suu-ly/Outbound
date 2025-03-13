@@ -131,17 +131,12 @@ const TripMarkers = () => {
     setTimeout(() => {
       if (map) map.getMap().doubleClickZoom.enable();
     }, 350);
-    const viewport = place.placeInfo.viewport;
     const now = Date.now();
     let animate = true;
     if (now - lastTimeClicked.current > 350) {
       animate = false;
     }
     setActiveMapMarker({
-      bounds: [
-        [viewport.low.longitude, viewport.low.latitude],
-        [viewport.high.longitude, viewport.high.latitude],
-      ],
       isInDay: isInDay,
       placeId: place.placeInfo.placeId,
       position: [
@@ -149,6 +144,7 @@ const TripMarkers = () => {
         place.placeInfo.location.latitude,
       ],
       shouldAnimate: animate,
+      type: "saved",
     });
     lastTimeClicked.current = now;
   };
@@ -193,7 +189,7 @@ const useMapViewManager = () => {
 
   useEffect(() => {
     if (!map || !activeMapMarker || !activeMapMarker.shouldAnimate) return;
-    let bounds = activeMapMarker.bounds;
+
     if (activeMapMarker.isInDay !== null) {
       const dayPlaces = places[activeMapMarker.isInDay];
       let minLon = dayPlaces[0].placeInfo.location.longitude,
@@ -210,7 +206,7 @@ const useMapViewManager = () => {
         if (maxLat < dayPlaces[i].placeInfo.location.latitude)
           maxLat = dayPlaces[i].placeInfo.location.latitude;
       }
-      bounds = [
+      const bounds: BoundingBox = [
         [minLon, minLat],
         [maxLon, maxLat],
       ];

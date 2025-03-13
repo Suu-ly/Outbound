@@ -10,19 +10,19 @@ import {
 } from "@/server/types";
 import { IconSearch } from "@tabler/icons-react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 } from "uuid";
-import { tripDetailsAtom, tripPlacesAtom } from "../atoms";
+import { mapActiveMarkerAtom, tripDetailsAtom, tripPlacesAtom } from "../atoms";
 
 type TripAutocompleteProps = {
-  isInDay: number | string;
+  isInDay: number | "saved";
   handleMove: (
-    isInDay: number | string,
+    isInDay: number | "saved",
     data: PlaceDataEntry,
-    newDay: number | string,
+    newDay: number | "saved",
   ) => void;
   setLoadingState: Dispatch<SetStateAction<Record<keyof PlaceData, string[]>>>;
 };
@@ -39,6 +39,7 @@ export default function TripAutocomplete({
   const [places, setPlaces] = useAtom(tripPlacesAtom);
   const tripDetails = useAtomValue(tripDetailsAtom);
   const tripId = useParams<{ id: string }>().id;
+  const setActiveMapMarker = useSetAtom(mapActiveMarkerAtom);
   const debounce = useDebouncedFunction();
 
   const checkIfPlaceExists = (id: string) => {
@@ -141,6 +142,16 @@ export default function TripAutocomplete({
         },
       ],
     }));
+    setActiveMapMarker({
+      isInDay: isInDay === "saved" ? null : isInDay,
+      placeId: data.data.place.id,
+      position: [
+        data.data.place.location.longitude,
+        data.data.place.location.latitude,
+      ],
+      shouldAnimate: true,
+      type: "saved",
+    });
     return data.data;
   };
 

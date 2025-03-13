@@ -1,5 +1,4 @@
 import {
-  BoundingBox,
   DayData,
   PlaceData,
   TravelTimeGraphType,
@@ -38,8 +37,8 @@ export const isTripAdminAtom = atom<boolean>(false);
 
 // For the display of the marker on the map
 export const mapActiveMarkerAtom = atom<{
+  type: "saved" | "undecided" | "skipped";
   position: [number, number];
-  bounds: BoundingBox;
   isInDay: number | null;
   placeId: string;
   shouldAnimate: boolean;

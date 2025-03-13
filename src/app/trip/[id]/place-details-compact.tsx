@@ -106,18 +106,14 @@ const PlaceDetailsCompact = memo(
 
       const handleOnClick = useCallback(() => {
         if (expanded !== "max") {
-          const viewport = data.placeInfo.viewport;
           setActiveMapMarker({
-            bounds: [
-              [viewport.low.longitude, viewport.low.latitude],
-              [viewport.high.longitude, viewport.high.latitude],
-            ],
             isInDay: isInDay === "saved" ? null : isInDay,
             placeId: data.placeInfo.placeId,
             position: [
               data.placeInfo.location.longitude,
               data.placeInfo.location.latitude,
             ],
+            type: "saved",
             shouldAnimate: true,
           });
         }
