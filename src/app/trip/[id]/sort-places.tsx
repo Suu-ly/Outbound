@@ -714,11 +714,12 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               );
           }
           setDays((currentDays) => {
-            currentDays[activeIndex] = {
-              ...currentDays[activeIndex],
+            const newArr = arrayMove(currentDays, activeIndex, overIndex);
+            newArr[overIndex] = {
+              ...newArr[overIndex],
               dayOrder: newOrder,
             };
-            return arrayMove(currentDays, activeIndex, overIndex);
+            return newArr;
           });
           updateTripDayOrder(tripId, Number(active.id), newOrder).then(
             (data) => {
@@ -856,21 +857,22 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                 );
             }
             setPlaces((currentPlaces) => {
-              currentPlaces[overContainer][activeIndex] = {
-                placeInfo: currentPlaces[overContainer][activeIndex].placeInfo,
+              const newArr = arrayMove(
+                currentPlaces[overContainer],
+                activeIndex,
+                newIndex,
+              );
+              newArr[newIndex] = {
+                ...newArr[newIndex],
                 userPlaceInfo: {
-                  ...currentPlaces[overContainer][activeIndex].userPlaceInfo,
+                  ...newArr[newIndex].userPlaceInfo,
                   tripOrder: newOrder,
                 },
               };
 
               return {
                 ...currentPlaces,
-                [overContainer]: arrayMove(
-                  currentPlaces[overContainer],
-                  activeIndex,
-                  newIndex,
-                ),
+                [overContainer]: newArr,
               };
             });
           }
