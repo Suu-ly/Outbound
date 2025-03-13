@@ -1,7 +1,5 @@
-import type { auth } from "@/server/auth";
+import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
-
-type Session = typeof auth.$Infer.Session;
 
 const signedOutRoutes = [
   "/login",
@@ -18,20 +16,10 @@ export default async function middleware(request: NextRequest) {
   const isSignedOutRoutes = signedOutRoutes.includes(pathName);
 
   // TODO throw errors properly
-  const data = await fetch(
-    process.env.BETTER_AUTH_URL + "/api/auth/get-session",
-    {
-      headers: {
-        //get the cookie from the request
-        cookie: request.headers.get("cookie") || "",
-      },
-    },
-  )
-    .then((response) => response.json())
-    .then((data) => data as Session | null);
+  const sessionCookie = getSessionCookie(request);
 
   // User is not logged in
-  if (!data || (data && !data.session)) {
+  if (!sessionCookie) {
     if (isSignedOutRoutes) {
       return NextResponse.next();
     }
