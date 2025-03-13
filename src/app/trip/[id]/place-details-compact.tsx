@@ -50,22 +50,22 @@ import {
 
 export type PlaceDetailsCompactProps = {
   data: PlaceDataEntry;
-  isInDay?: number | string;
+  isInDay?: number | "saved";
   dayIndex?: number;
   isDragging?: boolean;
-  onRemove?: (isInDay: number | string, placeId: string) => void;
+  onRemove?: (isInDay: number | "saved", placeId: string) => void;
   handleMove?: (
-    isInDay: number | string,
+    isInDay: number | "saved",
     data: PlaceDataEntry,
-    newDay: number | string,
+    newDay: number | "saved",
   ) => void;
   handleNoteChange?: (
-    isInDay: number | string,
+    isInDay: number | "saved",
     placeId: string,
     note: string,
   ) => void;
   handleDurationChange?: (
-    isInDay: number | string,
+    isInDay: number | "saved",
     placeId: string,
     timeSpent: number,
   ) => void;
@@ -112,12 +112,13 @@ const PlaceDetailsCompact = memo(
               [viewport.low.longitude, viewport.low.latitude],
               [viewport.high.longitude, viewport.high.latitude],
             ],
-            isInDay: isInDay,
+            isInDay: isInDay === "saved" ? null : isInDay,
             placeId: data.placeInfo.placeId,
             position: [
               data.placeInfo.location.longitude,
               data.placeInfo.location.latitude,
             ],
+            shouldAnimate: true,
           });
         }
         setExpanded((prev) => {
@@ -188,6 +189,7 @@ const PlaceDetailsCompact = memo(
       return (
         <div
           ref={ref}
+          id={data.placeInfo.placeId}
           aria-expanded={expanded === "max" && !isDragging}
           className="overflow-clip rounded-xl bg-white p-2 ring-offset-zinc-50 transition has-[[data-trigger=true]:focus-visible]:outline-none has-[[data-trigger=true]:focus-visible]:ring-2 has-[[data-trigger=true]:focus-visible]:ring-slate-400 has-[[data-trigger=true]:focus-visible]:ring-offset-2"
         >

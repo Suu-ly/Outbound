@@ -186,19 +186,19 @@ type SortableItemProps = {
   id: UniqueIdentifier;
   disabled?: boolean;
   below?: boolean;
-  onRemove: (isInDay: number | string, placeId: string) => void;
+  onRemove: (isInDay: number | "saved", placeId: string) => void;
   handleMove: (
-    isInDay: number | string,
+    isInDay: number | "saved",
     data: PlaceDataEntry,
-    newDay: number | string,
+    newDay: number | "saved",
   ) => void;
   handleNoteChange: (
-    isInDay: number | string,
+    isInDay: number | "saved",
     placeId: string,
     note: string,
   ) => void;
   handleDurationChange: (
-    isInDay: number | string,
+    isInDay: number | "saved",
     placeId: string,
     timeSpent: number,
   ) => void;
@@ -262,9 +262,9 @@ function DroppableContainer({
       id: number;
       items: UniqueIdentifier[];
       handleMove: (
-        isInDay: number | string,
+        isInDay: number | "saved",
         data: PlaceDataEntry,
-        newDay: number | string,
+        newDay: number | "saved",
       ) => void;
       setLoadingState: Dispatch<
         SetStateAction<Record<keyof PlaceData, string[]>>
@@ -994,7 +994,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                       )}
                     >
                       <div
-                        className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length]}`}
+                        className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`}
                         aria-label={`Saved place ${index + 1}`}
                       >
                         {index + 1}

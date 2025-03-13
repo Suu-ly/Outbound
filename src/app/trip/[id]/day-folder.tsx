@@ -35,9 +35,9 @@ import TripAutocomplete from "./trip-autocomplete";
 
 export type DayFolderProps = {
   handleMove?: (
-    isInDay: number | string,
+    isInDay: number | "saved",
     data: PlaceDataEntry,
-    newDay: number | string,
+    newDay: number | "saved",
   ) => void;
   setLoadingState?: Dispatch<SetStateAction<Record<keyof PlaceData, string[]>>>;
   isOpen?: boolean;

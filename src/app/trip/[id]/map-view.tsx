@@ -1,9 +1,15 @@
 "use client";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { markerColorLookup } from "@/lib/color-lookups";
-import { BoundingBox } from "@/server/types";
-import { useAtomValue, useSetAtom } from "jotai";
+import { BoundingBox, PlaceDataEntry } from "@/server/types";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useCallback, useEffect } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Layer,
   Map,
@@ -53,7 +59,7 @@ export default function MapView({
             marginLeft: "1rem",
             border: "2px solid #e2e8f0",
             boxShadow:
-              "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+              "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
             borderRadius: "2rem",
           }}
         />
@@ -62,28 +68,115 @@ export default function MapView({
     </div>
   );
 }
+const PlaceMarker = ({
+  place,
+  activePlace,
+  dayIndex,
+  index,
+  handleMarkerClick,
+  dayId,
+}: {
+  place: PlaceDataEntry;
+  activePlace: string | undefined;
+  handleMarkerClick: (place: PlaceDataEntry, isInDay: number | null) => void;
+  index: number;
+  dayIndex: number | null;
+  dayId: number | null;
+}) => {
+  const colours =
+    dayIndex !== null
+      ? `${markerColorLookup[dayIndex % markerColorLookup.length].border} ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`
+      : "border-amber-900 bg-amber-300 text-amber-900";
+
+  return (
+    <Marker
+      key={place.placeInfo.placeId + "marker"}
+      longitude={place.placeInfo.location.longitude}
+      latitude={place.placeInfo.location.latitude}
+      onClick={(e) => {
+        e.originalEvent.stopPropagation(); // Make sure the map doesn't receive event
+        handleMarkerClick(place, dayId);
+      }}
+      style={
+        activePlace === place.placeInfo.placeId ? { zIndex: 50 } : { zIndex: 0 }
+      }
+      anchor="center"
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            href={`#${place.placeInfo.placeId}`}
+            className={`flex size-6 items-center justify-center rounded-full border-2 text-sm font-semibold transition ${colours} ${activePlace === place.placeInfo.placeId ? "scale-150 shadow-md" : ""}`}
+          >
+            {index + 1}
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>{place.placeInfo.displayName}</TooltipContent>
+      </Tooltip>
+    </Marker>
+  );
+};
 
 const TripMarkers = () => {
   const places = useAtomValue(tripPlacesAtom);
-  const activeMapMarker = useAtomValue(mapActiveMarkerAtom);
+  const [activeMapMarker, setActiveMapMarker] = useAtom(mapActiveMarkerAtom);
   const days = useAtomValue(dayPlacesAtom);
+  const { map } = useMap();
+  const lastTimeClicked = useRef(0);
+  const doubleClickTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  const handleMarkerClick = (place: PlaceDataEntry, isInDay: number | null) => {
+    if (map) map.getMap().doubleClickZoom.disable();
+    if (doubleClickTimeout.current) clearTimeout(doubleClickTimeout.current);
+    setTimeout(() => {
+      if (map) map.getMap().doubleClickZoom.enable();
+    }, 350);
+    const viewport = place.placeInfo.viewport;
+    const now = Date.now();
+    let animate = true;
+    if (now - lastTimeClicked.current > 350) {
+      animate = false;
+    }
+    setActiveMapMarker({
+      bounds: [
+        [viewport.low.longitude, viewport.low.latitude],
+        [viewport.high.longitude, viewport.high.latitude],
+      ],
+      isInDay: isInDay,
+      placeId: place.placeInfo.placeId,
+      position: [
+        place.placeInfo.location.longitude,
+        place.placeInfo.location.latitude,
+      ],
+      shouldAnimate: animate,
+    });
+    lastTimeClicked.current = now;
+  };
 
   return (
     <>
+      {places.saved.map((place, index) => (
+        <PlaceMarker
+          key={place.placeInfo.placeId + "marker"}
+          activePlace={activeMapMarker?.placeId}
+          dayIndex={null}
+          dayId={null}
+          handleMarkerClick={handleMarkerClick}
+          index={index}
+          place={place}
+        />
+      ))}
       {days.map((day, dayIndex) =>
         places[day.dayId].map((place, index) => (
-          <Marker
+          <PlaceMarker
             key={place.placeInfo.placeId + "marker"}
-            longitude={place.placeInfo.location.longitude}
-            latitude={place.placeInfo.location.latitude}
-            anchor="bottom"
-          >
-            <div
-              className={`flex size-6 items-center justify-center rounded-full border-2 border-slate-700 transition-transform ${markerColorLookup[dayIndex % markerColorLookup.length]} ${activeMapMarker?.placeId === place.placeInfo.placeId ? "scale-150" : ""}`}
-            >
-              {index + 1}
-            </div>
-          </Marker>
+            activePlace={activeMapMarker?.placeId}
+            dayIndex={dayIndex}
+            dayId={day.dayId}
+            handleMarkerClick={handleMarkerClick}
+            index={index}
+            place={place}
+          />
         )),
       )}
       {activeMapMarker && activeMapMarker.isInDay !== null && (
@@ -99,7 +192,7 @@ const useMapViewManager = () => {
   const { map } = useMap();
 
   useEffect(() => {
-    if (!map || !activeMapMarker) return;
+    if (!map || !activeMapMarker || !activeMapMarker.shouldAnimate) return;
     let bounds = activeMapMarker.bounds;
     if (activeMapMarker.isInDay !== null) {
       const dayPlaces = places[activeMapMarker.isInDay];
@@ -121,20 +214,31 @@ const useMapViewManager = () => {
         [minLon, minLat],
         [maxLon, maxLat],
       ];
-    }
-    map.fitBounds(bounds, {
-      maxZoom: 13,
-      duration: 4000,
-      curve: 1,
-      padding: 32,
-    });
+      map.fitBounds(bounds, {
+        maxZoom: 12,
+        duration: 3000,
+        curve: 1,
+        padding: 32,
+      });
+    } else
+      map.flyTo({
+        center: activeMapMarker.position,
+        curve: 1,
+        duration: 2000,
+        zoom: 12,
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMapMarker, map]);
 };
 
 const RouteLines = ({ activeDay }: { activeDay: string | number }) => {
   const places = useAtomValue(tripPlacesAtom);
+  const days = useAtomValue(dayPlacesAtom);
   const travelTimes = useAtomValue(travelTimesAtom);
+  const dayIndex = useMemo(
+    () => days.findIndex((day) => day.dayId === activeDay),
+    [activeDay, days],
+  );
 
   if (activeDay === "saved") return;
 
@@ -175,13 +279,13 @@ const RouteLines = ({ activeDay }: { activeDay: string | number }) => {
         type="line"
         layout={{
           "line-cap": "round",
-
           "line-join": "round",
         }}
         paint={{
-          "line-color": "#f43f5e",
+          "line-color":
+            markerColorLookup[dayIndex % markerColorLookup.length].hex,
           "line-width": ["interpolate", ["linear"], ["zoom"], 5, 2, 15, 8],
-          "line-opacity": ["interpolate", ["linear"], ["zoom"], 5, 1, 15, 0.6],
+          "line-opacity": ["interpolate", ["linear"], ["zoom"], 10, 1, 15, 0.6],
         }}
       />
     </Source>
