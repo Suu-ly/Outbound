@@ -10,7 +10,7 @@ import { useSetAtom } from "jotai";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { tripPlacesAtom } from "../../atoms";
-import PlaceDetailsSkipped from "../place-details-skipped";
+import PlaceDetailsSkipped from "./place-details-skipped";
 
 export default function SkipPlaceSearch({
   skippedPlacesInitial,
