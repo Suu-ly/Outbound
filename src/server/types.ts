@@ -366,18 +366,20 @@ export type DiscoverReturn = {
   nextPageToken: string | null;
 };
 
+export type LngLat = [number, number];
+
 type GeoJsonValues =
   | {
       type: "Point";
-      coordinates: [number, number];
+      coordinates: LngLat;
     }
   | {
       type: "MultiPolygon";
-      coordinates: [[number, number][]][];
+      coordinates: [LngLat[]][];
     }
   | {
       type: "Polygon";
-      coordinates: [[number, number][]];
+      coordinates: [LngLat[]];
     };
 
 export type NominatimResponse = {
@@ -398,7 +400,7 @@ export type NominatimResponse = {
   geojson: GeoJsonValues;
 }[];
 
-export type BoundingBox = [[number, number], [number, number]];
+export type BoundingBox = [LngLat, LngLat];
 
 export type DistanceType =
   | {
@@ -409,7 +411,7 @@ export type DistanceType =
       durationDisplay: string;
       durationDisplayRoundUp: string;
       geometry: {
-        coordinates: [number, number][];
+        coordinates: LngLat[];
         type: "LineString";
       };
       summary: string | null;

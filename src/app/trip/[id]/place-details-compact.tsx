@@ -3,6 +3,7 @@
 import {
   dayPlacesAtom,
   isTripAdminAtom,
+  mapActiveMarkerAtom,
   tripStartDateAtom,
 } from "@/app/trip/atoms";
 import OpeningHours from "@/components/opening-hours";
@@ -33,7 +34,7 @@ import {
   IconTrash,
 } from "@tabler/icons-react";
 import { addDays } from "date-fns";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -92,6 +93,7 @@ const PlaceDetailsCompact = memo(
       const startDate = useAtomValue(tripStartDateAtom);
       const days = useAtomValue(dayPlacesAtom);
       const isAdmin = useAtomValue(isTripAdminAtom);
+      const setActiveMapMarker = useSetAtom(mapActiveMarkerAtom);
       const isLarge = useMediaQuery("(min-width: 1280px)");
       const [inputRows, setInputRows] = useState(1);
       const [note, setNote] = useState(
@@ -103,12 +105,27 @@ const PlaceDetailsCompact = memo(
       const inputIsFocused = useRef(false);
 
       const handleOnClick = useCallback(() => {
+        if (expanded !== "max") {
+          const viewport = data.placeInfo.viewport;
+          setActiveMapMarker({
+            bounds: [
+              [viewport.low.longitude, viewport.low.latitude],
+              [viewport.high.longitude, viewport.high.latitude],
+            ],
+            isInDay: isInDay,
+            placeId: data.placeInfo.placeId,
+            position: [
+              data.placeInfo.location.longitude,
+              data.placeInfo.location.latitude,
+            ],
+          });
+        }
         setExpanded((prev) => {
           if (prev === "min" || prev === "mid") return "max";
           if (note) return "mid";
           return "min";
         });
-      }, [note]);
+      }, [data, expanded, isInDay, note, setActiveMapMarker]);
 
       const onAddNote = useCallback(() => {
         if (expanded === "min") setExpanded("mid");

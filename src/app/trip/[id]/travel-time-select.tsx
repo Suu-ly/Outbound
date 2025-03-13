@@ -67,6 +67,16 @@ export const TravelTimeSelect = memo(
           };
         }),
       }));
+      setTravelTimes((prev) => ({
+        ...prev,
+        [fromId]: {
+          ...prev[fromId],
+          [toId]: {
+            ...prev[fromId][toId],
+            mode: newValue,
+          },
+        },
+      }));
       updatePreferredTravelMode(fromId, toId, tripId, newValue).then((data) => {
         if (data.status === "error") {
           toast.error(data.message);
@@ -114,6 +124,7 @@ export const TravelTimeSelect = memo(
             drive: travelTimesNew.data.drive,
             cycle: travelTimesNew.data.cycle,
             walk: travelTimesNew.data.walk,
+            mode: value,
           },
         },
       }));
@@ -148,12 +159,22 @@ export const TravelTimeSelect = memo(
       <Select defaultValue={value} onValueChange={handleValueChange}>
         <SelectTrigger variant="ghost" size="small" className="mt-2">
           {!data && isFetching && <Spinner />}
+          {!data && !isFetching && (
+            <span className="text-sm text-slate-700">
+              Unable to fetch travel time data.
+            </span>
+          )}
           <SelectValue placeholder="Transport mode" />
         </SelectTrigger>
         <SelectContent>
-          {!data && (
+          {!data && isFetching && (
             <span className="flex h-24 items-center justify-center">
               <Spinner />
+            </span>
+          )}
+          {!data && !isFetching && (
+            <span className="flex h-24 items-center justify-center text-sm text-slate-700">
+              Unable to fetch travel time data. Please try again later.
             </span>
           )}
           {data && (

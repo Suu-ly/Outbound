@@ -40,7 +40,8 @@ export const isTripAdminAtom = atom<boolean>(false);
 export const mapActiveMarkerAtom = atom<{
   position: [number, number];
   bounds: BoundingBox;
-  type: "skipped" | "saved" | "undecided";
+  isInDay: number | string | null;
+  placeId: string;
 }>();
 
 // For the discover manager

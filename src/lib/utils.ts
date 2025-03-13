@@ -76,7 +76,7 @@ export function insertBetween(left: string, right: string) {
 
 export const defaultTripPlaceUserInfo = {
   note: null,
-  timeSpent: 2,
+  timeSpent: 120,
   timeToNextPlace: null,
 };
 
