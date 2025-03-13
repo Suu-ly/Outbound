@@ -21,12 +21,19 @@ import {
   useTransform,
 } from "motion/react";
 import { usePathname } from "next/navigation";
-import { forwardRef, useCallback, useRef, useSyncExternalStore } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import { toast } from "sonner";
 import {
   activePlaceIndexAtom,
   discoverPlacesAtom,
   drawerDragProgressAtom,
+  mapUndecidedActiveMarkerAtom,
   savedPlacesAmountAtom,
   tripPlacesAtom,
 } from "../../atoms";
@@ -67,6 +74,7 @@ export default function SwipeManager({ tripId }: { tripId: string }) {
   const buttonsY = useTransform(() => 100 - drawerProgress?.get() * 100);
 
   const [activePlaceIndex, setActivePlaceIndex] = useAtom(activePlaceIndexAtom);
+  const setUndecidedActiveMapMarker = useSetAtom(mapUndecidedActiveMarkerAtom);
 
   const magnetX = useSpring(0, { damping: 20 });
   const magnetY = useSpring(0, { damping: 20 });
@@ -125,7 +133,7 @@ export default function SwipeManager({ tripId }: { tripId: string }) {
         : await setPlaceAsUninterested(data.id, tripId);
       if (res.status === "error") toast.error(res.message);
     },
-    [setActivePlaceIndex, setTripPlaces, tripId],
+    [setActivePlaceIndex, tripId, setTripPlaces],
   );
 
   const onRemove = useCallback(
@@ -152,9 +160,21 @@ export default function SwipeManager({ tripId }: { tripId: string }) {
     () => true,
   );
 
-  // useEffect(() => {
-  //   setActiveLocation()
-  // }, [activePlaceIndex, discoverLocations]);
+  useEffect(() => {
+    if (discoverLocations[activePlaceIndex]) {
+      const nextPlace = discoverLocations[activePlaceIndex];
+      setUndecidedActiveMapMarker((prev) => {
+        if (prev?.placeId === nextPlace.id) return prev; // Avoid jerky flight
+        return {
+          isInDay: null,
+          name: nextPlace.displayName,
+          placeId: nextPlace.id,
+          position: [nextPlace.location.longitude, nextPlace.location.latitude],
+        };
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePlaceIndex, discoverLocations]);
 
   console.log(discoverLocations);
 

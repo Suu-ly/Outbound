@@ -149,6 +149,7 @@ export default function TripAutocomplete({
         data.data.place.location.longitude,
         data.data.place.location.latitude,
       ],
+      name: data.data.place.displayName,
       shouldAnimate: true,
       type: "saved",
     });

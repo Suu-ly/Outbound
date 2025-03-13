@@ -1,3 +1,4 @@
+import { SelectTripPlace } from "@/server/db/schema";
 import {
   DayData,
   PlaceData,
@@ -37,11 +38,19 @@ export const isTripAdminAtom = atom<boolean>(false);
 
 // For the display of the marker on the map
 export const mapActiveMarkerAtom = atom<{
-  type: "saved" | "undecided" | "skipped";
+  type: SelectTripPlace["type"];
   position: [number, number];
   isInDay: number | null;
   placeId: string;
+  name: string;
   shouldAnimate: boolean;
+}>();
+// We always want to display the undecided place marker
+export const mapUndecidedActiveMarkerAtom = atom<{
+  position: [number, number];
+  isInDay: number | null;
+  placeId: string;
+  name: string;
 }>();
 
 // For the discover manager

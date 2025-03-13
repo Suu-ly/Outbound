@@ -15,9 +15,11 @@ import {
   IconHeartShare,
   IconStarFilled,
 } from "@tabler/icons-react";
+import { useSetAtom } from "jotai";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CSSProperties, forwardRef, memo, useCallback, useState } from "react";
+import { mapActiveMarkerAtom } from "../../atoms";
 
 export type PlaceDetailsSkippedProps = {
   data: PlaceDataPlaceInfo;
@@ -30,10 +32,21 @@ const PlaceDetailsSkipped = memo(
       const [expanded, setExpanded] = useState(false);
       const tripId = useParams<{ id: string }>().id;
       const [isMovingToInterested, setIsMovingToInterested] = useState(false);
+      const setActiveMapMarker = useSetAtom(mapActiveMarkerAtom);
 
       const handleOnClick = useCallback(() => {
+        if (!expanded) {
+          setActiveMapMarker({
+            isInDay: null,
+            placeId: data.placeId,
+            position: [data.location.longitude, data.location.latitude],
+            type: "skipped",
+            name: data.displayName,
+            shouldAnimate: true,
+          });
+        }
         setExpanded((prev) => !prev);
-      }, []);
+      }, [data, expanded, setActiveMapMarker]);
 
       const handleMoveToInterested = async () => {
         setIsMovingToInterested(true);

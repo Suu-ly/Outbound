@@ -114,6 +114,7 @@ const PlaceDetailsCompact = memo(
               data.placeInfo.location.latitude,
             ],
             type: "saved",
+            name: data.placeInfo.displayName,
             shouldAnimate: true,
           });
         }

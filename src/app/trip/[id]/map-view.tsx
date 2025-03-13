@@ -5,11 +5,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { markerColorLookup } from "@/lib/color-lookups";
-import { BoundingBox, PlaceDataEntry } from "@/server/types";
+import { SelectTripPlace } from "@/server/db/schema";
+import { BoundingBox, LngLat } from "@/server/types";
+import { IconSearch, IconX } from "@tabler/icons-react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { ReactNode, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Layer,
   Map,
@@ -21,6 +24,7 @@ import {
 import {
   dayPlacesAtom,
   mapActiveMarkerAtom,
+  mapUndecidedActiveMarkerAtom,
   travelTimesAtom,
   tripPlacesAtom,
 } from "../atoms";
@@ -68,50 +72,66 @@ export default function MapView({
     </div>
   );
 }
+
 const PlaceMarker = ({
-  place,
+  name,
+  coordinates,
+  placeId,
   activePlace,
   dayIndex,
-  index,
   handleMarkerClick,
+  type,
   dayId,
+  children,
 }: {
-  place: PlaceDataEntry;
+  name: string;
+  coordinates: LngLat;
+  placeId: string;
   activePlace: string | undefined;
-  handleMarkerClick: (place: PlaceDataEntry, isInDay: number | null) => void;
-  index: number;
+  handleMarkerClick: (
+    name: string,
+    coordinates: LngLat,
+    placeId: string,
+    isInDay: number | null,
+    type: SelectTripPlace["type"],
+  ) => void;
+  type: SelectTripPlace["type"];
   dayIndex: number | null;
   dayId: number | null;
+  children: ReactNode;
 }) => {
   const colours =
     dayIndex !== null
       ? `${markerColorLookup[dayIndex % markerColorLookup.length].border} ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`
-      : "border-amber-900 bg-amber-300 text-amber-900";
+      : type === "saved"
+        ? "border-amber-900 bg-amber-300 text-amber-900"
+        : type === "undecided"
+          ? "border-brand-400 bg-white text-slate-700"
+          : "border-slate-400 bg-slate-200 text-slate-500";
 
   return (
     <Marker
-      key={place.placeInfo.placeId + "marker"}
-      longitude={place.placeInfo.location.longitude}
-      latitude={place.placeInfo.location.latitude}
+      key={placeId + "marker"}
+      longitude={coordinates[0]}
+      latitude={coordinates[1]}
       onClick={(e) => {
         e.originalEvent.stopPropagation(); // Make sure the map doesn't receive event
-        handleMarkerClick(place, dayId);
+        handleMarkerClick(name, coordinates, placeId, dayId, type);
       }}
-      style={
-        activePlace === place.placeInfo.placeId ? { zIndex: 50 } : { zIndex: 0 }
-      }
+      style={activePlace === placeId ? { zIndex: 1 } : { zIndex: 0 }}
       anchor="center"
     >
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
-            href={`#${place.placeInfo.placeId}`}
-            className={`flex size-6 items-center justify-center rounded-full border-2 text-sm font-semibold transition ${colours} ${activePlace === place.placeInfo.placeId ? "scale-150 shadow-md" : ""}`}
+            href={`#${placeId}`}
+            replace
+            className={`flex size-6 items-center justify-center rounded-full border-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${colours} ${activePlace === placeId ? "scale-150 shadow-md" : ""}`}
           >
-            {index + 1}
+            {children}
           </Link>
         </TooltipTrigger>
-        <TooltipContent>{place.placeInfo.displayName}</TooltipContent>
+        <TooltipContent>{name}</TooltipContent>
       </Tooltip>
     </Marker>
   );
@@ -120,12 +140,21 @@ const PlaceMarker = ({
 const TripMarkers = () => {
   const places = useAtomValue(tripPlacesAtom);
   const [activeMapMarker, setActiveMapMarker] = useAtom(mapActiveMarkerAtom);
+  const undecidedActiveMarker = useAtomValue(mapUndecidedActiveMarkerAtom);
   const days = useAtomValue(dayPlacesAtom);
   const { map } = useMap();
   const lastTimeClicked = useRef(0);
   const doubleClickTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
+  const path = usePathname();
+  const isDiscover = /\/trip\/[a-z0-9]{12}\/discover/.test(path);
 
-  const handleMarkerClick = (place: PlaceDataEntry, isInDay: number | null) => {
+  const handleMarkerClick = (
+    name: string,
+    coordinates: LngLat,
+    placeId: string,
+    isInDay: number | null,
+    type: SelectTripPlace["type"],
+  ) => {
     if (map) map.getMap().doubleClickZoom.disable();
     if (doubleClickTimeout.current) clearTimeout(doubleClickTimeout.current);
     setTimeout(() => {
@@ -138,13 +167,11 @@ const TripMarkers = () => {
     }
     setActiveMapMarker({
       isInDay: isInDay,
-      placeId: place.placeInfo.placeId,
-      position: [
-        place.placeInfo.location.longitude,
-        place.placeInfo.location.latitude,
-      ],
+      placeId: placeId,
+      position: coordinates,
+      name: name,
       shouldAnimate: animate,
-      type: "saved",
+      type: type,
     });
     lastTimeClicked.current = now;
   };
@@ -158,9 +185,16 @@ const TripMarkers = () => {
           dayIndex={null}
           dayId={null}
           handleMarkerClick={handleMarkerClick}
-          index={index}
-          place={place}
-        />
+          type="saved"
+          coordinates={[
+            place.placeInfo.location.longitude,
+            place.placeInfo.location.latitude,
+          ]}
+          name={place.placeInfo.displayName}
+          placeId={place.placeInfo.placeId}
+        >
+          {index + 1}
+        </PlaceMarker>
       ))}
       {days.map((day, dayIndex) =>
         places[day.dayId].map((place, index) => (
@@ -170,10 +204,45 @@ const TripMarkers = () => {
             dayIndex={dayIndex}
             dayId={day.dayId}
             handleMarkerClick={handleMarkerClick}
-            index={index}
-            place={place}
-          />
+            type="saved"
+            coordinates={[
+              place.placeInfo.location.longitude,
+              place.placeInfo.location.latitude,
+            ]}
+            name={place.placeInfo.displayName}
+            placeId={place.placeInfo.placeId}
+          >
+            {index + 1}
+          </PlaceMarker>
         )),
+      )}
+      {activeMapMarker && activeMapMarker.type === "skipped" && (
+        <PlaceMarker
+          activePlace={activeMapMarker.placeId}
+          dayIndex={null}
+          dayId={null}
+          handleMarkerClick={handleMarkerClick}
+          type="skipped"
+          name={activeMapMarker.name}
+          placeId={activeMapMarker.placeId}
+          coordinates={activeMapMarker.position}
+        >
+          <IconX className="size-4" />
+        </PlaceMarker>
+      )}
+      {undecidedActiveMarker && isDiscover && (
+        <PlaceMarker
+          activePlace={undecidedActiveMarker.placeId}
+          dayIndex={null}
+          dayId={null}
+          handleMarkerClick={handleMarkerClick}
+          type="undecided"
+          name={undecidedActiveMarker.name}
+          placeId={undecidedActiveMarker.placeId}
+          coordinates={undecidedActiveMarker.position}
+        >
+          <IconSearch className="size-3.5" />
+        </PlaceMarker>
       )}
       {activeMapMarker && activeMapMarker.isInDay !== null && (
         <RouteLines activeDay={activeMapMarker.isInDay} />
@@ -184,8 +253,11 @@ const TripMarkers = () => {
 
 const useMapViewManager = () => {
   const activeMapMarker = useAtomValue(mapActiveMarkerAtom);
+  const undecidedActiveMarker = useAtomValue(mapUndecidedActiveMarkerAtom);
   const places = useAtomValue(tripPlacesAtom);
   const { map } = useMap();
+  const path = usePathname();
+  const isDiscover = /\/trip\/[a-z0-9]{12}\/discover/.test(path);
 
   useEffect(() => {
     if (!map || !activeMapMarker || !activeMapMarker.shouldAnimate) return;
@@ -225,6 +297,19 @@ const useMapViewManager = () => {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeMapMarker, map]);
+
+  useEffect(() => {
+    if (!map || !undecidedActiveMarker || !isDiscover) return;
+
+    map.fitBounds(
+      [undecidedActiveMarker.position, undecidedActiveMarker.position],
+      {
+        curve: 1,
+        duration: 2000,
+        maxZoom: 12,
+      },
+    );
+  }, [undecidedActiveMarker, map, isDiscover]);
 };
 
 const RouteLines = ({ activeDay }: { activeDay: string | number }) => {

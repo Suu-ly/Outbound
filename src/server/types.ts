@@ -1,4 +1,8 @@
-import { SelectPlace, SelectTripTravelTime } from "./db/schema";
+import {
+  SelectPlace,
+  SelectTripPlace,
+  SelectTripTravelTime,
+} from "./db/schema";
 
 export type ApiResponse<T> =
   | {
@@ -268,7 +272,7 @@ export type InitialQuery = {
     dayId: number | null;
     note: string | null;
     timeSpent: number | null;
-    type: "saved" | "skipped" | "undecided" | null;
+    type: SelectTripPlace["type"] | null;
     tripOrder: string;
     dayOrder: string;
     dayStartTime: string | null;
