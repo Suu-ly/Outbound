@@ -57,6 +57,8 @@ const Magnet = forwardRef<HTMLDivElement, MagnetProps>(
 
 Magnet.displayName = "Magnet";
 
+const emptySubscribe = () => () => {};
+
 export default function SwipeManager({ tripId }: { tripId: string }) {
   const path = usePathname();
   const isLarge = useMediaQuery("(min-width: 640px)");
@@ -155,7 +157,7 @@ export default function SwipeManager({ tripId }: { tripId: string }) {
   };
 
   const isServer = useSyncExternalStore(
-    () => () => {},
+    emptySubscribe,
     () => false,
     () => true,
   );

@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
@@ -7,12 +9,20 @@ import {
 import { markerColorLookup } from "@/lib/color-lookups";
 import { SelectTripPlace } from "@/server/db/schema";
 import { BoundingBox, LngLat } from "@/server/types";
-import { IconSearch, IconX } from "@tabler/icons-react";
+import { IconRoute, IconSearch, IconX } from "@tabler/icons-react";
+import { addDays } from "date-fns";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import "mapbox-gl/dist/mapbox-gl.css";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode, useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Layer,
   Map,
@@ -27,6 +37,7 @@ import {
   mapUndecidedActiveMarkerAtom,
   travelTimesAtom,
   tripPlacesAtom,
+  tripStartDateAtom,
 } from "../atoms";
 
 export default function MapView({
@@ -65,8 +76,13 @@ export default function MapView({
             boxShadow:
               "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
             borderRadius: "2rem",
+            overflow: "hidden",
+            // backgroundColor: "#fafafa",
           }}
         />
+        <div className="hidden sm:block">
+          <MapLegend />
+        </div>
         <TripMarkers />
       </Map>
     </div>
@@ -370,5 +386,94 @@ const RouteLines = ({ activeDay }: { activeDay: string | number }) => {
         }}
       />
     </Source>
+  );
+};
+
+export const MapLegend = () => {
+  const days = useAtomValue(dayPlacesAtom);
+  const startDate = useAtomValue(tripStartDateAtom);
+  const activeMapMarker = useAtomValue(mapActiveMarkerAtom);
+  const [expanded, setExpanded] = useState(true);
+
+  if (!expanded)
+    return (
+      <Button
+        variant="outline"
+        size="small"
+        iconOnly
+        className="absolute right-0 top-0 z-10 mr-4 mt-4 bg-white shadow-md"
+        aria-label="Open map legend panel"
+        onClick={() => setExpanded(true)}
+      >
+        <IconRoute />
+      </Button>
+    );
+
+  return (
+    <div className="absolute right-0 top-0 z-10 mr-4 mt-4 w-56 rounded-2xl border-2 border-slate-200 bg-white shadow-md">
+      <div className="flex items-center justify-between p-1 pl-2">
+        <h3 className="text-xs font-medium text-slate-700">Legend</h3>
+        <Button
+          variant="ghost"
+          size="small"
+          iconOnly
+          aria-label="Close map legend panel"
+          onClick={() => setExpanded(false)}
+        >
+          <IconX />
+        </Button>
+      </div>
+      <Separator />
+      <div className="max-h-48 space-y-3 overflow-auto p-2 text-slate-900">
+        <div className="flex items-center">
+          <label htmlFor="route-switch" className="grow text-sm">
+            Show route lines
+          </label>
+        </div>
+        <div className="flex items-center gap-3">
+          <div
+            aria-hidden={true}
+            className="h-2 w-5 rounded-full bg-amber-300"
+          ></div>
+          <p className="text-sm">Saved Places</p>
+        </div>
+        {activeMapMarker && activeMapMarker.type === "skipped" && (
+          <div className="flex items-center gap-3">
+            <div
+              aria-hidden={true}
+              className="h-2 w-5 rounded-full border-2 border-slate-400 bg-slate-200"
+            ></div>
+            <p className="text-sm">Skipped Place</p>
+          </div>
+        )}
+        {days.map((day, index) => {
+          const date = addDays(startDate, index);
+          return (
+            <div key={day.dayId} className="flex items-center gap-3">
+              <div
+                aria-hidden={true}
+                className={`h-2 w-5 rounded-full ${markerColorLookup[index % markerColorLookup.length].bg}`}
+              ></div>
+              <p className="text-sm">
+                {date.toLocaleDateString(undefined, {
+                  day: "numeric",
+                  month: "short",
+                  year: "2-digit",
+                })}
+              </p>
+              <Separator
+                orientation="vertical"
+                className="h-auto self-stretch"
+              />
+              <p className="text-sm">
+                {date.toLocaleDateString(undefined, {
+                  weekday: "short",
+                })}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };
