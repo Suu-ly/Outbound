@@ -2,6 +2,7 @@ import { db } from "@/server/db";
 import { location, trip } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { Metadata } from "next";
+import { MapLegendPanel } from "../map-view";
 import DiscoverManager from "./discover-manager";
 import MissingImageManager from "./missing-image-manager";
 import SwipeManager from "./swipe-manager";
@@ -33,6 +34,7 @@ export default async function TripSwipePage({
   const tripId = (await params).id;
   return (
     <>
+      <MapLegendPanel />
       {realData && <DiscoverManager tripId={tripId} />}
       <MissingImageManager />
       <SwipeManager tripId={tripId} />

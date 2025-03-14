@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -35,6 +36,7 @@ import {
   dayPlacesAtom,
   mapActiveMarkerAtom,
   mapUndecidedActiveMarkerAtom,
+  showRouteLinesAtom,
   travelTimesAtom,
   tripPlacesAtom,
   tripStartDateAtom,
@@ -81,7 +83,7 @@ export default function MapView({
           }}
         />
         <div className="hidden sm:block">
-          <MapLegend />
+          <MapLegendPanel />
         </div>
         <TripMarkers />
       </Map>
@@ -157,6 +159,7 @@ const TripMarkers = () => {
   const places = useAtomValue(tripPlacesAtom);
   const [activeMapMarker, setActiveMapMarker] = useAtom(mapActiveMarkerAtom);
   const undecidedActiveMarker = useAtomValue(mapUndecidedActiveMarkerAtom);
+  const showRouteLines = useAtomValue(showRouteLinesAtom);
   const days = useAtomValue(dayPlacesAtom);
   const { map } = useMap();
   const lastTimeClicked = useRef(0);
@@ -260,9 +263,9 @@ const TripMarkers = () => {
           <IconSearch className="size-3.5" />
         </PlaceMarker>
       )}
-      {activeMapMarker && activeMapMarker.isInDay !== null && (
-        <RouteLines activeDay={activeMapMarker.isInDay} />
-      )}
+      {activeMapMarker &&
+        activeMapMarker.isInDay !== null &&
+        showRouteLines && <RouteLines activeDay={activeMapMarker.isInDay} />}
     </>
   );
 };
@@ -302,7 +305,7 @@ const useMapViewManager = () => {
         maxZoom: 12,
         duration: 3000,
         curve: 1,
-        padding: 32,
+        padding: 48,
       });
     } else
       map.flyTo({
@@ -389,10 +392,7 @@ const RouteLines = ({ activeDay }: { activeDay: string | number }) => {
   );
 };
 
-export const MapLegend = () => {
-  const days = useAtomValue(dayPlacesAtom);
-  const startDate = useAtomValue(tripStartDateAtom);
-  const activeMapMarker = useAtomValue(mapActiveMarkerAtom);
+export const MapLegendPanel = () => {
   const [expanded, setExpanded] = useState(true);
 
   if (!expanded)
@@ -401,7 +401,7 @@ export const MapLegend = () => {
         variant="outline"
         size="small"
         iconOnly
-        className="absolute right-0 top-0 z-10 mr-4 mt-4 bg-white shadow-md"
+        className="absolute right-0 top-0 z-10 mr-4 mt-4 origin-top-right bg-white shadow-md animate-in zoom-in-110"
         aria-label="Open map legend panel"
         onClick={() => setExpanded(true)}
       >
@@ -410,10 +410,11 @@ export const MapLegend = () => {
     );
 
   return (
-    <div className="absolute right-0 top-0 z-10 mr-4 mt-4 w-56 rounded-2xl border-2 border-slate-200 bg-white shadow-md">
+    <div className="absolute right-0 top-0 z-10 mr-4 mt-4 w-56 origin-top-right rounded-2xl border-2 border-slate-200 bg-white shadow-md transition-transform animate-in zoom-in-95 has-[[data-close=true]:active]:scale-[98%]">
       <div className="flex items-center justify-between p-1 pl-2">
         <h3 className="text-xs font-medium text-slate-700">Legend</h3>
         <Button
+          data-close={true}
           variant="ghost"
           size="small"
           iconOnly
@@ -424,56 +425,72 @@ export const MapLegend = () => {
         </Button>
       </div>
       <Separator />
-      <div className="max-h-48 space-y-3 overflow-auto p-2 text-slate-900">
-        <div className="flex items-center">
-          <label htmlFor="route-switch" className="grow text-sm">
-            Show route lines
-          </label>
-        </div>
+      <div className="max-h-48 space-y-3 overflow-auto p-2 pt-4 text-slate-900">
+        <MapLegends />
+      </div>
+    </div>
+  );
+};
+
+export const MapLegends = () => {
+  const days = useAtomValue(dayPlacesAtom);
+  const startDate = useAtomValue(tripStartDateAtom);
+  const activeMapMarker = useAtomValue(mapActiveMarkerAtom);
+  const [showRouteLines, setShowRouteLines] = useAtom(showRouteLinesAtom);
+
+  return (
+    <>
+      <div className="flex items-center">
+        <label htmlFor="route-switch" className="grow text-sm">
+          Show route lines
+        </label>
+        <Switch
+          id="route-switch"
+          className="-my-2"
+          checked={showRouteLines}
+          onCheckedChange={setShowRouteLines}
+        />
+      </div>
+      <div className="flex items-center gap-3">
+        <div
+          aria-hidden={true}
+          className="h-2 w-5 rounded-full bg-amber-300"
+        ></div>
+        <p className="text-sm">Saved Places</p>
+      </div>
+      {activeMapMarker && activeMapMarker.type === "skipped" && (
         <div className="flex items-center gap-3">
           <div
             aria-hidden={true}
-            className="h-2 w-5 rounded-full bg-amber-300"
+            className="h-2 w-5 rounded-full border-2 border-slate-400 bg-slate-200"
           ></div>
-          <p className="text-sm">Saved Places</p>
+          <p className="text-sm">Skipped Place</p>
         </div>
-        {activeMapMarker && activeMapMarker.type === "skipped" && (
-          <div className="flex items-center gap-3">
+      )}
+      {days.map((day, index) => {
+        const date = addDays(startDate, index);
+        return (
+          <div key={day.dayId} className="flex items-center gap-3">
             <div
               aria-hidden={true}
-              className="h-2 w-5 rounded-full border-2 border-slate-400 bg-slate-200"
+              className={`h-2 w-5 rounded-full ${markerColorLookup[index % markerColorLookup.length].bg}`}
             ></div>
-            <p className="text-sm">Skipped Place</p>
+            <p className="text-sm">
+              {date.toLocaleDateString(undefined, {
+                day: "numeric",
+                month: "short",
+                year: "2-digit",
+              })}
+            </p>
+            <Separator orientation="vertical" className="h-auto self-stretch" />
+            <p className="text-sm">
+              {date.toLocaleDateString(undefined, {
+                weekday: "short",
+              })}
+            </p>
           </div>
-        )}
-        {days.map((day, index) => {
-          const date = addDays(startDate, index);
-          return (
-            <div key={day.dayId} className="flex items-center gap-3">
-              <div
-                aria-hidden={true}
-                className={`h-2 w-5 rounded-full ${markerColorLookup[index % markerColorLookup.length].bg}`}
-              ></div>
-              <p className="text-sm">
-                {date.toLocaleDateString(undefined, {
-                  day: "numeric",
-                  month: "short",
-                  year: "2-digit",
-                })}
-              </p>
-              <Separator
-                orientation="vertical"
-                className="h-auto self-stretch"
-              />
-              <p className="text-sm">
-                {date.toLocaleDateString(undefined, {
-                  weekday: "short",
-                })}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+        );
+      })}
+    </>
   );
 };

@@ -27,7 +27,6 @@ export const tripDetailsAtom = atom<TripData>({
     [0, 0],
   ],
 });
-
 export const tripStartDateAtom = atom((get) => {
   const trip = get(tripDetailsAtom);
   return trip.startDate;
@@ -52,6 +51,7 @@ export const mapUndecidedActiveMarkerAtom = atom<{
   placeId: string;
   name: string;
 }>();
+export const showRouteLinesAtom = atom(true);
 
 // For the discover manager
 export const tripWindowsAtom = atom<WindowData>({
@@ -103,7 +103,6 @@ export const computedTravelTimesAtom = atom((get) => {
 
 // For the discover page
 export const discoverPlacesAtom = atom<TripPlaceDetails[]>([]);
-
 export const activePlaceIndexAtom = atom<number>(0);
 
 // Bottom sheet atoms
