@@ -13,10 +13,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Metadata } from "next";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
+export const metadata: Metadata = {
+  title: "Forget Password - Outbound",
+};
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please check your email!" }),

@@ -1,6 +1,11 @@
 import AuthLayout from "@/components/auth-layout";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import VerifyOtp from "./verify-otp";
+
+export const metadata: Metadata = {
+  title: "Verify Email - Outbound",
+};
 
 export default async function Register({
   searchParams,

@@ -2,10 +2,15 @@ import BackButton from "@/components/back-button";
 import { db } from "@/server/db";
 import { location, place, trip, tripPlace } from "@/server/db/schema";
 import { and, desc, eq } from "drizzle-orm";
+import { Metadata } from "next/types";
 import ViewMapToggle from "../view-map-toggle";
 import SkipPlaceSearch from "./skip-place-search";
 
-export default async function TripPage({
+export const metadata: Metadata = {
+  title: "View Skipped Places",
+};
+
+export default async function SkippedPlacePage({
   params,
 }: {
   params: Promise<{ id: string }>;

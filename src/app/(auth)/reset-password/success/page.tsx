@@ -1,5 +1,10 @@
 import AuthLayout from "@/components/auth-layout";
 import ButtonLink from "@/components/ui/button-link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Password Reset Success - Outbound",
+};
 
 export default function Login() {
   return (

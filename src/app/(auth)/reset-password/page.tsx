@@ -1,7 +1,12 @@
 import AuthLayout from "@/components/auth-layout";
 import ButtonLink from "@/components/ui/button-link";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import PasswordReset from "./password-reset";
+
+export const metadata: Metadata = {
+  title: "Reset Password - Outbound",
+};
 
 export default async function Register({
   searchParams,

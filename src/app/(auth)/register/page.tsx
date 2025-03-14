@@ -3,7 +3,12 @@ import GithubSignIn from "@/components/github-sign-in";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { IconMail } from "@tabler/icons-react";
+import { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Register - Outbound",
+};
 
 export default function Register() {
   return (

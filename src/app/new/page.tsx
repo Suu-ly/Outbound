@@ -2,8 +2,13 @@ import Footer from "@/components/footer";
 import Header from "@/components/header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { auth } from "@/server/auth";
+import { Metadata } from "next";
 import { headers } from "next/headers";
 import NewTrip from "./new-trip";
+
+export const metadata: Metadata = {
+  title: "Start a New Trip",
+};
 
 export default async function NewTripPage() {
   const session = await auth.api
