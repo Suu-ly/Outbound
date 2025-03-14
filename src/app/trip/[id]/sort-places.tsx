@@ -387,13 +387,12 @@ const dropAnimation: DropAnimation = {
             "0px 10px 15px -3px rgb(0, 0, 0, 0.1), 0px 4px 6px -4px rgb(0, 0, 0, 0.1)",
         },
         {
-          boxShadow:
-            "-1px 0 15px 0 rgba(34, 33, 81, 0), 0px 15px 15px 0 rgba(34, 33, 81, 0)",
+          boxShadow: "0 0 #0000",
         },
       ],
       {
         duration: 300,
-        easing: "cubic-bezier(.45,1.3,.3,1)",
+        easing: "ease",
         fill: "forwards",
       },
     );
