@@ -74,7 +74,6 @@ export default function NewTrip({ userId }: { userId: string }) {
     const data = await fetch(`/api/places/location?${urlParams.toString()}`)
       .then((response) => response.json())
       .then((data) => data as ApiResponse<AutocompleteReturn>);
-    setSelectedId(undefined);
     if (data.status === "error") {
       throw new Error(data.message);
     }
@@ -97,7 +96,7 @@ export default function NewTrip({ userId }: { userId: string }) {
         ...prev,
         calendar: "Please select dates for your trip!",
       }));
-    // No fetch in progress, so location selected
+    // No fetch in progress, so no location selected
     if (!selected && !isFetching)
       setError((prev) => ({ ...prev, search: "Please select a location!" }));
 
