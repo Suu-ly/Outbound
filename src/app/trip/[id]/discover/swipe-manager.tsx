@@ -180,8 +180,7 @@ export default function SwipeManager({ tripId }: { tripId: string }) {
 
   console.log(discoverLocations);
 
-  if (isServer)
-    return <main className="max-h-full w-full sm:w-1/2 xl:w-1/3"></main>;
+  if (isServer) return <main className="sm:w-1/2 xl:w-1/3"></main>;
 
   if (isLarge)
     return (

@@ -58,7 +58,7 @@ export default function MapView({
   }, [setActiveMarker]);
 
   return (
-    <div className="size-full bg-sky-300 sm:w-1/2 xl:w-2/3">
+    <div className="h-full grow bg-sky-300">
       <Map
         id="map"
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}

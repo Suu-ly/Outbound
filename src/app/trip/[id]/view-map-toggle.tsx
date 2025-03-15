@@ -20,7 +20,7 @@ export default function ViewMapToggle({
   const isLarge = useMediaQuery("(min-width: 640px)");
   return (
     <main
-      className={`${viewMap ? "pointer-events-none sm:pointer-events-auto" : ""} absolute inset-0 z-50 w-full sm:static sm:h-full sm:w-1/2 xl:w-1/3`}
+      className={`${viewMap ? "pointer-events-none sm:pointer-events-auto" : ""} absolute inset-0 z-50 size-full sm:static sm:w-1/2 xl:w-1/3`}
     >
       {viewMap && !isLarge && (
         <>

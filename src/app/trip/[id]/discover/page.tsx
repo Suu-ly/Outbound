@@ -34,7 +34,9 @@ export default async function TripSwipePage({
   const tripId = (await params).id;
   return (
     <>
-      <MapLegendPanel />
+      <div className="sm:hidden">
+        <MapLegendPanel />
+      </div>
       {realData && <DiscoverManager tripId={tripId} />}
       <MissingImageManager />
       <SwipeManager tripId={tripId} />
