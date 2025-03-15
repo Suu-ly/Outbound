@@ -57,17 +57,19 @@ const DayStartTime = () => {
   const handleTimeChange = useCallback(
     async (close: () => void, hours: number, minutes: number) => {
       const newTime = minsTo24HourFormat(hours * 60 + minutes).value;
-      setIsLoading(true);
-      const res = await updateTripStartTime(tripDetails.id, newTime);
-      setIsLoading(false);
-      if (res.status === "error") toast.error(res.message);
-      else {
-        setTripDetails((prev) => ({ ...prev, startTime: newTime }));
-        toast.success("Default start time updated successfully!");
+      if (newTime !== tripDetails.startTime) {
+        setIsLoading(true);
+        const res = await updateTripStartTime(tripDetails.id, newTime);
+        setIsLoading(false);
+        if (res.status === "error") toast.error(res.message);
+        else {
+          setTripDetails((prev) => ({ ...prev, startTime: newTime }));
+          toast.success("Default start time updated successfully!");
+        }
       }
       close();
     },
-    [setTripDetails, tripDetails.id],
+    [setTripDetails, tripDetails],
   );
 
   return (
@@ -105,13 +107,15 @@ const DayEndTime = () => {
   const handleTimeChange = useCallback(
     async (close: () => void, hours: number, minutes: number) => {
       const newTime = minsTo24HourFormat(hours * 60 + minutes).value;
-      setIsLoading(true);
-      const res = await updateTripEndTime(tripDetails.id, newTime);
-      setIsLoading(false);
-      if (res.status === "error") toast.error(res.message);
-      else {
-        setTripDetails((prev) => ({ ...prev, endTime: newTime }));
-        toast.success("Day end time updated successfully!");
+      if (newTime !== tripDetails.endTime) {
+        setIsLoading(true);
+        const res = await updateTripEndTime(tripDetails.id, newTime);
+        setIsLoading(false);
+        if (res.status === "error") toast.error(res.message);
+        else {
+          setTripDetails((prev) => ({ ...prev, endTime: newTime }));
+          toast.success("Day end time updated successfully!");
+        }
       }
       close();
     },
@@ -151,6 +155,7 @@ const RoundUpTravelTime = () => {
   const [isLoading, setIsLoading] = useState(false);
   const handleCheckedChange = useCallback(
     async (checked: boolean) => {
+      if (checked === tripDetails.roundUpTime) return;
       setIsLoading(true);
       const res = await updateTripRoundUpTime(tripDetails.id, checked);
       setIsLoading(false);
@@ -186,6 +191,7 @@ const PrivateTrip = () => {
   const [isLoading, setIsLoading] = useState(false);
   const handleCheckedChange = useCallback(
     async (checked: boolean) => {
+      if (checked === tripDetails.private) return;
       setIsLoading(true);
       const res = await updateTripPrivacy(tripDetails.id, checked);
       setIsLoading(false);

@@ -41,7 +41,17 @@ export default function TripPage({ tripId }: { tripId: string }) {
   const [isChangingDate, setIsChangingDate] = useState(false);
 
   const handleDateSave = async () => {
-    if (!date || !date.from || !date.to) return;
+    if (
+      !date ||
+      !date.from ||
+      !date.to ||
+      (date.from.getTime() === tripData.startDate.getTime() &&
+        date.to.getTime() === tripData.endDate.getTime())
+    ) {
+      setCalendarOpen(false);
+      return;
+    }
+
     setIsChangingDate(true);
     const startDate = date.from;
     const endDate = date.to;

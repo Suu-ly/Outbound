@@ -1101,11 +1101,15 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         }
         onConfirm={(close, hours, mins) => {
           if (!changingDayTime) return;
-          console.log(minsTo24HourFormat(hours * 60 + mins).value);
-          onChangeDayTimeConfirm(
-            changingDayTime.dayId,
-            minsTo24HourFormat(hours * 60 + mins).value,
-          );
+          if (
+            minsTo24HourFormat(hours * 60 + mins).value !==
+            changingDayTime.dayStartTime
+          ) {
+            onChangeDayTimeConfirm(
+              changingDayTime.dayId,
+              minsTo24HourFormat(hours * 60 + mins).value,
+            );
+          }
           close();
         }}
       />
