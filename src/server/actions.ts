@@ -454,7 +454,10 @@ export async function updateTripTimeSpent(
   }
 }
 
-export async function updateDayStartTime(dayId: number, newTime: string) {
+export async function updateDayStartTime(
+  dayId: number,
+  newTime: string,
+): Promise<ApiResponse<true>> {
   try {
     await db
       .update(tripDay)
@@ -470,6 +473,95 @@ export async function updateDayStartTime(dayId: number, newTime: string) {
     return {
       status: "error",
       message: "Unable to update time spent",
+    };
+  }
+}
+
+export async function updateTripStartTime(
+  tripId: string,
+  newTime: string,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(trip)
+      .set({
+        startTime: newTime,
+      })
+      .where(eq(trip.id, tripId));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update default start time",
+    };
+  }
+}
+export async function updateTripEndTime(
+  tripId: string,
+  newTime: string,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(trip)
+      .set({
+        endTime: newTime,
+      })
+      .where(eq(trip.id, tripId));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update end time",
+    };
+  }
+}
+export async function updateTripRoundUpTime(
+  tripId: string,
+  roundUpTime: boolean,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(trip)
+      .set({
+        roundUpTime: roundUpTime,
+      })
+      .where(eq(trip.id, tripId));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update trip travel time estimates preference",
+    };
+  }
+}
+export async function updateTripPrivacy(
+  tripId: string,
+  privacy: boolean,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(trip)
+      .set({
+        private: privacy,
+      })
+      .where(eq(trip.id, tripId));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update trip privacy",
     };
   }
 }
