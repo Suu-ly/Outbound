@@ -130,7 +130,7 @@ const PlaceDetailsCompact = memo(
         setTimeout(() => {
           noteRef.current?.focus();
           inputIsFocused.current = true;
-        }, 150); // If you bump the mouse while the dropdown menu is closing, the input will lose focus
+        }, 200); // If you bump the mouse while the dropdown menu is closing, the input will lose focus
       }, [expanded]);
 
       const handleTextChange = useCallback(
@@ -255,7 +255,6 @@ const PlaceDetailsCompact = memo(
                     <DropdownMenuContent
                       align="end"
                       onCloseAutoFocus={(e) => e.preventDefault()}
-                      onFocusOutside={(e) => e.preventDefault()}
                     >
                       <ShareButton
                         link={data.placeInfo.googleMapsLink}

@@ -394,6 +394,15 @@ const RouteLines = ({ activeDay }: { activeDay: string | number }) => {
 
 export const MapLegendPanel = () => {
   const [expanded, setExpanded] = useState(true);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const isMounted = useRef(false);
+
+  useEffect(() => {
+    if (buttonRef.current && isMounted.current) {
+      buttonRef.current.focus();
+    }
+    isMounted.current = true;
+  }, [expanded]);
 
   if (!expanded)
     return (
@@ -404,6 +413,7 @@ export const MapLegendPanel = () => {
         className="absolute right-0 top-0 z-10 mr-4 mt-4 origin-top-right bg-white shadow-md animate-in zoom-in-110"
         aria-label="Open map legend panel"
         onClick={() => setExpanded(true)}
+        ref={!expanded ? buttonRef : undefined}
       >
         <IconRoute />
       </Button>
@@ -420,6 +430,7 @@ export const MapLegendPanel = () => {
           iconOnly
           aria-label="Close map legend panel"
           onClick={() => setExpanded(false)}
+          ref={expanded ? buttonRef : undefined}
         >
           <IconX />
         </Button>

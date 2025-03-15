@@ -79,7 +79,17 @@ const DayStartTime = () => {
       onConfirm={handleTimeChange}
       loading={isLoading}
     >
-      <SettingsItem title="Default day start time" className="cursor-pointer">
+      <SettingsItem
+        title="Default day start time"
+        className="cursor-pointer transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.code === "Enter" || e.code === "Space") {
+            e.currentTarget.click();
+          }
+        }}
+      >
         <div className="flex h-8 w-14 items-center justify-center rounded-full bg-slate-100 font-medium text-slate-900 transition-colors group-hover:bg-slate-200">
           {tripDetails.startTime}
         </div>
@@ -117,7 +127,17 @@ const DayEndTime = () => {
       onConfirm={handleTimeChange}
       loading={isLoading}
     >
-      <SettingsItem title="Default day end time" className="cursor-pointer">
+      <SettingsItem
+        title="Default day end time"
+        className="cursor-pointer transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.code === "Enter" || e.code === "Space") {
+            e.currentTarget.click();
+          }
+        }}
+      >
         <div className="flex h-8 w-14 items-center justify-center rounded-full bg-slate-100 font-medium text-slate-900 transition-colors group-hover:bg-slate-200">
           {tripDetails.endTime}
         </div>
