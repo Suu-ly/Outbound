@@ -465,7 +465,7 @@ export const MapLegends = () => {
       <div className="flex items-center gap-3">
         <div
           aria-hidden={true}
-          className="h-2 w-5 rounded-full bg-amber-300"
+          className="h-2.5 w-6 rounded-full border-2 border-amber-900 bg-amber-300"
         ></div>
         <p className="text-sm">Saved Places</p>
       </div>
@@ -473,7 +473,7 @@ export const MapLegends = () => {
         <div className="flex items-center gap-3">
           <div
             aria-hidden={true}
-            className="h-2 w-5 rounded-full border-2 border-slate-400 bg-slate-200"
+            className="h-2.5 w-6 rounded-full border-2 border-slate-400 bg-slate-200"
           ></div>
           <p className="text-sm">Skipped Place</p>
         </div>
@@ -484,7 +484,7 @@ export const MapLegends = () => {
           <div key={day.dayId} className="flex items-center gap-3">
             <div
               aria-hidden={true}
-              className={`h-2 w-5 rounded-full ${markerColorLookup[index % markerColorLookup.length].bg}`}
+              className={`h-2.5 w-6 rounded-full border-2 ${markerColorLookup[index % markerColorLookup.length].bg} ${markerColorLookup[index % markerColorLookup.length].border}`}
             ></div>
             <p className="text-sm">
               {date.toLocaleDateString(undefined, {
