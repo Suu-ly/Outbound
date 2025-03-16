@@ -1,37 +1,16 @@
 import Footer from "@/components/footer";
 import Header from "@/components/header";
-import SignOutButton from "@/components/sign-out-button";
-import Tester from "@/components/tester";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { auth } from "@/server/auth";
-import {
-  IconArrowLeft,
-  IconDotsVertical,
-  IconSearch,
-  IconX,
-} from "@tabler/icons-react";
+import { db } from "@/server/db";
+import { location, trip, tripPlace } from "@/server/db/schema";
+import { IconDotsVertical, IconPlus } from "@tabler/icons-react";
+import { and, count, desc, eq, isNull, or } from "drizzle-orm";
 import { headers } from "next/headers";
 import Image from "next/image";
+import Link from "next/link";
 
 export default async function Home() {
   const session = await auth.api
@@ -41,144 +20,123 @@ export default async function Home() {
     .catch((e) => {
       console.log(e);
     });
+
+  if (!session)
+    return (
+      <div className="flex min-h-dvh flex-col">
+        <Header>
+          <ButtonLink size="small" href="/login">
+            Login
+          </ButtonLink>
+        </Header>
+        <main className="flex w-full grow flex-col items-center justify-center gap-4 bg-zinc-50 py-8">
+          <div className="flex items-baseline gap-2">
+            <Image src="/outbound.svg" width={24} height={24} alt="outbound" />
+            <h1 className="font-display text-4xl font-semibold text-brand-900">
+              Outbound
+            </h1>
+          </div>
+          <ButtonLink href="/login" size="large">
+            Login
+          </ButtonLink>
+        </main>
+      </div>
+    );
+
+  const trips = await db
+    .select({
+      tripId: trip.id,
+      name: trip.name,
+      coverImgSmall: location.coverImgSmall,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      private: trip.private,
+      places: count(tripPlace.placeId),
+    })
+    .from(trip)
+    .innerJoin(location, eq(location.id, trip.locationId))
+    .leftJoin(tripPlace, eq(tripPlace.tripId, trip.id))
+    .where(
+      and(
+        eq(trip.userId, session.user.id),
+        or(eq(tripPlace.type, "skipped"), isNull(tripPlace.type)),
+      ),
+    )
+    .groupBy(trip.id, location.coverImgSmall)
+    .orderBy(desc(trip.updatedAt));
+
   return (
     <div className="flex min-h-dvh flex-col">
       <Header>
         <Avatar>
           <AvatarImage
-            src={session && session.user.image ? session.user.image : undefined}
+            src={session.user.image ? session.user.image : undefined}
           />
-          <AvatarFallback>{session ? session.user.name : "NA"}</AvatarFallback>
+          <AvatarFallback>
+            {session.user.name.slice(0, 2).toUpperCase()}
+          </AvatarFallback>
         </Avatar>
       </Header>
-      <main className="flex w-full grow flex-col items-center justify-center gap-4 bg-zinc-50 py-8">
-        <div className="flex items-baseline gap-2">
-          <Image src="/outbound.svg" width={24} height={24} alt="outbound" />
-          <h1 className="font-display text-4xl font-semibold text-brand-900">
-            Outbound
+      <main className="mx-auto flex w-full max-w-7xl grow flex-col gap-8 bg-zinc-50 px-4 py-8">
+        <div className="flex flex-col items-center justify-center gap-8 sm:flex-row">
+          <h1 className="grow font-display text-4xl font-semibold text-slate-900">
+            My Trips
           </h1>
-        </div>
-        <p>Testing page</p>
-        <Separator />
-        {session ? (
-          <h2 className="text-2xl font-semibold">Hello, {session.user.name}</h2>
-        ) : (
-          "Not signed in"
-        )}
-        <SignOutButton />
-        <Separator />
-        <div className="grid h-full max-w-6xl grid-cols-2 items-center justify-items-start gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button size={"large"}>Open Dialog</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogTitle>Example dialog</DialogTitle>
-              This is the dialog body. It is used to explain some stuff to the
-              user that needs their attention.
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button>Accept</Button>
-                </DialogClose>
-                <DialogClose asChild>
-                  <Button variant="ghost">Cancel</Button>
-                </DialogClose>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          <Drawer>
-            <DrawerTrigger asChild>
-              <Button variant="secondary" size="small">
-                Open Drawer
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent>
-              <div className="space-y-6">
-                <DrawerTitle>Example Drawer</DrawerTitle>
-                <p>
-                  This is the drawer body. It is used to explain some stuff to
-                  the user that needs their attention.
-                </p>
-                <DrawerFooter>
-                  <DrawerClose asChild>
-                    <Button>Accept</Button>
-                  </DrawerClose>
-                  <DrawerClose asChild>
-                    <Button variant="ghost">Cancel</Button>
-                  </DrawerClose>
-                </DrawerFooter>
-              </div>
-            </DrawerContent>
-          </Drawer>
-          <Button size={"small"}>
-            <IconArrowLeft />
-            Small
-          </Button>
-          <Button>
-            <IconArrowLeft />
-            Default
-          </Button>
-          <Button size={"large"}>
-            <IconArrowLeft />
-            Large
-          </Button>
-          <Button size={"large"} variant={"outline"}>
-            <IconArrowLeft size={20} />
-            Size 20 Manual
-          </Button>
-          <Button size={"large"} variant={"outline"}>
-            <IconArrowLeft />
-            Size 20 CSS
-          </Button>
-          <Button variant={"secondary"} size="large" iconOnly>
-            <IconArrowLeft />
-          </Button>
-          <Button size={"large"} variant={"outline"} disabled>
-            <IconArrowLeft />
-            Hello
-          </Button>
-          <Button size={"large"} disabled>
-            <IconArrowLeft />
-            Hello
-          </Button>
-          <Button size={"large"} variant={"secondary"} disabled>
-            <IconArrowLeft />
-            Hello
-          </Button>
-          <Button size={"large"} variant={"secondary"}>
-            <IconArrowLeft />
-            Hello
-          </Button>
-          <Button size={"large"} variant={"ghost"} disabled>
-            <IconArrowLeft />
-            Hello
-          </Button>
-          <Button size={"large"} variant={"ghost"}>
-            <IconArrowLeft />
-            Hello
-          </Button>
-          <Button size={"small"} variant={"ghost"} iconOnly>
-            <IconDotsVertical />
-          </Button>
-          <Input />
-          <Input left={<IconSearch />} placeholder="Search..." />
-          <Input right={<IconSearch />} disabled placeholder="Search..." />
-          <Input
-            left={<IconSearch />}
-            right={
-              <Button size="small" iconOnly variant="ghost">
-                <IconX />
-              </Button>
-            }
-          />
-          <Tester />
-        </div>
-        <Separator />
-        <div className="grid h-full max-w-6xl grid-cols-2 items-center justify-items-start gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          <ButtonLink href="/login">Login</ButtonLink>
           <ButtonLink href="/new" size="large">
+            <IconPlus />
             New Trip
           </ButtonLink>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          {trips.map((trip) => (
+            <div
+              key={trip.tripId}
+              className="group relative space-y-2 rounded-2xl border-2 border-slate-200 bg-white p-3 ring-0 ring-slate-200 transition hover:ring-2 active:ring-slate-400"
+            >
+              <div className="relative aspect-[5/4] overflow-hidden rounded-lg">
+                <img
+                  src={trip.coverImgSmall}
+                  alt={trip.name}
+                  className="absolute size-full object-cover transition-transform duration-500 group-hover:scale-[102%]"
+                />
+              </div>
+              <div className="flex">
+                <div className="flex grow flex-col">
+                  <Link href={`/trip/${trip.tripId}`}>
+                    <span
+                      className="absolute inset-0"
+                      role="presentation"
+                    ></span>
+                    <h4 className="line-clamp-2 grow font-display text-2xl font-medium text-slate-900">
+                      {trip.name}
+                    </h4>
+                  </Link>
+                  <p className="mb-2 text-xs font-medium text-slate-500">
+                    {trip.startDate.toLocaleDateString(undefined, {
+                      day: "numeric",
+                      month: "short",
+                      year: "2-digit",
+                    })}{" "}
+                    –{" "}
+                    {trip.endDate.toLocaleDateString(undefined, {
+                      day: "numeric",
+                      month: "short",
+                      year: "2-digit",
+                    })}
+                  </p>
+                  <p className="text-slate-700">{trip.places} Places</p>
+                </div>
+                <Button
+                  size="small"
+                  variant="ghost"
+                  iconOnly
+                  aria-label="More options"
+                >
+                  <IconDotsVertical />
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
       </main>
       <Footer />

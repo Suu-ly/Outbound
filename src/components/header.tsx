@@ -7,7 +7,7 @@ type HeaderProps = {
 
 export default function Header({ children }: HeaderProps) {
   return (
-    <header className="sticky inset-x-0 top-0 flex items-center justify-between bg-white px-4 py-3">
+    <header className="sticky inset-x-0 top-0 z-50 flex items-center justify-between bg-white px-4 py-3">
       <Link
         href="/"
         className="rounded-full p-1.5 ring-offset-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
