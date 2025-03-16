@@ -156,6 +156,27 @@ const getSearchWindows = (
   return windows;
 };
 
+const getViewport = (viewport: {
+  low: {
+    latitude: number;
+    longitude: number;
+  };
+  high: {
+    latitude: number;
+    longitude: number;
+  };
+}): BoundingBox => {
+  let high = viewport.high.longitude;
+  // Viewport crosses the antimeridian
+  if (viewport.high.longitude < viewport.low.longitude) {
+    high += 360;
+  }
+  return [
+    [viewport.low.longitude, viewport.low.latitude],
+    [high, viewport.high.latitude],
+  ];
+};
+
 export async function GET(request: NextRequest) {
   if (!process.env.GOOGLE_SECRET) {
     throw new Error("Google API Key is not set");
@@ -279,12 +300,11 @@ export async function GET(request: NextRequest) {
     .then((data) => data[0].geojson);
   const searchWindows = getSearchWindows(polygon);
 
+  const viewport = getViewport(bounds.viewport);
+
   const insertValue: InsertLocation = {
     id: id,
-    viewport: [
-      [bounds.viewport.low.longitude, bounds.viewport.low.latitude],
-      [bounds.viewport.high.longitude, bounds.viewport.high.latitude],
-    ],
+    viewport: viewport,
     name: bounds.displayName.text,
     coverImg: images.data.image,
     coverImgSmall: images.data.thumbnail,
