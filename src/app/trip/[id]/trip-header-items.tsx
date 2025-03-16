@@ -17,35 +17,47 @@ import {
   IconSettings,
   IconTrash,
 } from "@tabler/icons-react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { isTripAdminAtom } from "../atoms";
+import { useParams, usePathname } from "next/navigation";
+import {
+  changeTripNameDialogOpenAtom,
+  deleteTripDialogOpenAtom,
+  isTripAdminAtom,
+  setToPublicDialogOpenAtom,
+  tripDetailsAtom,
+} from "../atoms";
 
 const discoverRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/discover`);
 const skipRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/skipped`);
 
 export default function TripHeaderItems() {
   const path = usePathname();
+  const id = useParams<{ id: string }>().id;
 
-  const basePath = path.substring(0, 18);
+  const basePath = `/trip/${id}`;
 
   const isDiscover = discoverRegex.test(path);
 
   const isSkip = skipRegex.test(path);
 
   const isAdmin = useAtomValue(isTripAdminAtom);
+  const tripDetails = useAtomValue(tripDetailsAtom);
+
+  const setToPublicDialogOpen = useSetAtom(setToPublicDialogOpenAtom);
+  const openDialog = () => {
+    setToPublicDialogOpen(true);
+  };
+  const setChangeTripNameDialogOpen = useSetAtom(changeTripNameDialogOpenAtom);
+  const setDeleteTripDialogOpen = useSetAtom(deleteTripDialogOpenAtom);
 
   return (
     <>
       <ShareButton
-        className={!isDiscover ? "hidden sm:inline-flex" : undefined}
-        link={
-          typeof window !== "undefined"
-            ? window.location.origin + basePath
-            : "/"
-        }
+        link={process.env.NEXT_PUBLIC_URL + basePath}
         message="Trip link copied to clipboard!"
+        className={!isDiscover ? "hidden sm:inline-flex" : undefined}
+        onAction={tripDetails.private ? openDialog : undefined}
       />
       {isAdmin && (
         <>
@@ -74,13 +86,10 @@ export default function TripHeaderItems() {
             <DropdownMenuContent align="end">
               <ShareButton
                 isDropdown
+                link={process.env.NEXT_PUBLIC_URL + basePath}
                 message="Trip link copied to clipboard!"
+                onAction={tripDetails.private ? openDialog : undefined}
                 className={!isDiscover ? "sm:hidden" : "hidden"}
-                link={
-                  typeof window !== "undefined"
-                    ? window.location.origin + basePath
-                    : "/"
-                }
               />
 
               <DropdownMenuItem
@@ -92,7 +101,9 @@ export default function TripHeaderItems() {
                   Settings
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => setChangeTripNameDialogOpen(true)}
+              >
                 <IconEdit />
                 Edit trip name
               </DropdownMenuItem>
@@ -104,7 +115,10 @@ export default function TripHeaderItems() {
                   </Link>
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem className="text-rose-700 focus:text-rose-900 [&_svg]:text-rose-600 [&_svg]:focus:text-rose-700">
+              <DropdownMenuItem
+                onSelect={() => setDeleteTripDialogOpen(true)}
+                className="text-rose-700 focus:text-rose-900 [&_svg]:text-rose-600 [&_svg]:focus:text-rose-700"
+              >
                 <IconTrash />
                 Delete trip
               </DropdownMenuItem>

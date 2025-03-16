@@ -24,6 +24,7 @@ import {
 import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import MapView from "./map-view";
+import TripDialogs from "./trip-dialogs";
 import TripHeaderItems from "./trip-header-items";
 import TripProviders from "./trip-providers";
 
@@ -305,6 +306,7 @@ export default async function TripLayout({
       <Header>
         <TripHeaderItems />
       </Header>
+      <TripDialogs />
       <div className="relative flex h-[calc(100dvh-56px)] overflow-hidden">
         {children}
         <MapView initialBounds={preparedData.tripData.viewport} />

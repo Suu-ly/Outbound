@@ -72,7 +72,9 @@ export default function DrawerDialog({
           onEscapeKeyDown={(e) => loading && e.preventDefault()}
         >
           <DialogTitle>{header}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogDescription className="whitespace-pre-line">
+            {description}
+          </DialogDescription>
           {content && <div>{content}</div>}
           <DialogFooter>
             <Button
@@ -108,7 +110,9 @@ export default function DrawerDialog({
       >
         <div className="space-y-6">
           <DrawerTitle>{header}</DrawerTitle>
-          <DrawerDescription>{description}</DrawerDescription>
+          <DrawerDescription className="whitespace-pre-line">
+            {description}
+          </DrawerDescription>
           {content && <div>{content}</div>}
           <DrawerFooter>
             <DrawerClose asChild>

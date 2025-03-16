@@ -109,3 +109,8 @@ export const activePlaceIndexAtom = atom<number>(0);
 export const scrolledToTopAtom = atom<boolean>(true);
 export const drawerMinimisedAtom = atom<boolean>(false);
 export const drawerDragProgressAtom = atom<MotionValue>();
+
+// Dialogs
+export const setToPublicDialogOpenAtom = atom(false);
+export const changeTripNameDialogOpenAtom = atom(false);
+export const deleteTripDialogOpenAtom = atom(false);

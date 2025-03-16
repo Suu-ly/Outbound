@@ -213,7 +213,7 @@ const PrivateTrip = () => {
       <Switch
         id="privacy-switch"
         disabled={isLoading}
-        defaultChecked={tripDetails.private}
+        checked={tripDetails.private}
         onCheckedChange={handleCheckedChange}
       />
     </SettingsItem>

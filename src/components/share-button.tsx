@@ -10,6 +10,7 @@ type ShareButtonProps = {
   label?: string;
   isDropdown?: boolean;
   message?: string;
+  onAction?: () => void;
 };
 
 export default function ShareButton({
@@ -18,6 +19,7 @@ export default function ShareButton({
   isDropdown,
   message = "Link copied to clipboard!",
   className,
+  onAction,
   ...rest
 }: ShareButtonProps & ButtonProps) {
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -30,7 +32,10 @@ export default function ShareButton({
 
   if (isDropdown)
     return (
-      <DropdownMenuItem onClick={onCopy} className={className}>
+      <DropdownMenuItem
+        onSelect={onAction ? onAction : onCopy}
+        className={className}
+      >
         <IconShare />
         Share
       </DropdownMenuItem>
@@ -40,7 +45,7 @@ export default function ShareButton({
     <Button
       size="small"
       variant="ghost"
-      onClick={onCopy}
+      onClick={onAction ? onAction : onCopy}
       iconOnly
       aria-label={label}
       className={className}

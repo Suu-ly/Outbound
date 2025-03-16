@@ -14,11 +14,12 @@ import { InsertTripDay } from "@/server/db/schema";
 import { PlaceDataEntry } from "@/server/types";
 import { IconCalendarWeek } from "@tabler/icons-react";
 import { differenceInCalendarDays } from "date-fns";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useState } from "react";
 import { type DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import {
+  changeTripNameDialogOpenAtom,
   dayPlacesAtom,
   savedPlacesAmountAtom,
   tripDetailsAtom,
@@ -27,18 +28,18 @@ import {
 import SortPlaces from "./sort-places";
 import ViewMapToggle from "./view-map-toggle";
 
-export default function TripPage({ tripId }: { tripId: string }) {
+const TripCalendar = ({ tripId }: { tripId: string }) => {
   const isLarge = useMediaQuery("(min-width: 768px)");
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [isChangingDate, setIsChangingDate] = useState(false);
+
   const [tripData, setTripData] = useAtom(tripDetailsAtom);
-  const [places, setPlaces] = useAtom(tripPlacesAtom);
+  const setPlaces = useSetAtom(tripPlacesAtom);
   const [days, setDays] = useAtom(dayPlacesAtom);
   const [date, setDate] = useState<DateRange | undefined>({
     from: tripData.startDate,
     to: tripData.endDate,
   });
-  const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [isChangingDate, setIsChangingDate] = useState(false);
 
   const handleDateSave = async () => {
     if (
@@ -159,99 +160,109 @@ export default function TripPage({ tripId }: { tripId: string }) {
     setCalendarOpen(false);
   };
 
-  console.log("Places", places);
-  console.log("Days", days);
+  return (
+    <Popover open={calendarOpen} onOpenChange={setCalendarOpen} modal>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          className={"mb-1 rounded-lg py-2 pr-3 has-[svg]:pl-2 [&_svg]:size-6"}
+        >
+          <IconCalendarWeek />
+          <div className="text-slate-700">
+            {date && date.from ? (
+              date.from.toLocaleDateString(undefined, {
+                day: "numeric",
+                month: "short",
+                year: "2-digit",
+              })
+            ) : (
+              <span className="text-slate-400">Start</span>
+            )}
+          </div>
+          -
+          <div className="text-slate-700">
+            {date && date.to ? (
+              date.to.toLocaleDateString(undefined, {
+                day: "numeric",
+                month: "short",
+                year: "2-digit",
+              })
+            ) : (
+              <span className="text-slate-400">End</span>
+            )}
+          </div>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-auto p-0"
+        onInteractOutside={(e) => {
+          e.preventDefault();
+          handleCancel();
+        }}
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+          handleCancel();
+        }}
+      >
+        <div>
+          <Calendar
+            className="pb-2"
+            disabled={{ before: new Date() }}
+            mode="range"
+            selected={date}
+            required
+            onSelect={(range) => {
+              setDate((prev) => {
+                if (!range) return prev;
+                if (!prev || (prev && prev.from === prev.to)) return range;
+                // Only to changes, set to as start date
+                if (range.from === prev.from)
+                  return { from: range.to, to: range.to };
+                // Otherwise
+                return { from: range.from, to: range.from };
+              });
+            }}
+            autoFocus
+            defaultMonth={date?.from}
+            numberOfMonths={isLarge ? 2 : 1}
+          />
+          <div className="flex flex-row-reverse items-center gap-3 p-3 pt-0">
+            <Button onClick={handleDateSave} loading={isChangingDate}>
+              Save
+            </Button>
+            <Button
+              disabled={isChangingDate}
+              variant="ghost"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+export default function TripPage({ tripId }: { tripId: string }) {
+  const tripData = useAtomValue(tripDetailsAtom);
+  const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
+  const setChangeTripNameDialogOpen = useSetAtom(changeTripNameDialogOpenAtom);
 
   return (
     <ViewMapToggle>
       <div className="relative aspect-square w-full">
         <div className="absolute inset-x-4 bottom-4 z-10 rounded-2xl border-2 border-slate-200 bg-white p-4 text-center shadow-md">
-          <h1 className="mb-4 font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
-            {tripData.name}
-          </h1>
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen} modal>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                className={
-                  "mb-1 rounded-lg bg-white py-2 pr-3 has-[svg]:pl-2 [&_svg]:size-6"
-                }
-              >
-                <IconCalendarWeek />
-                <div className="text-slate-700">
-                  {date && date.from ? (
-                    date.from.toLocaleDateString(undefined, {
-                      day: "numeric",
-                      month: "short",
-                      year: "2-digit",
-                    })
-                  ) : (
-                    <span className="text-slate-400">Start</span>
-                  )}
-                </div>
-                -
-                <div className="text-slate-700">
-                  {date && date.to ? (
-                    date.to.toLocaleDateString(undefined, {
-                      day: "numeric",
-                      month: "short",
-                      year: "2-digit",
-                    })
-                  ) : (
-                    <span className="text-slate-400">End</span>
-                  )}
-                </div>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              className="w-auto p-0"
-              onInteractOutside={(e) => {
-                e.preventDefault();
-                handleCancel();
-              }}
-              onEscapeKeyDown={(e) => {
-                e.preventDefault();
-                handleCancel();
-              }}
-            >
-              <div>
-                <Calendar
-                  className="pb-2"
-                  disabled={{ before: new Date() }}
-                  mode="range"
-                  selected={date}
-                  required
-                  onSelect={(range) => {
-                    setDate((prev) => {
-                      if (!range) return prev;
-                      if (!prev || (prev && prev.from === prev.to))
-                        return range;
-                      // Only to changes, set to as start date
-                      if (range.from === prev.from)
-                        return { from: range.to, to: range.to };
-                      // Otherwise
-                      return { from: range.from, to: range.from };
-                    });
-                  }}
-                  autoFocus
-                  defaultMonth={date?.from}
-                  numberOfMonths={isLarge ? 2 : 1}
-                />
-                <div className="flex flex-row-reverse items-center gap-3 p-3 pt-0">
-                  <Button onClick={handleDateSave} loading={isChangingDate}>
-                    Save
-                  </Button>
-                  <Button
-                    disabled={isChangingDate}
-                    variant="ghost"
-                    onClick={handleCancel}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+          <Button
+            variant="ghost"
+            className={"mx-auto mb-4 flex rounded-lg px-3 py-2"}
+            onClick={() => setChangeTripNameDialogOpen(true)}
+          >
+            <h1 className="font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
+              {tripData.name}
+            </h1>
+          </Button>
+          <TripCalendar tripId={tripId} />
           <p>{savedPlacesAmount} Places</p>
         </div>
         <img

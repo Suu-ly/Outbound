@@ -401,7 +401,9 @@ export const MapLegendPanel = () => {
     if (buttonRef.current && isMounted.current) {
       buttonRef.current.focus();
     }
-    isMounted.current = true;
+    const rAF = requestAnimationFrame(() => (isMounted.current = true));
+
+    return () => cancelAnimationFrame(rAF);
   }, [expanded]);
 
   if (!expanded)

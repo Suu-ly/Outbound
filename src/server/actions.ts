@@ -565,3 +565,40 @@ export async function updateTripPrivacy(
     };
   }
 }
+export async function updateTripName(
+  tripId: string,
+  newName: string,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(trip)
+      .set({
+        name: newName,
+      })
+      .where(eq(trip.id, tripId));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update trip name",
+    };
+  }
+}
+
+export async function deleteTrip(tripId: string) {
+  try {
+    await db.delete(trip).where(eq(trip.id, tripId));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to delete trip",
+    };
+  }
+}
