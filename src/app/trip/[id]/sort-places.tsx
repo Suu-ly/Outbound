@@ -667,7 +667,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       }}
       onDragStart={({ active }) => {
         setActiveId(active);
-        if (typeof navigator !== "undefined") navigator.vibrate(30);
       }}
       // onDragMove={({ active, over }) => {
       //   if (!over || active.id === over.id) {
