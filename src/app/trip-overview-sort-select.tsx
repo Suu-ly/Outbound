@@ -33,7 +33,7 @@ export default function TripOverviewSortSelect() {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="recent">Recently Edited</SelectItem>
-        <SelectItem value="date">Trip Start Date</SelectItem>
+        <SelectItem value="date">Upcoming</SelectItem>
       </SelectContent>
     </Select>
   );

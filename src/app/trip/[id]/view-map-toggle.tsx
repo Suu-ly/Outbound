@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { IconMap, IconX } from "@tabler/icons-react";
@@ -20,7 +25,7 @@ export default function ViewMapToggle({
   const isLarge = useMediaQuery("(min-width: 640px)");
   return (
     <main
-      className={`${viewMap ? "pointer-events-none sm:pointer-events-auto" : ""} absolute inset-0 z-50 size-full sm:static sm:w-1/2 xl:w-1/3`}
+      className={`${viewMap ? "pointer-events-none sm:pointer-events-auto" : ""} fixed inset-x-0 bottom-0 top-14 isolate z-10 sm:static sm:h-full sm:w-1/2 xl:w-1/3`}
     >
       {viewMap && !isLarge && (
         <>
@@ -44,6 +49,10 @@ export default function ViewMapToggle({
               <DrawerTitle className="mb-3 px-4 font-sans text-sm font-medium text-slate-700">
                 Legend
               </DrawerTitle>
+              <DrawerDescription className="sr-only">
+                Legends describing what category each place on the map belongs
+                to
+              </DrawerDescription>
               <Separator />
               <div className="max-h-48 space-y-3 overflow-auto p-4">
                 <MapLegends />

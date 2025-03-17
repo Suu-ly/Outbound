@@ -484,7 +484,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 50, tolerance: 4 },
+      activationConstraint: { delay: 200, tolerance: 4 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter,
@@ -653,7 +653,11 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   return (
     <DndContext
       id="Sort-places-dnd-context"
-      autoScroll={{ acceleration: 12 }}
+      autoScroll={{
+        threshold: { y: 0.4, x: 0 },
+        interval: 2,
+        acceleration: 6,
+      }}
       sensors={sensors}
       collisionDetection={collisionDetectionStrategy}
       measuring={{
@@ -663,6 +667,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       }}
       onDragStart={({ active }) => {
         setActiveId(active);
+        if (typeof navigator !== "undefined") navigator.vibrate(30);
       }}
       // onDragMove={({ active, over }) => {
       //   if (!over || active.id === over.id) {

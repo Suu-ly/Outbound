@@ -379,21 +379,16 @@ const PlaceDetailsCompact = memo(
                 className="flex flex-col pt-2 xl:pt-2"
                 active={expanded === "max"}
               >
-                <div
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
+                <Button
+                  className="h-9 w-full justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600"
+                  size="small"
+                  variant="ghost"
+                  onClick={() => setTimePickerOpen(true)}
+                  disabled={!isAdmin}
                 >
-                  <Button
-                    className="h-9 w-full justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600"
-                    size="small"
-                    variant="ghost"
-                    onClick={() => setTimePickerOpen(true)}
-                    disabled={!isAdmin}
-                  >
-                    <IconHourglass />
-                    Allocated time: {minsToString(data.userPlaceInfo.timeSpent)}
-                  </Button>
-                </div>
+                  <IconHourglass />
+                  Allocated time: {minsToString(data.userPlaceInfo.timeSpent)}
+                </Button>
                 <OpeningHours
                   collapsible={false}
                   highligtedDay={hoursDayIndex}

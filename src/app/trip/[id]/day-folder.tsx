@@ -129,7 +129,7 @@ const DayFolder = memo(
               } as CSSProperties
             }
           >
-            <div className="mt-4 px-4">
+            <div className="my-4 px-4">
               {children}
               {isAdmin &&
                 dayId !== undefined &&

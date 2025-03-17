@@ -3,11 +3,14 @@ import Link from "next/link";
 
 type HeaderProps = {
   children: React.ReactNode;
+  fixed?: boolean;
 };
 
-export default function Header({ children }: HeaderProps) {
+export default function Header({ children, fixed }: HeaderProps) {
   return (
-    <header className="sticky inset-x-0 top-0 z-50 flex items-center justify-between bg-white px-4 py-3">
+    <header
+      className={`${fixed ? "fixed" : "sticky"} inset-x-0 top-0 z-50 flex items-center justify-between bg-white px-4 py-3`}
+    >
       <Link
         href="/"
         className="flex items-baseline gap-1 rounded-full p-1.5 ring-offset-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"

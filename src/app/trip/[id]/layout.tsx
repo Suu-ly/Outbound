@@ -317,15 +317,56 @@ export default async function TripLayout({
       </div>
     );
 
+  if (data[0].trip.userId !== userSession?.user.id && data[0].trip.private) {
+    return (
+      <div className="flex min-h-dvh flex-col">
+        <Header>
+          {userSession ? (
+            <Avatar>
+              <AvatarImage
+                src={
+                  userSession.user.image ? userSession.user.image : undefined
+                }
+              />
+              <AvatarFallback>
+                {userSession
+                  ? userSession.user.name.substring(0, 2).toUpperCase()
+                  : "NA"}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <ButtonLink href="/login" size="small">
+              Login
+            </ButtonLink>
+          )}
+        </Header>
+        <main className="mx-auto flex w-full max-w-screen-sm grow flex-col items-center justify-center gap-12 p-4">
+          <div className="text-center">
+            <h1 className="mb-3 font-display text-4xl font-semibold">
+              No access to trip
+            </h1>
+            <h3 className="text-lg text-slate-700">
+              It seems like this trip has been set to private. The owner of the
+              trip has to set the trip to public before you are able to view it.
+            </h3>
+          </div>
+          <ButtonLink href="/" size="large">
+            Back to Home
+          </ButtonLink>
+        </main>
+      </div>
+    );
+  }
+
   const preparedData = prepareData(data);
 
   return (
     <TripProviders data={preparedData} session={userSession}>
-      <Header>
+      <Header fixed>
         <TripHeaderItems />
       </Header>
       <TripPageDialogs />
-      <div className="relative flex h-[calc(100dvh-56px)] overflow-hidden">
+      <div className="relative mt-14 flex h-[calc(100dvh-56px)] overflow-hidden">
         {children}
         <MapView initialBounds={preparedData.tripData.viewport} />
       </div>
