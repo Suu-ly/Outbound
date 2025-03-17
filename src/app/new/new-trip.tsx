@@ -1,5 +1,6 @@
 "use client";
 
+import DateHydration from "@/components/date-hydration";
 import AutoComplete from "@/components/ui/autocomplete";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -186,11 +187,7 @@ export default function NewTrip({ userId }: { userId: string }) {
               <IconCalendarWeek />
               <div className="w-full text-left text-slate-900">
                 {date && date.from ? (
-                  date.from.toLocaleDateString(undefined, {
-                    day: "numeric",
-                    month: "short",
-                    year: "2-digit",
-                  })
+                  <DateHydration date={date.from} />
                 ) : (
                   <span className="text-slate-400">Start</span>
                 )}
@@ -198,11 +195,7 @@ export default function NewTrip({ userId }: { userId: string }) {
               <Separator orientation="vertical" className="mx-1" />
               <div className="w-full text-left text-slate-900">
                 {date && date.to ? (
-                  date.to.toLocaleDateString(undefined, {
-                    day: "numeric",
-                    month: "short",
-                    year: "2-digit",
-                  })
+                  <DateHydration date={date.to} />
                 ) : (
                   <span className="text-slate-400">End</span>
                 )}

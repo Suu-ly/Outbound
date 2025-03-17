@@ -1,3 +1,4 @@
+import DateHydration from "@/components/date-hydration";
 import {
   Collapsible,
   CollapsibleContent,
@@ -90,17 +91,11 @@ const DayFolder = memo(
                 </CollapsibleTrigger>
                 <div className="flex w-full gap-4 font-display text-lg font-medium text-slate-900">
                   <span>
-                    {date.toLocaleDateString(undefined, {
-                      day: "numeric",
-                      month: "short",
-                      year: "2-digit",
-                    })}
+                    <DateHydration date={date} />
                   </span>
                   <Separator orientation="vertical" className="h-auto" />
                   <span>
-                    {date.toLocaleDateString(undefined, {
-                      weekday: "short",
-                    })}
+                    <DateHydration date={date} weekday />
                   </span>
                 </div>
               </div>

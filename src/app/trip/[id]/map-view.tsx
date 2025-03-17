@@ -1,4 +1,5 @@
 "use client";
+import DateHydration from "@/components/date-hydration";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -489,17 +490,11 @@ export const MapLegends = () => {
               className={`h-2.5 w-6 rounded-full border-2 ${markerColorLookup[index % markerColorLookup.length].bg} ${markerColorLookup[index % markerColorLookup.length].border}`}
             ></div>
             <p className="text-sm">
-              {date.toLocaleDateString(undefined, {
-                day: "numeric",
-                month: "short",
-                year: "2-digit",
-              })}
+              <DateHydration date={date} />
             </p>
             <Separator orientation="vertical" className="h-auto self-stretch" />
             <p className="text-sm">
-              {date.toLocaleDateString(undefined, {
-                weekday: "short",
-              })}
+              <DateHydration date={date} weekday />
             </p>
           </div>
         );

@@ -1,5 +1,6 @@
 "use client";
 
+import DateHydration from "@/components/date-hydration";
 import ShareButton from "@/components/share-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,17 +53,8 @@ export default function TripCard({
             </h4>
           </Link>
           <p className="mb-2 text-xs font-medium text-slate-500">
-            {trip.startDate.toLocaleDateString(undefined, {
-              day: "numeric",
-              month: "short",
-              year: "2-digit",
-            })}{" "}
-            –{" "}
-            {trip.endDate.toLocaleDateString(undefined, {
-              day: "numeric",
-              month: "short",
-              year: "2-digit",
-            })}
+            <DateHydration date={trip.startDate} /> –{" "}
+            <DateHydration date={trip.endDate} />
           </p>
           <p className="text-slate-700">{trip.places} Places</p>
         </div>

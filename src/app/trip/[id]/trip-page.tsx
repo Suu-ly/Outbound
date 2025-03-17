@@ -1,5 +1,6 @@
 "use client";
 
+import DateHydration from "@/components/date-hydration";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -170,11 +171,7 @@ const TripCalendar = ({ tripId }: { tripId: string }) => {
           <IconCalendarWeek />
           <div className="text-slate-700">
             {date && date.from ? (
-              date.from.toLocaleDateString(undefined, {
-                day: "numeric",
-                month: "short",
-                year: "2-digit",
-              })
+              <DateHydration date={date.from} />
             ) : (
               <span className="text-slate-400">Start</span>
             )}
@@ -182,11 +179,7 @@ const TripCalendar = ({ tripId }: { tripId: string }) => {
           -
           <div className="text-slate-700">
             {date && date.to ? (
-              date.to.toLocaleDateString(undefined, {
-                day: "numeric",
-                month: "short",
-                year: "2-digit",
-              })
+              <DateHydration date={date.to} />
             ) : (
               <span className="text-slate-400">End</span>
             )}

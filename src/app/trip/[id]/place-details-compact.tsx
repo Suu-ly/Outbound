@@ -6,6 +6,7 @@ import {
   mapActiveMarkerAtom,
   tripStartDateAtom,
 } from "@/app/trip/atoms";
+import DateHydration from "@/components/date-hydration";
 import OpeningHours from "@/components/opening-hours";
 import ShareButton from "@/components/share-button";
 import TabDisable from "@/components/tab-disable";
@@ -297,14 +298,9 @@ const PlaceDetailsCompact = memo(
                                   handleMove(isInDay, data, day.dayId)
                                 }
                               >
-                                {addDays(startDate, index).toLocaleDateString(
-                                  undefined,
-                                  {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "2-digit",
-                                  },
-                                )}
+                                <DateHydration
+                                  date={addDays(startDate, index)}
+                                />
                               </DropdownMenuItem>
                             );
                           })}
