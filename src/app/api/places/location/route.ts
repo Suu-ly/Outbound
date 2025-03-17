@@ -60,8 +60,8 @@ const getPlaceName = (
     if (!city && components[i].types.includes("administrative_area_level_1"))
       city = components[i].longText;
   }
-  if (city && city !== name) return name + " " + city.replace(suffixRegex, "");
-  return name + " " + country;
+  if (city && city !== name) return name + ", " + city.replace(suffixRegex, "");
+  return name + ", " + country;
 };
 
 // Visualise https://www.desmos.com/calculator/ldhs15ostc
