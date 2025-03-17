@@ -336,7 +336,7 @@ const CarouselPrevious = React.forwardRef<
   if (absolute)
     return (
       <button
-        className={`transition-colors hover:underline focus-visible:bg-slate-900/5 focus-visible:outline-none ${
+        className={`transition-colors hover:underline focus-visible:bg-slate-950/25 focus-visible:outline-none ${
           orientation === "vertical"
             ? "absolute inset-x-0 top-0 h-1/2"
             : "absolute inset-y-0 left-0 w-1/2"
@@ -380,7 +380,7 @@ const CarouselNext = React.forwardRef<
   if (absolute)
     return (
       <button
-        className={`transition-colors hover:underline focus-visible:bg-slate-900/5 focus-visible:outline-none ${
+        className={`transition-colors hover:underline focus-visible:bg-slate-950/25 focus-visible:outline-none ${
           orientation === "vertical"
             ? "absolute inset-x-0 bottom-0 h-1/2"
             : "absolute inset-y-0 right-0 w-1/2"

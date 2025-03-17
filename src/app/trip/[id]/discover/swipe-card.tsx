@@ -30,6 +30,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -87,6 +88,9 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
 
   const activeTime = useRef<number>(Infinity);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const [ready, setReady] = useState(false);
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
   const handlePanStart = useCallback(
     (event: globalThis.PointerEvent, info: PanInfo) => {
@@ -264,24 +268,26 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
       scrollContainer?.removeEventListener("scroll", handleTopScroll);
   }, [active, setScrolledToTop]);
 
-  //Prevent layout shift due to hiding of scrollbar
-  // useLayoutEffect(() => {
-  //   if (scrollContainerRef && scrollContainerRef.current) {
-  //     setScrollbarWidth(
-  //       scrollContainerRef.current.offsetWidth -
-  //         scrollContainerRef.current.clientWidth,
-  //     );
-  //     setReady(true);
-  //   }
-  // }, []);
+  // Prevent layout shift due to hiding of scrollbar
+  useLayoutEffect(() => {
+    if (scrollContainerRef && scrollContainerRef.current) {
+      setScrollbarWidth(
+        scrollContainerRef.current.offsetWidth -
+          scrollContainerRef.current.clientWidth,
+      );
+      setReady(true);
+    }
+  }, []);
 
-  const hideScroll = isDragging || status !== "none" || !active || minimised;
+  const hideScroll =
+    (isDragging || status !== "none" || !active || minimised) && ready;
 
   return (
     <motion.div
       className={cn(
         "pointer-events-none absolute left-0 top-0 z-[--index] size-full touch-none select-none sm:w-1/2 xl:w-1/3",
         active && "animate-activate",
+        active || (status !== "none" && "will-change-transform"),
       )}
       drag={draggable}
       dragListener={false}
@@ -291,7 +297,6 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
         cursor: "grabbing",
         scale: 0.97,
         borderRadius: "2rem",
-        willChange: "transform",
       }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -308,7 +313,6 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
     >
       <motion.div
         ref={scrollContainerRef}
-        // Set opacity here so it's not laggy on firefox opacity-[98.99%]
         className={cn(
           "relative size-full overflow-x-hidden overscroll-y-none transition-colors",
           status === "none"
@@ -319,9 +323,9 @@ export default forwardRef<Record<string, () => void>, CardProps>(function Card(
           hideScroll ? "overflow-y-hidden" : "overflow-y-auto",
           isDragging || minimised ? "touch-none" : "touch-pan-y",
         )}
-        // style={{
-        //   paddingRight: hideScroll ? `${scrollbarWidth}px` : undefined,
-        // }}
+        style={{
+          paddingRight: hideScroll ? `${scrollbarWidth}px` : undefined,
+        }}
         animate={
           status === "accept"
             ? {
