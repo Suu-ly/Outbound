@@ -47,9 +47,6 @@ export default function MapView({
 }: {
   initialBounds: BoundingBox;
 }) {
-  // const showMap = process.env.NEXT_PUBLIC_USE_REAL_DATA === "true";
-  // if (!showMap)
-  //   return <div className="size-full bg-sky-300 sm:w-1/2 xl:w-2/3"></div>;
   useMapViewManager();
   const setActiveMarker = useSetAtom(mapActiveMarkerAtom);
 
@@ -62,6 +59,9 @@ export default function MapView({
       <Map
         id="map"
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+        projection={{
+          name: "mercator",
+        }}
         initialViewState={{
           bounds: initialBounds,
         }}
