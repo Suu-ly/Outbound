@@ -8,6 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { markerColorLookup } from "@/lib/color-lookups";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { insertAfter } from "@/lib/utils";
 import { addTripDays, deleteTripDays, updateTripDates } from "@/server/actions";
@@ -22,11 +23,17 @@ import { toast } from "sonner";
 import {
   changeTripNameDialogOpenAtom,
   dayPlacesAtom,
+  isTripAdminAtom,
   savedPlacesAmountAtom,
   tripDetailsAtom,
   tripPlacesAtom,
+  tripStartDateAtom,
 } from "../atoms";
+import DayFolder from "./day-folder";
+import PlaceDetailsCompact from "./place-details-compact";
 import SortPlaces from "./sort-places";
+import TravelTimeIndicator from "./travel-time-indicator";
+import TravelTimeSelect from "./travel-time-select";
 import ViewMapToggle from "./view-map-toggle";
 
 const TripCalendar = ({ tripId }: { tripId: string }) => {
@@ -237,30 +244,120 @@ const TripCalendar = ({ tripId }: { tripId: string }) => {
   );
 };
 
+const NonAdminView = () => {
+  const places = useAtomValue(tripPlacesAtom);
+  const days = useAtomValue(dayPlacesAtom);
+  const startDate = useAtomValue(tripStartDateAtom);
+  return (
+    <div className="flex flex-col gap-4">
+      <h3 className="font-display text-2xl font-medium">Saved Places</h3>
+      {places.saved.map((place, index) => (
+        <div
+          key={place.placeInfo.placeId}
+          className={"relative ml-5 border-l-2 border-zinc-50 pl-6"}
+        >
+          <div
+            className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900`}
+            aria-label={`Saved place ${index + 1}`}
+          >
+            {index + 1}
+          </div>
+          <PlaceDetailsCompact data={place} />
+        </div>
+      ))}
+      <h3 className="font-display text-2xl font-medium">Itinerary</h3>
+      {days.map((day, dayIndex) => (
+        <DayFolder key={day.dayId} startDate={startDate} index={dayIndex}>
+          {places[day.dayId].map((place, index) => {
+            return (
+              <div
+                key={place.placeInfo.placeId}
+                className="relative ml-5 border-l-2 border-slate-700 pb-2 pl-6 last:border-transparent last:pb-0"
+              >
+                <div
+                  className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`}
+                  aria-label={`Saved place on day ${dayIndex + 1} ${index + 1}`}
+                >
+                  {index + 1}
+                </div>
+                <TravelTimeIndicator
+                  isInDay={day.dayId}
+                  index={index}
+                  startTime={day.dayStartTime}
+                />
+                <PlaceDetailsCompact
+                  data={place}
+                  isInDay={day.dayId}
+                  dayIndex={dayIndex}
+                />
+                {index < places[day.dayId].length - 1 && ( // Not the last item
+                  <TravelTimeSelect
+                    isInDay={day.dayId}
+                    fromId={place.placeInfo.placeId}
+                    fromCoords={place.placeInfo.location}
+                    toId={places[day.dayId][index + 1].placeInfo.placeId}
+                    toCoords={places[day.dayId][index + 1].placeInfo.location}
+                    isAdmin={false}
+                  />
+                )}
+              </div>
+            );
+          })}
+          {places[day.dayId].length === 0 && (
+            <span className="inline-block w-full text-center leading-8 text-slate-500">
+              No places planned for this day.
+            </span>
+          )}
+        </DayFolder>
+      ))}
+    </div>
+  );
+};
+
 export default function TripPage({ tripId }: { tripId: string }) {
   const tripData = useAtomValue(tripDetailsAtom);
   const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
   const setChangeTripNameDialogOpen = useSetAtom(changeTripNameDialogOpenAtom);
+  const isAdmin = useAtomValue(isTripAdminAtom);
 
   return (
     <ViewMapToggle>
       <div className="relative aspect-square w-full">
         <div className="absolute inset-x-4 bottom-4 z-10 rounded-2xl border-2 border-slate-200 bg-white p-4 text-center shadow-md">
-          <Button
-            variant="ghost"
-            className={"mx-auto mb-4 flex rounded-lg px-3 py-2"}
-            onClick={() =>
-              setChangeTripNameDialogOpen({
-                currentName: tripData.name,
-                tripId: tripData.id,
-              })
-            }
-          >
-            <h1 className="font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              className={"mx-auto mb-4 flex rounded-lg px-3 py-2"}
+              onClick={() =>
+                setChangeTripNameDialogOpen({
+                  currentName: tripData.name,
+                  tripId: tripData.id,
+                })
+              }
+            >
+              <h1 className="font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
+                {tripData.name}
+              </h1>
+            </Button>
+          )}
+          {!isAdmin && (
+            <h1 className="mb-4 px-3 py-2 font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
               {tripData.name}
             </h1>
-          </Button>
-          <TripCalendar tripId={tripId} />
+          )}
+          {isAdmin && <TripCalendar tripId={tripId} />}
+          {!isAdmin && (
+            <div className="mb-1 inline-flex gap-2 font-medium text-slate-700">
+              <IconCalendarWeek />
+              <span>
+                <DateHydration date={tripData.startDate} />
+              </span>
+              -
+              <span>
+                <DateHydration date={tripData.endDate} />
+              </span>
+            </div>
+          )}
           <p>{savedPlacesAmount} Places</p>
         </div>
         <img
@@ -270,7 +367,8 @@ export default function TripPage({ tripId }: { tripId: string }) {
         />
       </div>
       <div className="flex flex-col gap-4 p-4 pb-[72px] sm:pb-4">
-        <SortPlaces tripId={tripId} />
+        {isAdmin && <SortPlaces tripId={tripId} />}
+        {!isAdmin && <NonAdminView />}
       </div>
     </ViewMapToggle>
   );

@@ -998,7 +998,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                     >
                       <div
                         className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`}
-                        aria-label={`Saved place ${index + 1}`}
+                        aria-label={`Saved place on day ${dayIndex + 1} ${index + 1}`}
                       >
                         {index + 1}
                       </div>

@@ -25,7 +25,8 @@ type TravelTimeSelectProps = {
   fromCoords: Coordinates;
   toId: string;
   toCoords: Coordinates;
-  isDragging: boolean;
+  isDragging?: boolean;
+  isAdmin?: boolean;
 };
 
 export const TravelTimeSelect = memo(
@@ -36,6 +37,7 @@ export const TravelTimeSelect = memo(
     toId,
     toCoords,
     isDragging,
+    isAdmin = true,
   }: TravelTimeSelectProps) => {
     const tripDetails = useAtomValue(tripDetailsAtom);
     const shouldRoundUp = tripDetails.roundUpTime;
@@ -149,11 +151,42 @@ export const TravelTimeSelect = memo(
       queryKey: ["traveltime", fromId, toId],
       queryFn: () => getTravelTime(fromId, fromCoords, toId, toCoords, tripId),
       enabled:
-        !isDragging && (!travelTimes[fromId] || !travelTimes[fromId][toId]),
+        !isDragging &&
+        (!travelTimes[fromId] ||
+          !travelTimes[fromId][toId] ||
+          !travelTimes[fromId][toId].mode),
       meta: {
         errorMessage: "Unable to fetch travel time information",
       },
     });
+
+    if (!isAdmin && (data || isFetching))
+      return (
+        <div className="mt-2 flex h-8 w-full items-center gap-1 rounded-lg px-2 text-left text-sm font-medium text-slate-700">
+          {data ? (
+            <>
+              {value === "drive" && <IconCar />}
+              {value === "cycle" && <IconBike />}
+              {value === "walk" && <IconWalk />}
+              {data[value].route
+                ? (shouldRoundUp
+                    ? data[value].durationDisplayRoundUp
+                    : data[value].durationDisplay) +
+                  " · " +
+                  data[value].distanceDisplay
+                : "No route"}
+            </>
+          ) : (
+            <Spinner />
+          )}
+        </div>
+      );
+    if (!isAdmin && !data && !isFetching)
+      return (
+        <div className="mt-2 flex h-8 w-full items-center gap-1 rounded-lg px-2 text-left text-sm font-medium text-slate-500">
+          No route data available.
+        </div>
+      );
 
     return (
       <Select defaultValue={value} onValueChange={handleValueChange}>

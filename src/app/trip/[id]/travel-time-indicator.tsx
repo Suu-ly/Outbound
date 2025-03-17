@@ -7,7 +7,7 @@ type TravelTimeIndicatorProps = {
   isInDay: number;
   index: number;
   startTime: string;
-  shouldHide: boolean;
+  shouldHide?: boolean;
   bottom?: boolean;
   startTimeClick?: (isInDay: number) => void;
 };
@@ -41,13 +41,13 @@ const TravelTimeIndicator = memo(
 
     if (time === null) return null;
 
-    const Comp = index === 0 ? "button" : "div";
+    const Comp = index === 0 && !!startTimeClick ? "button" : "div";
 
     return (
       <Comp
         aria-label={`Arrive at ${time.value}`}
         onClick={
-          index === 0 && startTimeClick
+          index === 0 && !!startTimeClick
             ? () => startTimeClick(isInDay)
             : undefined
         }
