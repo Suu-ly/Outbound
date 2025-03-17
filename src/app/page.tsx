@@ -10,9 +10,14 @@ import { and, count, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import Image from "next/image";
 import TripCard from "./trip-card";
+import TripOverviewSortSelect from "./trip-overview-sort-select";
 import { TripDialogs } from "./trip/[id]/trip-dialogs";
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ sortBy?: string }>;
+}) {
   const session = await auth.api
     .getSession({
       headers: await headers(),
@@ -42,6 +47,7 @@ export default async function Home() {
         </main>
       </div>
     );
+  const sortMethod = (await searchParams).sortBy;
 
   const trips = await db
     .select({
@@ -61,7 +67,7 @@ export default async function Home() {
     )
     .where(eq(trip.userId, session.user.id))
     .groupBy(trip.id, location.coverImgSmall)
-    .orderBy(desc(trip.updatedAt));
+    .orderBy(sortMethod === "date" ? trip.startDate : desc(trip.updatedAt));
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -85,10 +91,13 @@ export default async function Home() {
             New Trip
           </ButtonLink>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          {trips.map((trip) => (
-            <TripCard trip={trip} key={trip.tripId} />
-          ))}
+        <div className="space-y-4">
+          <TripOverviewSortSelect />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+            {trips.map((trip) => (
+              <TripCard trip={trip} key={trip.tripId} />
+            ))}
+          </div>
         </div>
       </main>
       <Footer />
