@@ -4,6 +4,7 @@ import { getStartingIndex, insertAfter } from "@/lib/utils";
 import { differenceInCalendarDays } from "date-fns";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { type DateRange } from "react-day-picker";
 import { db } from "./db";
@@ -554,6 +555,7 @@ export async function updateTripPrivacy(
         private: privacy,
       })
       .where(eq(trip.id, tripId));
+    revalidatePath("/");
     return {
       status: "success",
       data: true,
@@ -576,6 +578,7 @@ export async function updateTripName(
         name: newName,
       })
       .where(eq(trip.id, tripId));
+    revalidatePath("/");
     return {
       status: "success",
       data: true,

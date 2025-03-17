@@ -8,8 +8,8 @@ import {
   updateTripName,
   updateTripPrivacy,
 } from "@/server/actions";
-import { useAtom, useAtomValue } from "jotai";
-import { redirect, useParams } from "next/navigation";
+import { useAtom, useSetAtom } from "jotai";
+import { redirect } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -19,13 +19,15 @@ import {
   tripDetailsAtom,
 } from "../atoms";
 
-const SetToPublicDialog = () => {
-  const id = useParams<{ id: string }>().id;
-  const basePath = `/trip/${id}`;
+const SetToPublicDialog = ({
+  onSetToPublicSuccess,
+}: {
+  onSetToPublicSuccess?: () => void;
+}) => {
   const [setToPublicDialogOpen, setSetToPublicDialogOpen] = useAtom(
     setToPublicDialogOpenAtom,
   );
-  const [tripDetails, setTripDetails] = useAtom(tripDetailsAtom);
+  const basePath = `/trip/${setToPublicDialogOpen?.tripId}`;
   const [isLoading, setIsLoading] = useState(false);
   const [, copyToClipboard] = useCopyToClipboard();
   const onCopy = useCallback(
@@ -40,8 +42,10 @@ const SetToPublicDialog = () => {
 
   return (
     <DrawerDialog
-      open={setToPublicDialogOpen}
-      onOpenChange={setSetToPublicDialogOpen}
+      open={!!setToPublicDialogOpen}
+      onOpenChange={(open) => {
+        if (!open) setSetToPublicDialogOpen(undefined);
+      }}
       header="Set trip to public?"
       description={
         "In order to share this trip, you have to make it public, meaning that anyone will be able to view your trip details from the link. \n\nYou can change this setting anytime in trip settings."
@@ -49,12 +53,16 @@ const SetToPublicDialog = () => {
       mainActionLabel="Set trip to public"
       loading={isLoading}
       onMainAction={async (close) => {
+        if (!setToPublicDialogOpen) return;
         setIsLoading(true);
-        const res = await updateTripPrivacy(tripDetails.id, false);
+        const res = await updateTripPrivacy(
+          setToPublicDialogOpen.tripId,
+          false,
+        );
         setIsLoading(false);
         if (res.status === "error") toast.error(res.message);
         else {
-          setTripDetails((prev) => ({ ...prev, private: false }));
+          if (onSetToPublicSuccess) onSetToPublicSuccess();
           onCopy(
             process.env.NEXT_PUBLIC_URL + basePath,
             "Trip link copied to clipboard!",
@@ -66,39 +74,62 @@ const SetToPublicDialog = () => {
   );
 };
 
-const EditTripNameDialog = () => {
+const EditTripNameDialog = ({
+  onEditNameSuccess,
+}: {
+  onEditNameSuccess?: (value: string) => void;
+}) => {
   const [changeTripNameDialogOpen, setChangeTripNameDialogOpen] = useAtom(
     changeTripNameDialogOpenAtom,
   );
-  const [tripDetails, setTripDetails] = useAtom(tripDetailsAtom);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   return (
     <DrawerDialog
-      open={changeTripNameDialogOpen}
-      onOpenChange={setChangeTripNameDialogOpen}
+      open={!!changeTripNameDialogOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          setChangeTripNameDialogOpen(undefined);
+          setError("");
+        }
+      }}
       header="Edit trip name"
       description="Rename this trip to something else."
       mainActionLabel="Rename"
       loading={isLoading}
       content={
-        <Input
-          ref={inputRef}
-          defaultValue={tripDetails.name}
-          disabled={isLoading}
-          autoFocus
-        />
+        <>
+          <Input
+            ref={inputRef}
+            defaultValue={changeTripNameDialogOpen?.currentName}
+            onChange={(e) => {
+              if (e.currentTarget.value.length < 3)
+                setError("Trip name must be at least 3 characters!");
+              else setError("");
+            }}
+            disabled={isLoading}
+            autoFocus
+          />
+          <span className="mt-2 block text-center text-sm font-medium text-red-500">
+            {error}
+          </span>
+        </>
       }
       onMainAction={async (close) => {
+        if (!changeTripNameDialogOpen) return;
         const value = inputRef.current?.value;
-        if (!value) return;
+        if (!value || error) return;
         setIsLoading(true);
-        const res = await updateTripName(tripDetails.id, value);
+        const res = await updateTripName(
+          changeTripNameDialogOpen.tripId,
+          value,
+        );
         setIsLoading(false);
         if (res.status === "error") toast.error(res.message);
-        else {
-          setTripDetails((prev) => ({ ...prev, name: value }));
+        else if (onEditNameSuccess) {
+          onEditNameSuccess(value);
         }
         close();
       }}
@@ -110,25 +141,28 @@ const DeleteTripDialog = () => {
   const [deleteTripDialogOpen, setDeleteTripDialogOpen] = useAtom(
     deleteTripDialogOpenAtom,
   );
-  const tripDetails = useAtomValue(tripDetailsAtom);
   const [isLoading, setIsLoading] = useState(false);
 
   return (
     <DrawerDialog
-      open={deleteTripDialogOpen}
-      onOpenChange={setDeleteTripDialogOpen}
-      header={`Delete ${tripDetails.name}?`}
+      open={!!deleteTripDialogOpen}
+      onOpenChange={(open) => {
+        if (!open) setDeleteTripDialogOpen(undefined);
+      }}
+      header={`Delete ${deleteTripDialogOpen?.name}?`}
       description="This action cannot be undone!"
       mainActionLabel="Delete"
       loading={isLoading}
       destructive
-      onMainAction={async () => {
+      onMainAction={async (close) => {
+        if (!deleteTripDialogOpen) return;
         setIsLoading(true);
-        const res = await deleteTrip(tripDetails.id);
+        const res = await deleteTrip(deleteTripDialogOpen.tripId);
         if (res.status === "error") {
           toast.error(res.message);
           setIsLoading(false);
         } else {
+          close();
           redirect("/");
         }
       }}
@@ -136,12 +170,35 @@ const DeleteTripDialog = () => {
   );
 };
 
-export default function TripDialogs() {
+export function TripDialogs({
+  onSetToPublicSuccess,
+  onEditNameSuccess,
+}: {
+  onSetToPublicSuccess?: () => void;
+  onEditNameSuccess?: (value: string) => void;
+}) {
   return (
     <>
-      <SetToPublicDialog />
-      <EditTripNameDialog />
+      <SetToPublicDialog onSetToPublicSuccess={onSetToPublicSuccess} />
+      <EditTripNameDialog onEditNameSuccess={onEditNameSuccess} />
       <DeleteTripDialog />
     </>
+  );
+}
+
+export function TripPageDialogs() {
+  const setTripDetails = useSetAtom(tripDetailsAtom);
+  const onSetToPublicSuccess = () => {
+    setTripDetails((prev) => ({ ...prev, private: false }));
+  };
+  const onEditNameSuccess = (value: string) => {
+    setTripDetails((prev) => ({ ...prev, name: value }));
+  };
+
+  return (
+    <TripDialogs
+      onSetToPublicSuccess={onSetToPublicSuccess}
+      onEditNameSuccess={onEditNameSuccess}
+    />
   );
 }

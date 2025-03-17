@@ -46,7 +46,9 @@ export default function TripHeaderItems() {
 
   const setToPublicDialogOpen = useSetAtom(setToPublicDialogOpenAtom);
   const openDialog = () => {
-    setToPublicDialogOpen(true);
+    setToPublicDialogOpen({
+      tripId: tripDetails.id,
+    });
   };
   const setChangeTripNameDialogOpen = useSetAtom(changeTripNameDialogOpenAtom);
   const setDeleteTripDialogOpen = useSetAtom(deleteTripDialogOpenAtom);
@@ -102,7 +104,12 @@ export default function TripHeaderItems() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onSelect={() => setChangeTripNameDialogOpen(true)}
+                onSelect={() =>
+                  setChangeTripNameDialogOpen({
+                    tripId: tripDetails.id,
+                    currentName: tripDetails.name,
+                  })
+                }
               >
                 <IconEdit />
                 Edit trip name
@@ -116,7 +123,12 @@ export default function TripHeaderItems() {
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem
-                onSelect={() => setDeleteTripDialogOpen(true)}
+                onSelect={() =>
+                  setDeleteTripDialogOpen({
+                    tripId: tripDetails.id,
+                    name: tripDetails.name,
+                  })
+                }
                 className="text-rose-700 focus:text-rose-900 [&_svg]:text-rose-600 [&_svg]:focus:text-rose-700"
               >
                 <IconTrash />

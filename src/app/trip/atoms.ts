@@ -111,6 +111,14 @@ export const drawerMinimisedAtom = atom<boolean>(false);
 export const drawerDragProgressAtom = atom<MotionValue>();
 
 // Dialogs
-export const setToPublicDialogOpenAtom = atom(false);
-export const changeTripNameDialogOpenAtom = atom(false);
-export const deleteTripDialogOpenAtom = atom(false);
+export const setToPublicDialogOpenAtom = atom<{
+  tripId: string;
+}>();
+export const changeTripNameDialogOpenAtom = atom<{
+  tripId: string;
+  currentName: string;
+}>();
+export const deleteTripDialogOpenAtom = atom<{
+  tripId: string;
+  name: string;
+}>();

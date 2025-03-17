@@ -256,7 +256,12 @@ export default function TripPage({ tripId }: { tripId: string }) {
           <Button
             variant="ghost"
             className={"mx-auto mb-4 flex rounded-lg px-3 py-2"}
-            onClick={() => setChangeTripNameDialogOpen(true)}
+            onClick={() =>
+              setChangeTripNameDialogOpen({
+                currentName: tripData.name,
+                tripId: tripData.id,
+              })
+            }
           >
             <h1 className="font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
               {tripData.name}
