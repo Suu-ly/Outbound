@@ -7,7 +7,7 @@ import ViewMapToggle from "../view-map-toggle";
 import SkipPlaceSearch from "./skip-place-search";
 
 export const metadata: Metadata = {
-  title: "View Skipped Places",
+  title: "Skipped Places",
 };
 
 export default async function SkippedPlacePage({

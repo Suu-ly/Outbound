@@ -21,7 +21,7 @@ export async function generateMetadata({
     .limit(1);
 
   return {
-    title: `Discover Places in ${name}`,
+    title: { absolute: `Discover Places in ${name}` },
   };
 }
 

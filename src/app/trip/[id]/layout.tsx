@@ -22,11 +22,29 @@ import {
   TripPlaceDetails,
 } from "@/server/types";
 import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
+import { Metadata } from "next";
 import { headers } from "next/headers";
 import MapView from "./map-view";
 import { TripPageDialogs } from "./trip-dialogs";
 import TripHeaderItems from "./trip-header-items";
 import TripProviders from "./trip-providers";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const tripId = (await params).id;
+  const [{ name }] = await db
+    .select({ name: trip.name })
+    .from(trip)
+    .where(eq(trip.id, tripId))
+    .limit(1);
+
+  return {
+    title: { default: name, template: `%s - ${name}` },
+  };
+}
 
 function prepareData(data: InitialQuery[]): InitialQueryPrepared {
   const firstRow = data[0];

@@ -3,10 +3,28 @@ import ButtonLink from "@/components/ui/button-link";
 import { db } from "@/server/db";
 import { place, tripPlace } from "@/server/db/schema";
 import { and, eq, getTableColumns } from "drizzle-orm";
+import { Metadata } from "next";
 import PlaceDetails from "../place-details";
 import ViewMapToggle from "../view-map-toggle";
 import DetailsMarkerManager from "./details-marker-manager";
 import FullPlaceDetailsImages from "./full-details-images";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string; placeId: string }>;
+}): Promise<Metadata> {
+  const id = (await params).placeId;
+  const [{ name }] = await db
+    .select({ name: place.displayName })
+    .from(place)
+    .where(eq(place.id, id))
+    .limit(1);
+
+  return {
+    title: `${name}`,
+  };
+}
 
 export default async function FullPlaceDetailsPage({
   params,

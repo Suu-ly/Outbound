@@ -9,7 +9,7 @@ import {
 } from "./settings-controls";
 
 export const metadata: Metadata = {
-  title: "Trip Settings",
+  title: "Settings",
 };
 
 export default async function TripSwipePage() {
