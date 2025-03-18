@@ -163,6 +163,7 @@ export async function GET(request: NextRequest) {
         method: "GET",
         headers: {
           Accept: "application/json",
+          referer: requestHeaders.get("referer") || "",
         },
       },
     )
@@ -174,6 +175,7 @@ export async function GET(request: NextRequest) {
         method: "GET",
         headers: {
           Accept: "application/json",
+          referer: requestHeaders.get("referer") || "",
         },
       },
     )
@@ -185,6 +187,7 @@ export async function GET(request: NextRequest) {
         method: "GET",
         headers: {
           Accept: "application/json",
+          referer: requestHeaders.get("referer") || "",
         },
       },
     )

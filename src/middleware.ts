@@ -11,7 +11,7 @@ const signedOutRoutes = [
   "/reset-password/success",
 ];
 
-export default async function middleware(request: NextRequest) {
+export default function middleware(request: NextRequest) {
   const pathName = request.nextUrl.pathname;
   const isSignedOutRoutes = signedOutRoutes.includes(pathName);
 
