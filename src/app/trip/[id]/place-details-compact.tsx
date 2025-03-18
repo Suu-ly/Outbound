@@ -21,6 +21,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 import Textarea from "@/components/ui/textarea";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { minsToString } from "@/lib/utils";
@@ -290,6 +291,7 @@ const PlaceDetailsCompact = memo(
                           )}
                           {days.map((day, index) => {
                             if (day.dayId === isInDay) return;
+                            const moveDate = addDays(startDate, index);
                             return (
                               <DropdownMenuItem
                                 key={day.dayId}
@@ -298,9 +300,12 @@ const PlaceDetailsCompact = memo(
                                   handleMove(isInDay, data, day.dayId)
                                 }
                               >
-                                <DateHydration
-                                  date={addDays(startDate, index)}
+                                <DateHydration date={moveDate} />
+                                <Separator
+                                  orientation="vertical"
+                                  className="h-auto self-stretch"
                                 />
+                                <DateHydration date={moveDate} weekday />
                               </DropdownMenuItem>
                             );
                           })}
