@@ -61,7 +61,7 @@ export default async function getBingImage(
     status: "success" as const,
   };
 
-  await redis.set(urlQuery, result, { ex: 604800 });
+  await redis.set(urlQuery, result, { ex: 1209600 });
 
   return result;
 }

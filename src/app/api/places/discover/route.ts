@@ -250,7 +250,7 @@ export async function GET(request: NextRequest) {
           },
           status: "success",
         },
-        { ex: 604800 },
+        { ex: 1209600 },
       ),
     ]);
 

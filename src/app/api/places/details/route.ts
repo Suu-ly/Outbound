@@ -248,7 +248,7 @@ export async function GET(request: NextRequest) {
           data: result,
           status: "success",
         },
-        { ex: 604800 },
+        { ex: 1209600 },
       ),
     ]);
 

@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       data: image.photoUri,
       status: "success",
     },
-    { ex: 259200 }, // 3 days
+    { ex: 1209600 }, // 14 days
   );
 
   return Response.json({
