@@ -35,14 +35,19 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const tripId = (await params).id;
-  const [{ name }] = await db
+  const result = await db
     .select({ name: trip.name })
     .from(trip)
     .where(eq(trip.id, tripId))
     .limit(1);
 
+  if (result.length === 0)
+    return {
+      title: "Trip not found!",
+    };
+
   return {
-    title: { default: name, template: `%s - ${name}` },
+    title: { default: result[0].name, template: `%s - ${result[0].name}` },
   };
 }
 

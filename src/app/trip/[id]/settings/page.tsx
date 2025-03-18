@@ -1,6 +1,12 @@
 import BackButton from "@/components/back-button";
 import { Separator } from "@/components/ui/separator";
+import { auth } from "@/server/auth";
+import { db } from "@/server/db";
+import { trip } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 import { Metadata } from "next";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   DayEndTime,
   DayStartTime,
@@ -12,7 +18,26 @@ export const metadata: Metadata = {
   title: "Settings",
 };
 
-export default async function TripSwipePage() {
+export default async function TripSwipePage({
+  params,
+}: Readonly<{
+  params: Promise<{ id: string }>;
+}>) {
+  const id = (await params).id;
+  const header = await headers();
+  const [user, [tripUserId]] = await Promise.all([
+    auth.api.getSession({
+      headers: header,
+    }),
+    db
+      .select({ userId: trip.userId })
+      .from(trip)
+      .where(eq(trip.id, id))
+      .limit(1),
+  ]);
+
+  if (!user || user.user.id !== tripUserId.userId) redirect(`/trip/${id}`);
+
   return (
     <main className="size-full space-y-6 p-4 sm:w-1/2 xl:w-1/3">
       <BackButton className="-ml-2" />

@@ -83,6 +83,11 @@ export default function SkipPlaceSearch({
               onMoveToInterested={onMoveToInterested}
             />
           ))}
+        {skippedPlaces.length === 0 && (
+          <span className="block w-full text-center leading-8 text-slate-500">
+            No skipped places.
+          </span>
+        )}
       </div>
     </>
   );

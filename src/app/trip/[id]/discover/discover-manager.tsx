@@ -4,12 +4,10 @@ import { updateTripWindows } from "@/server/actions";
 import { ApiResponse, DiscoverReturn } from "@/server/types";
 import { useQuery } from "@tanstack/react-query";
 import { useAtom, useAtomValue } from "jotai";
-import { redirect, usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import {
   activePlaceIndexAtom,
   discoverPlacesAtom,
-  isTripAdminAtom,
   tripWindowsAtom,
 } from "../../atoms";
 
@@ -22,10 +20,6 @@ type QueryValue = {
   nextPageToken: string[] | null;
 };
 export default function DiscoverManager({ tripId }: { tripId: string }) {
-  const path = usePathname();
-  const isAdmin = useAtomValue(isTripAdminAtom);
-  if (!isAdmin) redirect(path.substring(0, 18));
-
   const [tripWindows, setTripWindows] = useAtom(tripWindowsAtom);
   const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
   const activePlaceIndex = useAtomValue(activePlaceIndexAtom);
