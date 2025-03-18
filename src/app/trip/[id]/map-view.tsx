@@ -448,9 +448,27 @@ export const MapLegendPanel = () => {
 
 export const MapLegends = () => {
   const days = useAtomValue(dayPlacesAtom);
+  const places = useAtomValue(tripPlacesAtom);
   const startDate = useAtomValue(tripStartDateAtom);
-  const activeMapMarker = useAtomValue(mapActiveMarkerAtom);
+  const [activeMapMarker, setActiveMapMarker] = useAtom(mapActiveMarkerAtom);
   const [showRouteLines, setShowRouteLines] = useAtom(showRouteLinesAtom);
+
+  const onDayLegendClick = (dayId: number) => {
+    if (places[dayId] && places[dayId].length > 0) {
+      const active = places[dayId][0];
+      setActiveMapMarker({
+        isInDay: dayId,
+        name: active.placeInfo.displayName,
+        placeId: active.placeInfo.placeId,
+        position: [
+          active.placeInfo.location.longitude,
+          active.placeInfo.location.latitude,
+        ],
+        shouldAnimate: true,
+        type: "saved",
+      });
+    }
+  };
 
   return (
     <>
@@ -484,7 +502,11 @@ export const MapLegends = () => {
       {days.map((day, index) => {
         const date = addDays(startDate, index);
         return (
-          <div key={day.dayId} className="flex items-center gap-3">
+          <button
+            key={day.dayId}
+            className="flex w-full items-center gap-3 rounded-md transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            onClick={() => onDayLegendClick(day.dayId)}
+          >
             <div
               aria-hidden={true}
               className={`h-2.5 w-6 rounded-full border-2 ${markerColorLookup[index % markerColorLookup.length].bg} ${markerColorLookup[index % markerColorLookup.length].border}`}
@@ -496,7 +518,7 @@ export const MapLegends = () => {
             <p className="text-sm">
               <DateHydration date={date} weekday />
             </p>
-          </div>
+          </button>
         );
       })}
     </>
