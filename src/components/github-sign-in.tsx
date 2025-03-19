@@ -3,6 +3,7 @@
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { IconBrandGithub } from "@tabler/icons-react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
@@ -13,6 +14,7 @@ const GithubSignIn = ({
   ...rest
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
   const [isLoading, setIsLoading] = useState(false);
+  const redirect = useSearchParams().get("redirect");
   return (
     <Button
       variant="secondary"
@@ -24,7 +26,7 @@ const GithubSignIn = ({
       onClick={async () => {
         await authClient.signIn.social({
           provider: "github",
-          callbackURL: "/",
+          callbackURL: redirect ? redirect : "/",
           fetchOptions: {
             onRequest: () => {
               setIsLoading(true);

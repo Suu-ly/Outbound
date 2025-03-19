@@ -8,6 +8,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { Provider } from "jotai";
 
 import { toast } from "sonner";
 
@@ -60,7 +61,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider delayDuration={400}>{children}</TooltipProvider>
+      <TooltipProvider delayDuration={400}>
+        <Provider>{children}</Provider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

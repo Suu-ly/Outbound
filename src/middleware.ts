@@ -1,29 +1,23 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
-const signedOutRoutes = [
-  "/login",
-  "/register",
-  "/register/email",
-  "/verify",
-  "/reset-password",
-  "/forget-password",
-  "/reset-password/success",
-];
-
 export default function middleware(request: NextRequest) {
+  const signedOutRoutes =
+    /\/login|\/register|\/register\/email|\/verify|\/reset-password|\/forget-password|\/reset-password\/success/g;
   const pathName = request.nextUrl.pathname;
-  const isSignedOutRoutes = signedOutRoutes.includes(pathName);
+  const isSignedOutRoutes = signedOutRoutes.test(pathName);
 
-  // TODO throw errors properly
   const sessionCookie = getSessionCookie(request);
 
   // User is not logged in
   if (!sessionCookie) {
-    if (isSignedOutRoutes) {
+    if (isSignedOutRoutes || /\/trip\/[a-z0-9]{12}(\/\w*)?/.test(pathName)) {
       return NextResponse.next();
     }
-    return NextResponse.redirect(new URL("/login", request.url));
+    const redirect = new URLSearchParams([["redirect", pathName]]);
+    return NextResponse.redirect(
+      new URL(`/login?${redirect.toString()}`, request.url),
+    );
   }
 
   // User is logged in

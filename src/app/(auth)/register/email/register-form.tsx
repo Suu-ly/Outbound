@@ -15,7 +15,7 @@ import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconEye, IconEyeClosed } from "@tabler/icons-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -45,6 +45,7 @@ export default function RegisterEmailForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
+  const redirect = useSearchParams().get("redirect");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -69,6 +70,7 @@ export default function RegisterEmailForm() {
         onSuccess: () => {
           const formattedEmail = new URLSearchParams();
           formattedEmail.set("email", values.email);
+          if (redirect) formattedEmail.set("redirect", redirect);
           router.push("/verify?" + formattedEmail.toString());
         },
         onError: (ctx) => {
@@ -194,7 +196,7 @@ export default function RegisterEmailForm() {
       <div className="text-center">
         <Link
           className="whitespace-nowrap font-medium text-brand-600 hover:underline"
-          href="/register"
+          href={`/register${redirect ? "?" + new URLSearchParams([["redirect", redirect]]).toString() : ""}`}
         >
           Go Back
         </Link>

@@ -13,7 +13,7 @@ import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconEye, IconEyeClosed } from "@tabler/icons-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -36,13 +36,14 @@ const LoginForm = () => {
       password: "",
     },
   });
+  const redirect = useSearchParams().get("redirect");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await authClient.signIn.email(
       {
         email: values.email,
         password: values.password,
-        callbackURL: "/",
+        callbackURL: redirect ? redirect : "/",
       },
       {
         onRequest: () => {
@@ -144,7 +145,7 @@ const LoginForm = () => {
         Don&apos;t have an account yet?
         <br />
         <Link
-          href="/register"
+          href={`/register${redirect ? "?" + new URLSearchParams([["redirect", redirect]]).toString() : ""}`}
           className="whitespace-nowrap font-medium text-brand-600 hover:underline"
         >
           Sign Up
