@@ -76,7 +76,7 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div>
+    <div className="text-slate-900">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mb-3 space-y-6">
           <FormField
@@ -133,7 +133,7 @@ const LoginForm = () => {
           />
           <Button
             size="large"
-            className="mb-3 w-full"
+            className="w-full"
             type="submit"
             loading={isLoading}
           >

@@ -1,8 +1,7 @@
 import AuthLayout from "@/components/auth-layout";
 import GithubSignIn from "@/components/github-sign-in";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { IconMail } from "@tabler/icons-react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { IconBrandGithub, IconMail } from "@tabler/icons-react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -19,18 +18,31 @@ export default function Register() {
       subtitle="Create an account and start planning your trips!"
     >
       <div className="mb-6 space-y-2">
-        <GithubSignIn>Register with Github</GithubSignIn>
+        <Suspense
+          fallback={
+            <Button
+              variant="secondary"
+              size="large"
+              className={
+                "w-full bg-neutral-900 text-neutral-50 hover:bg-neutral-900/90 hover:text-white active:ring-neutral-300"
+              }
+            >
+              <IconBrandGithub />
+              Register with Github
+            </Button>
+          }
+        >
+          <GithubSignIn>Register with Github</GithubSignIn>
+        </Suspense>
         <Suspense
           fallback={
             <Link
               href="/registe/email"
-              className={cn(
-                buttonVariants({
-                  size: "large",
-                  variant: "outline",
-                  className: "w-full",
-                }),
-              )}
+              className={buttonVariants({
+                size: "large",
+                variant: "outline",
+                className: "w-full",
+              })}
             >
               <IconMail />
               Register with Email

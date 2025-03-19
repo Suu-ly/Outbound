@@ -1,6 +1,5 @@
 "use client";
 
-import AuthLayout from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -93,10 +92,7 @@ export default function RegisterEmailForm() {
   }
 
   return (
-    <AuthLayout
-      header="Register"
-      subtitle="Create an account and start planning your trips!"
-    >
+    <div className="text-slate-900">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mb-3 space-y-6">
           <FormField
@@ -185,7 +181,7 @@ export default function RegisterEmailForm() {
           />
           <Button
             size="large"
-            className="mb-3 w-full"
+            className="w-full"
             type="submit"
             loading={isLoading}
           >
@@ -201,6 +197,6 @@ export default function RegisterEmailForm() {
           Go Back
         </Link>
       </div>
-    </AuthLayout>
+    </div>
   );
 }
