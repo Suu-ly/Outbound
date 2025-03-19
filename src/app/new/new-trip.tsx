@@ -130,12 +130,13 @@ export default function NewTrip({ userId }: { userId: string }) {
         toast.error(res.message);
       }
     };
-
     if (bufferedPress.current && selected && date) {
       newTrip(selected.id, selected.label, userId, date);
+    } else if (!isFetching) {
+      bufferedPress.current = false;
+      setIsLoading(false);
     }
-    bufferedPress.current = false;
-  }, [date, selected, userId]);
+  }, [isFetching, date, selected, userId]);
 
   return (
     <>
