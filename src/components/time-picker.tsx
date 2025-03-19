@@ -36,7 +36,9 @@ export default function TimePicker({
         <div className="relative flex items-center justify-center gap-4 before:pointer-events-none before:absolute before:top-1/2 before:z-10 before:h-px before:w-full before:-translate-y-5 before:bg-slate-200 after:pointer-events-none after:absolute after:top-1/2 after:z-10 after:h-px after:w-full after:translate-y-5 after:bg-slate-200">
           <Carousel
             className="rounded-lg"
-            onPointerDown={(e) => e.stopPropagation()}
+            onPointerDown={
+              (e) => e.stopPropagation() // Prevent dragging of drawer while dragging carousel
+            }
             orientation="vertical"
             opts={{
               loop: hoursLoop,

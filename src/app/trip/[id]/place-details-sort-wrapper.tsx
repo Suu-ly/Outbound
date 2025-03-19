@@ -52,21 +52,8 @@ const PlaceDetailsSortWrapper = forwardRef<
             "rounded-full after:-top-1 after:h-0.5 after:-translate-y-1/2 after:bg-brand-400",
         )}
       >
-        <div
-          onKeyDown={(e) => {
-            // Prevent the keyboard sensor from picking up space or enter
-            if (e.code === "Space" || e.code === "Enter") e.stopPropagation();
-          }}
-          onMouseDown={(e) => {
-            if (e.target instanceof HTMLTextAreaElement) e.stopPropagation();
-          }}
-          onTouchStart={(e) => {
-            if (e.target instanceof HTMLTextAreaElement) e.stopPropagation();
-          }}
-        >
-          <PlaceDetailsCompact isDragging={isDragging} {...rest} />
-          {children}
-        </div>
+        <PlaceDetailsCompact isDragging={isDragging} {...rest} />
+        {children}
       </div>
     );
   },

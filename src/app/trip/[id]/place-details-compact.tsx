@@ -190,6 +190,16 @@ const PlaceDetailsCompact = memo(
           ref={ref}
           id={data.placeInfo.placeId}
           aria-expanded={expanded === "max" && !isDragging}
+          onKeyDown={(e) => {
+            // Prevent the keyboard sensor from picking up space or enter
+            if (e.code === "Space" || e.code === "Enter") e.stopPropagation();
+          }}
+          onMouseDown={(e) => {
+            if (e.target instanceof HTMLTextAreaElement) e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            if (e.target instanceof HTMLTextAreaElement) e.stopPropagation();
+          }}
           className="overflow-clip rounded-xl bg-white p-2 ring-offset-zinc-50 transition has-[[data-trigger=true]:focus-visible]:outline-none has-[[data-trigger=true]:focus-visible]:ring-2 has-[[data-trigger=true]:focus-visible]:ring-slate-400 has-[[data-trigger=true]:focus-visible]:ring-offset-2"
         >
           <div className="flex items-start">
@@ -270,7 +280,9 @@ const PlaceDetailsCompact = memo(
                         <IconNote />
                         Add note
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => setTimePickerOpen(true)}
+                      >
                         <IconHourglass />
                         Change time spent
                       </DropdownMenuItem>
@@ -388,7 +400,7 @@ const PlaceDetailsCompact = memo(
                   className="h-9 w-full justify-start gap-1.5 rounded-lg pr-2 text-sm ring-offset-white disabled:text-slate-700 disabled:opacity-100 has-[>div>svg,>svg]:pl-1.5 [&_svg]:text-slate-600"
                   size="small"
                   variant="ghost"
-                  onClick={() => setTimePickerOpen(true)}
+                  onClick={isAdmin ? () => setTimePickerOpen(true) : undefined}
                   disabled={!isAdmin}
                 >
                   <IconHourglass />
@@ -410,29 +422,36 @@ const PlaceDetailsCompact = memo(
               </TabDisable>
             </motion.div>
           </motion.div>
-          <TimePicker
-            onOpenChange={setTimePickerOpen}
-            open={timePickerOpen}
-            header="Select time spent"
-            description={`Change the amount of time spent at ${data.placeInfo.displayName}.`}
-            startHours={Math.floor(data.userPlaceInfo.timeSpent / 60)}
-            hoursLength={12}
-            hoursLoop={false}
-            startMinutes={data.userPlaceInfo.timeSpent % 60}
-            isDuration
-            onConfirm={(close, hours, mins) => {
-              if (
-                handleDurationChange &&
-                hours * 60 + mins !== data.userPlaceInfo.timeSpent
-              )
-                handleDurationChange(
-                  isInDay,
-                  data.placeInfo.placeId,
-                  hours * 60 + mins,
-                );
-              close();
-            }}
-          />
+          <span
+            role="presentation"
+            // Prevent dragging of places when dragging carousel
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <TimePicker
+              onOpenChange={setTimePickerOpen}
+              open={timePickerOpen}
+              header="Select time spent"
+              description={`Change the amount of time spent at ${data.placeInfo.displayName}.`}
+              startHours={Math.floor(data.userPlaceInfo.timeSpent / 60)}
+              hoursLength={12}
+              hoursLoop={false}
+              startMinutes={data.userPlaceInfo.timeSpent % 60}
+              isDuration
+              onConfirm={(close, hours, mins) => {
+                if (
+                  handleDurationChange &&
+                  hours * 60 + mins !== data.userPlaceInfo.timeSpent
+                )
+                  handleDurationChange(
+                    isInDay,
+                    data.placeInfo.placeId,
+                    hours * 60 + mins,
+                  );
+                close();
+              }}
+            />
+          </span>
         </div>
       );
     },
