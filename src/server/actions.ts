@@ -5,8 +5,10 @@ import { differenceInCalendarDays } from "date-fns";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { customAlphabet } from "nanoid";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { type DateRange } from "react-day-picker";
+import { auth } from "./auth";
 import { db } from "./db";
 import {
   InsertTrip,
@@ -24,7 +26,10 @@ const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const ID_LENGTH = 12;
 const MAX_RETRIES = 20;
 
-// TODO protect functions with auth check
+async function authenticate() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  return session;
+}
 
 export async function addNewTrip(
   locationId: string,
@@ -32,6 +37,9 @@ export async function addNewTrip(
   userId: string,
   dates: DateRange,
 ) {
+  const session = await authenticate();
+  if (!session || session.user.id !== userId)
+    return { message: "Unauthorized", status: "error" };
   const result = await db
     .transaction(async (tx) => {
       if (!dates.from || !dates.to || !locationId || !userId) return false;
@@ -79,7 +87,9 @@ export async function addNewTrip(
 
       return validId;
     })
-    .catch(() => undefined);
+    .catch((e) => {
+      console.error(e.message);
+    });
 
   if (!result)
     return { message: "Error while creating a new trip!", status: "error" };
@@ -91,6 +101,8 @@ export async function updateTripWindows(
   newWindows: Pick<SelectTrip, "currentSearchIndex" | "nextPageToken">,
   id: string,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(trip)
@@ -98,7 +110,7 @@ export async function updateTripWindows(
         currentSearchIndex: newWindows.currentSearchIndex,
         nextPageToken: newWindows.nextPageToken,
       })
-      .where(eq(trip.id, id));
+      .where(and(eq(trip.id, id), eq(trip.userId, session.user.id)));
     return {
       status: "success",
       data: true,
@@ -115,6 +127,8 @@ export async function setPlaceAsUninterested(
   tripPlaceId: string,
   tripId: string,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(tripPlace)
@@ -124,8 +138,14 @@ export async function setPlaceAsUninterested(
         order: null,
         note: null,
       })
+      .from(trip)
       .where(
-        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+        and(
+          eq(tripPlace.placeId, tripPlaceId),
+          eq(tripPlace.tripId, tripId),
+          eq(trip.id, tripPlace.tripId),
+          eq(trip.userId, session.user.id),
+        ),
       );
     return {
       status: "success",
@@ -143,6 +163,8 @@ export async function setPlaceAsInterested(
   tripPlaceId: string,
   tripId: string,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(tripPlace)
@@ -155,8 +177,14 @@ export async function setPlaceAsInterested(
         )`,
         type: "saved",
       })
+      .from(trip)
       .where(
-        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+        and(
+          eq(tripPlace.placeId, tripPlaceId),
+          eq(tripPlace.tripId, tripId),
+          eq(trip.id, tripPlace.tripId),
+          eq(trip.userId, session.user.id),
+        ),
       );
     return {
       status: "success",
@@ -176,6 +204,8 @@ export async function updateTripPlaceOrder(
   newOrder: string,
   newDay?: number | null,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(tripPlace)
@@ -183,8 +213,14 @@ export async function updateTripPlaceOrder(
         order: newOrder,
         dayId: newDay,
       })
+      .from(trip)
       .where(
-        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+        and(
+          eq(tripPlace.placeId, tripPlaceId),
+          eq(tripPlace.tripId, tripId),
+          eq(trip.id, tripPlace.tripId),
+          eq(trip.userId, session.user.id),
+        ),
       );
     return {
       status: "success",
@@ -203,6 +239,8 @@ export async function moveTripPlace(
   tripPlaceId: string,
   newDay: number | null,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(tripPlace)
@@ -222,8 +260,14 @@ export async function moveTripPlace(
           )`,
         dayId: newDay,
       })
+      .from(trip)
       .where(
-        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+        and(
+          eq(tripPlace.placeId, tripPlaceId),
+          eq(tripPlace.tripId, tripId),
+          eq(trip.id, tripPlace.tripId),
+          eq(trip.userId, session.user.id),
+        ),
       );
     return {
       status: "success",
@@ -242,14 +286,22 @@ export async function updateTripPlaceNote(
   tripPlaceId: string,
   note: string | null,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(tripPlace)
       .set({
         note: note,
       })
+      .from(trip)
       .where(
-        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+        and(
+          eq(tripPlace.placeId, tripPlaceId),
+          eq(tripPlace.tripId, tripId),
+          eq(trip.id, tripPlace.tripId),
+          eq(trip.userId, session.user.id),
+        ),
       );
     return {
       status: "success",
@@ -268,13 +320,23 @@ export async function updateTripDayOrder(
   tripDayId: number,
   newOrder: string,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(tripDay)
       .set({
         order: newOrder,
       })
-      .where(and(eq(tripDay.id, tripDayId), eq(tripDay.tripId, tripId)));
+      .from(trip)
+      .where(
+        and(
+          eq(tripDay.id, tripDayId),
+          eq(tripDay.tripId, tripId),
+          eq(trip.id, tripDay.tripId),
+          eq(trip.userId, session.user.id),
+        ),
+      );
     return {
       status: "success",
       data: true,
@@ -291,7 +353,22 @@ export async function updateTripDayOrder(
 export async function addTripDays(
   newDays: InsertTripDay[],
 ): Promise<ApiResponse<DayData[]>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
+    if (!newDays.length)
+      return {
+        status: "error",
+        message: "No new days to add",
+      };
+    const [tripUserId] = await db
+      .select({ userId: trip.userId })
+      .from(trip)
+      .where(eq(trip.id, newDays[0].tripId))
+      .limit(1);
+    if (!tripUserId || tripUserId.userId !== session.user.id)
+      return { message: "Unauthorized", status: "error" };
+
     const result = await db.insert(tripDay).values(newDays).returning({
       dayId: tripDay.id,
       dayOrder: tripDay.order,
@@ -326,7 +403,16 @@ export async function deleteTripDays(
   deleteDays: number[],
   tripId: string,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
+    const [tripUserId] = await db
+      .select({ userId: trip.userId })
+      .from(trip)
+      .where(eq(trip.id, tripId))
+      .limit(1);
+    if (!tripUserId || tripUserId.userId !== session.user.id)
+      return { message: "Unauthorized", status: "error" };
     await db.transaction(async (tx) => {
       await tx.execute(sql`
         WITH RECURSIVE 
@@ -381,11 +467,13 @@ export async function updateTripDates(
   endDate: Date,
   tripId: string,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(trip)
       .set({ startDate: startDate, endDate: endDate })
-      .where(eq(trip.id, tripId));
+      .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
     return {
       status: "success",
       data: true,
@@ -405,15 +493,20 @@ export async function updatePreferredTravelMode(
   tripId: string,
   mode: SelectTripTravelTime["type"],
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(tripTravelTime)
       .set({ type: mode })
+      .from(trip)
       .where(
         and(
           eq(tripTravelTime.from, fromId),
           eq(tripTravelTime.to, toId),
           eq(tripTravelTime.tripId, tripId),
+          eq(tripTravelTime.tripId, trip.id),
+          eq(trip.userId, session.user.id),
         ),
       );
     return {
@@ -434,14 +527,22 @@ export async function updateTripTimeSpent(
   tripPlaceId: string,
   timeSpent: number,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(tripPlace)
       .set({
         timeSpent: timeSpent,
       })
+      .from(trip)
       .where(
-        and(eq(tripPlace.placeId, tripPlaceId), eq(tripPlace.tripId, tripId)),
+        and(
+          eq(tripPlace.placeId, tripPlaceId),
+          eq(tripPlace.tripId, tripId),
+          eq(tripPlace.tripId, trip.id),
+          eq(trip.userId, session.user.id),
+        ),
       );
     return {
       status: "success",
@@ -459,13 +560,22 @@ export async function updateDayStartTime(
   dayId: number,
   newTime: string,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(tripDay)
       .set({
         startTime: newTime,
       })
-      .where(eq(tripDay.id, dayId));
+      .from(trip)
+      .where(
+        and(
+          eq(tripDay.id, dayId),
+          eq(tripDay.tripId, trip.id),
+          eq(trip.userId, session.user.id),
+        ),
+      );
     return {
       status: "success",
       data: true,
@@ -482,13 +592,15 @@ export async function updateTripStartTime(
   tripId: string,
   newTime: string,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(trip)
       .set({
         startTime: newTime,
       })
-      .where(eq(trip.id, tripId));
+      .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
     return {
       status: "success",
       data: true,
@@ -504,13 +616,15 @@ export async function updateTripEndTime(
   tripId: string,
   newTime: string,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(trip)
       .set({
         endTime: newTime,
       })
-      .where(eq(trip.id, tripId));
+      .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
     return {
       status: "success",
       data: true,
@@ -526,13 +640,15 @@ export async function updateTripRoundUpTime(
   tripId: string,
   roundUpTime: boolean,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(trip)
       .set({
         roundUpTime: roundUpTime,
       })
-      .where(eq(trip.id, tripId));
+      .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
     return {
       status: "success",
       data: true,
@@ -548,13 +664,15 @@ export async function updateTripPrivacy(
   tripId: string,
   privacy: boolean,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(trip)
       .set({
         private: privacy,
       })
-      .where(eq(trip.id, tripId));
+      .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
     revalidatePath("/");
     return {
       status: "success",
@@ -571,13 +689,15 @@ export async function updateTripName(
   tripId: string,
   newName: string,
 ): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
     await db
       .update(trip)
       .set({
         name: newName,
       })
-      .where(eq(trip.id, tripId));
+      .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
     revalidatePath("/");
     return {
       status: "success",
@@ -591,9 +711,13 @@ export async function updateTripName(
   }
 }
 
-export async function deleteTrip(tripId: string) {
+export async function deleteTrip(tripId: string): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
   try {
-    await db.delete(trip).where(eq(trip.id, tripId));
+    await db
+      .delete(trip)
+      .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
     return {
       status: "success",
       data: true,
