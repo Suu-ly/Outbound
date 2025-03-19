@@ -15,14 +15,19 @@ export async function generateMetadata({
   params: Promise<{ id: string; placeId: string }>;
 }): Promise<Metadata> {
   const id = (await params).placeId;
-  const [{ name }] = await db
+  const result = await db
     .select({ name: place.displayName })
     .from(place)
     .where(eq(place.id, id))
     .limit(1);
 
+  if (result.length === 0)
+    return {
+      title: "Place not found!",
+    };
+
   return {
-    title: `${name}`,
+    title: `${result[0].name}`,
   };
 }
 
@@ -46,14 +51,14 @@ export default async function FullPlaceDetailsPage({
     .where(and(eq(place.id, ids.placeId), eq(tripPlace.tripId, ids.id)))
     .limit(1);
 
-  if (!data.place)
+  if (!data)
     return (
-      <main className="flex h-full items-center justify-center sm:w-1/2 xl:w-1/3">
+      <main className="flex h-full flex-col items-center justify-center gap-8 p-8 sm:w-1/2 xl:w-1/3">
         <div className="text-center">
-          <h1 className="mb-3 font-display text-4xl font-semibold">
+          <h1 className="mb-2 font-display text-2xl font-medium">
             Place Not Found!
           </h1>
-          <h3 className="text-lg text-slate-700">
+          <h3 className="max-w-96 text-slate-700">
             It seems like we can&apos;t find the place you&apos;re looking for.
             The ID may be incorrect.
           </h3>
