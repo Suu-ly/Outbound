@@ -18,7 +18,7 @@ import { IconCalendarWeek } from "@tabler/icons-react";
 import { differenceInCalendarDays } from "date-fns";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useState } from "react";
-import { type DateRange } from "react-day-picker";
+import { type DateRange, TZDate } from "react-day-picker";
 import { toast } from "sonner";
 import {
   changeTripNameDialogOpenAtom,
@@ -45,8 +45,8 @@ const TripCalendar = ({ tripId }: { tripId: string }) => {
   const setPlaces = useSetAtom(tripPlacesAtom);
   const [days, setDays] = useAtom(dayPlacesAtom);
   const [date, setDate] = useState<DateRange | undefined>({
-    from: tripData.startDate,
-    to: tripData.endDate,
+    from: new TZDate(tripData.startDate, "UTC"),
+    to: new TZDate(tripData.endDate, "UTC"),
   });
 
   const handleDateSave = async () => {
@@ -67,7 +67,11 @@ const TripCalendar = ({ tripId }: { tripId: string }) => {
 
     const numberOfDays = differenceInCalendarDays(date.to, date.from) + 1;
 
-    const updateDates = updateTripDates(startDate, endDate, tripId);
+    const updateDates = updateTripDates(
+      new Date(startDate.getTime()),
+      new Date(endDate.getTime()),
+      tripId,
+    );
     let updateDateSuccess;
 
     if (numberOfDays > days.length) {
@@ -206,6 +210,7 @@ const TripCalendar = ({ tripId }: { tripId: string }) => {
       >
         <div>
           <Calendar
+            timeZone="UTC"
             className="pb-2"
             disabled={{ before: new Date() }}
             mode="range"

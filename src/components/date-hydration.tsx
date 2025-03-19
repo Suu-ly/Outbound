@@ -17,14 +17,24 @@ export default function DateHydration({
         undefined,
         weekday
           ? { weekday: "short" }
-          : { day: "numeric", month: "short", year: "2-digit" },
+          : {
+              day: "numeric",
+              month: "short",
+              year: "2-digit",
+              timeZone: "UTC",
+            },
       ),
     () =>
       date.toLocaleDateString(
         "en-GB",
         weekday
           ? { weekday: "short" }
-          : { day: "numeric", month: "short", year: "2-digit" },
+          : {
+              day: "numeric",
+              month: "short",
+              year: "2-digit",
+              timeZone: "UTC",
+            },
       ),
   );
   return safeDate;

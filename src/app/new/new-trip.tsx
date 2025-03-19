@@ -92,7 +92,7 @@ export default function NewTrip({ userId }: { userId: string }) {
   });
 
   const validateTrip = async () => {
-    if (!date)
+    if (!date || !date.from || !date.to)
       setError((prev) => ({
         ...prev,
         calendar: "Please select dates for your trip!",
@@ -108,7 +108,10 @@ export default function NewTrip({ userId }: { userId: string }) {
     }
     if (selected && date) {
       setIsLoading(true);
-      const res = await addNewTrip(selected.id, selected.label, userId, date);
+      const res = await addNewTrip(selected.id, selected.label, userId, {
+        from: new Date(date.from!.getTime()),
+        to: new Date(date.to!.getTime()),
+      });
       if (res) {
         setIsLoading(false);
         toast.error(res.message);
@@ -130,8 +133,11 @@ export default function NewTrip({ userId }: { userId: string }) {
         toast.error(res.message);
       }
     };
-    if (bufferedPress.current && selected && date) {
-      newTrip(selected.id, selected.label, userId, date);
+    if (bufferedPress.current && selected && date && date.from && date.to) {
+      newTrip(selected.id, selected.label, userId, {
+        from: new Date(date.from!.getTime()),
+        to: new Date(date.to!.getTime()),
+      });
     } else if (!isFetching) {
       bufferedPress.current = false;
       setIsLoading(false);
@@ -211,6 +217,7 @@ export default function NewTrip({ userId }: { userId: string }) {
         </div>
         <PopoverContent className="w-auto p-0">
           <Calendar
+            timeZone="UTC"
             disabled={{ before: new Date() }}
             mode="range"
             required
