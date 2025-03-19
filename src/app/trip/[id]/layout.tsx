@@ -340,7 +340,13 @@ export default async function TripLayout({
               </AvatarFallback>
             </Avatar>
           ) : (
-            <ButtonLink href="/login" size="small">
+            <ButtonLink
+              href={
+                "/login?" +
+                new URLSearchParams([["redirect", `/trip/${id}`]]).toString()
+              }
+              size="small"
+            >
               Login
             </ButtonLink>
           )}
@@ -368,7 +374,7 @@ export default async function TripLayout({
   return (
     <TripProviders data={preparedData} session={userSession}>
       <Header fixed>
-        <TripHeaderItems />
+        <TripHeaderItems loggedIn={!!userSession} />
       </Header>
       <TripPageDialogs />
       <div className="relative mt-14 flex h-[calc(100dvh-56px)] overflow-hidden">

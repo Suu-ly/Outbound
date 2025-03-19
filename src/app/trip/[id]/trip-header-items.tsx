@@ -31,7 +31,7 @@ import {
 const discoverRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/discover`);
 const skipRegex = new RegExp(`\/trip\/[a-z0-9]{12}\/skipped`);
 
-export default function TripHeaderItems() {
+export default function TripHeaderItems({ loggedIn }: { loggedIn: boolean }) {
   const path = usePathname();
   const id = useParams<{ id: string }>().id;
 
@@ -137,6 +137,17 @@ export default function TripHeaderItems() {
             </DropdownMenuContent>
           </DropdownMenu>
         </>
+      )}
+      {!loggedIn && (
+        <ButtonLink
+          href={
+            "/login?" +
+            new URLSearchParams([["redirect", `/trip/${id}`]]).toString()
+          }
+          size="small"
+        >
+          Login
+        </ButtonLink>
       )}
     </>
   );
