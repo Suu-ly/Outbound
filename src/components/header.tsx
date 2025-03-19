@@ -20,7 +20,7 @@ export default function Header({ children, fixed }: HeaderProps) {
           Outbound
         </h1>
       </Link>
-      <div className="space-x-1">{children}</div>
+      <div className="flex items-center gap-1">{children}</div>
     </header>
   );
 }
