@@ -158,9 +158,9 @@ const DeleteTripDialog = () => {
         if (!deleteTripDialogOpen) return;
         setIsLoading(true);
         const res = await deleteTrip(deleteTripDialogOpen.tripId);
+        setIsLoading(false);
         if (res.status === "error") {
           toast.error(res.message);
-          setIsLoading(false);
         } else {
           close();
           redirect("/");
