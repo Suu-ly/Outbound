@@ -1,4 +1,3 @@
-import { minsToString } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { redis } from "@/server/cache";
 import { db } from "@/server/db";
@@ -74,17 +73,16 @@ const getTravelTimesFromResponse = (
   )
     return { route: false };
   if (data.routes.length > 0) {
+    const distance = data.routes[0].distance;
     return {
       route: true,
       geometry: data.routes[0].geometry,
-      distance: data.routes[0].distance / 1000,
+      distance: distance / 1000,
       distanceDisplay:
-        data.routes[0].distance >= 1000
-          ? (data.routes[0].distance / 1000).toFixed(1) + " km"
-          : Math.round(data.routes[0].distance) + " m",
-      duration: Math.round((data.routes[0].duration / 60) * 1000) / 1000, // Round to 3dp
-      durationDisplay: minsToString(data.routes[0].duration / 60),
-      durationDisplayRoundUp: minsToString(data.routes[0].duration / 60, true),
+        distance >= 1000
+          ? (distance / 1000).toFixed(1) + " km"
+          : Math.round(distance) + " m",
+      duration: Math.round(data.routes[0].duration / 60), // Round to nearest minute
       summary:
         data.routes[0].legs.length > 0 && data.routes[0].legs[0].summary
           ? data.routes[0].legs[0].summary

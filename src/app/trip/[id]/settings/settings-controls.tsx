@@ -173,7 +173,7 @@ const RoundUpTravelTime = () => {
   return (
     <SettingsItem
       title="Round up travel time"
-      description="Round up travel time estimates to the nearest 15 minutes. Disable this to use exact travel time estimates"
+      description="Round up travel time estimates to the nearest 5, 10 or 15 minutes based on the distance travelled. Disable this to use exact travel time estimates"
       htmlFor="travel-time-switch"
     >
       <Switch

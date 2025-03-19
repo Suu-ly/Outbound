@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Spinner from "@/components/ui/spinner";
-import { getTravelTimesFromObject } from "@/lib/utils";
+import { getTravelTimesFromObject, minsToString } from "@/lib/utils";
 import { updatePreferredTravelMode } from "@/server/actions";
 import type { SelectTripTravelTime } from "@/server/db/schema";
 import { ApiResponse, Coordinates, DistanceType } from "@/server/types";
@@ -84,6 +84,14 @@ export const TravelTimeSelect = memo(
           toast.error(data.message);
         }
       });
+    };
+
+    const displayTravelTime = (duration: number, distance: number) => {
+      return minsToString(
+        duration,
+        shouldRoundUp,
+        distance < 3 ? 5 : distance < 10 ? 10 : 15,
+      );
     };
 
     const getTravelTime = async (
@@ -169,9 +177,10 @@ export const TravelTimeSelect = memo(
               {value === "cycle" && <IconBike />}
               {value === "walk" && <IconWalk />}
               {data[value].route
-                ? (shouldRoundUp
-                    ? data[value].durationDisplayRoundUp
-                    : data[value].durationDisplay) +
+                ? displayTravelTime(
+                    data[value].duration,
+                    data[value].distance,
+                  ) +
                   " · " +
                   data[value].distanceDisplay
                 : "No route"}
@@ -216,9 +225,10 @@ export const TravelTimeSelect = memo(
                 <span className="flex items-center gap-2">
                   <IconCar />
                   {data.drive.route
-                    ? (shouldRoundUp
-                        ? data.drive.durationDisplayRoundUp
-                        : data.drive.durationDisplay) +
+                    ? displayTravelTime(
+                        data.drive.duration,
+                        data.drive.distance,
+                      ) +
                       " · " +
                       data.drive.distanceDisplay
                     : "No route"}
@@ -228,9 +238,10 @@ export const TravelTimeSelect = memo(
                 <span className="flex items-center gap-2">
                   <IconBike />
                   {data.cycle.route
-                    ? (shouldRoundUp
-                        ? data.cycle.durationDisplayRoundUp
-                        : data.cycle.durationDisplay) +
+                    ? displayTravelTime(
+                        data.cycle.duration,
+                        data.cycle.distance,
+                      ) +
                       " · " +
                       data.cycle.distanceDisplay
                     : "No route"}
@@ -240,9 +251,10 @@ export const TravelTimeSelect = memo(
                 <span className="flex items-center gap-2">
                   <IconWalk />
                   {data.walk.route
-                    ? (shouldRoundUp
-                        ? data.walk.durationDisplayRoundUp
-                        : data.walk.durationDisplay) +
+                    ? displayTravelTime(
+                        data.walk.duration,
+                        data.walk.distance,
+                      ) +
                       " · " +
                       data.walk.distanceDisplay
                     : "No route"}

@@ -80,9 +80,15 @@ export const defaultTripPlaceUserInfo = {
   timeToNextPlace: null,
 };
 
-export function minsToString(minutes: number, roundUp?: boolean) {
+export function minsToString(
+  minutes: number,
+  roundUp?: boolean,
+  nearest: number = 5,
+) {
   const numHours = Math.floor(minutes / 60);
-  const mins = roundUp ? Math.ceil((minutes % 60) / 15) * 15 : minutes % 60;
+  const mins = roundUp
+    ? Math.ceil((minutes % 60) / nearest) * nearest
+    : minutes % 60;
   let output = roundUp ? "~" : "";
   if (numHours) output += `${numHours} hr${numHours > 1 ? "s" : ""}`;
   if (numHours && mins) output += " ";

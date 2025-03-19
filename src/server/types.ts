@@ -412,8 +412,6 @@ export type DistanceType =
       distance: number;
       distanceDisplay: string;
       duration: number;
-      durationDisplay: string;
-      durationDisplayRoundUp: string;
       geometry: {
         coordinates: LngLat[];
         type: "LineString";
