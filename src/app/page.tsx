@@ -23,7 +23,7 @@ export default async function Home({
       headers: await headers(),
     })
     .catch((e) => {
-      console.log(e);
+      console.error(e);
     });
 
   if (!session)
