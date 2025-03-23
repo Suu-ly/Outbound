@@ -13,6 +13,7 @@ import { db } from "./db";
 import {
   InsertTrip,
   InsertTripDay,
+  place,
   SelectTrip,
   SelectTripTravelTime,
   trip,
@@ -726,6 +727,28 @@ export async function deleteTrip(tripId: string): Promise<ApiResponse<true>> {
     return {
       status: "error",
       message: "Unable to delete trip",
+    };
+  }
+}
+
+export async function updatePlaceImage(
+  coverImg: string,
+  coverImgSmall: string,
+  placeId: string,
+): Promise<ApiResponse<true>> {
+  try {
+    await db
+      .update(place)
+      .set({ coverImg: coverImg, coverImgSmall: coverImgSmall })
+      .where(eq(place.id, placeId));
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update cover image!",
     };
   }
 }

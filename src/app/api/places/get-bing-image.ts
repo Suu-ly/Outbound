@@ -11,7 +11,7 @@ export default async function getBingImage(
     ["safeSearch", "moderate"],
     ["imageType", "photo"],
     ["size", "large"],
-    ["count", "5"],
+    ["count", "1"],
   ]);
 
   const redisData = await redis.get<{
