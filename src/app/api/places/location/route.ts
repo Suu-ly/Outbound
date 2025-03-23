@@ -37,8 +37,6 @@ type BoundsResponse =
     }
   | GoogleError;
 
-const suffixRegex = new RegExp("/(State of|Province|department)/gi");
-
 const getPlaceName = (
   name: string,
   subtitle: string | null,
@@ -60,7 +58,8 @@ const getPlaceName = (
     if (!city && components[i].types.includes("administrative_area_level_1"))
       city = components[i].longText;
   }
-  if (city && city !== name) return name + ", " + city.replace(suffixRegex, "");
+  if (city && city !== name)
+    return name + ", " + city.replace(/(State of|Province|department)/gi, "");
   return name + ", " + country;
 };
 
@@ -119,8 +118,8 @@ const getSearchWindows = (
     let maxLat = currentPolygon[0][1];
     const memoizeGradients: number[] = new Array(currentPolygon.length - 1);
     memoizeGradients[0] =
-      (currentPolygon[1][1] - currentPolygon[0][1]) /
-      (currentPolygon[1][0] - currentPolygon[0][0]);
+      (currentPolygon[1][0] - currentPolygon[0][0]) /
+      (currentPolygon[1][1] - currentPolygon[0][1]);
     // Get bounding box of polygon and gradient reciprocal of edges
     for (let j = 1; j < currentPolygon.length - 1; j++) {
       const currentPoint = currentPolygon[j];
@@ -309,9 +308,10 @@ export async function GET(request: NextRequest) {
     coverImg: images.data.image,
     coverImgSmall: images.data.thumbnail,
     windows: searchWindows,
+    geometry: polygon,
   };
   // Insert information into database
-  await db.insert(location).values(insertValue);
+  await db.insert(location).values(insertValue).onConflictDoNothing();
 
   return Response.json({
     data: {

@@ -19,6 +19,7 @@ import {
 import {
   BoundingBox,
   DistanceType,
+  NominatimResponse,
   PlacesResult,
   PlacesReview,
 } from "../types";
@@ -109,6 +110,9 @@ export const location = pgTable("location", {
   coverImgSmall: text("cover_img_small").notNull(),
   viewport: jsonb("viewport").notNull().$type<BoundingBox>(),
   windows: jsonb("windows").notNull().$type<BoundingBox[]>(),
+  geometry: jsonb("geometry")
+    .notNull()
+    .$type<NominatimResponse[number]["geojson"]>(),
 });
 
 export type InsertLocation = typeof location.$inferInsert;

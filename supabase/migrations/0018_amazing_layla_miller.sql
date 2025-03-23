@@ -1,0 +1,1 @@
+ALTER TABLE "location" ALTER COLUMN "geometry" SET NOT NULL;
