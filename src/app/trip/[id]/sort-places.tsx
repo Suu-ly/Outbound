@@ -32,6 +32,7 @@ import {
 import { DayData, PlaceData, PlaceDataEntry } from "@/server/types";
 import {
   Active,
+  AutoScrollActivator,
   closestCenter,
   CollisionDetection,
   DndContext,
@@ -185,7 +186,6 @@ const coordinateGetter: KeyboardCoordinateGetter = (
 type SortableItemProps = {
   id: UniqueIdentifier;
   disabled?: boolean;
-  below?: boolean;
   onRemove: (isInDay: number | "saved", placeId: string) => void;
   handleMove: (
     isInDay: number | "saved",
@@ -209,7 +209,6 @@ function SortableItem({
   disabled,
   id,
   data,
-  below,
   children,
   ...rest
 }: SortableItemProps) {
@@ -238,7 +237,6 @@ function SortableItem({
         transform: isSorting ? undefined : CSS.Translate.toString(transform),
       }}
       data={data}
-      below={below}
       fadeIn={mountedWhileDragging}
       listeners={listeners}
     >
@@ -307,30 +305,6 @@ function DroppableContainer({
     if (isOverContainer && !open)
       timer.current = setTimeout(() => {
         setOpen(true);
-        // // Force item into container once opened for empty folders
-        // if (items.length === 0)
-        //   setPlaces((currentPlaces) => {
-        //     let activeIndex = 0;
-        //     const activeContainer = Object.keys(currentPlaces).find(
-        //       (placesGroup) => {
-        //         activeIndex = currentPlaces[placesGroup].findIndex(
-        //           (place) => place.placeInfo.placeId === active?.id,
-        //         );
-        //         return activeIndex !== -1;
-        //       },
-        //     );
-        //     if (!activeContainer) return currentPlaces;
-        //     return {
-        //       ...currentPlaces,
-        //       [activeContainer]: currentPlaces[activeContainer].filter(
-        //         (place) => place.placeInfo.placeId !== active?.id,
-        //       ),
-        //       [over!.id]: [
-        //         ...currentPlaces[over!.id],
-        //         currentPlaces[activeContainer][activeIndex],
-        //       ],
-        //     };
-        //   });
       }, 500);
 
     return () => {
@@ -404,10 +378,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   const defaultStartTime = useAtomValue(tripDetailsAtom).startTime;
   const [places, setPlaces] = useAtom(tripPlacesAtom);
   const [days, setDays] = useAtom(dayPlacesAtom);
-  const [indicator, setIndicator] = useState<{
-    id: UniqueIdentifier;
-    below: boolean;
-  } | null>(null);
   const startDate = useAtomValue(tripStartDateAtom);
 
   const [toBeRemoved, setToBeRemoved] = useState<{
@@ -508,7 +478,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
 
   const onDragCancel = () => {
     setActiveId(null);
-    setIndicator(null);
   };
 
   const removePlace = useCallback(
@@ -656,7 +625,8 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       autoScroll={{
         threshold: { y: 0.4, x: 0 },
         interval: 2,
-        acceleration: 12,
+        acceleration: 28,
+        activator: AutoScrollActivator.Pointer,
       }}
       sensors={sensors}
       collisionDetection={collisionDetectionStrategy}
@@ -668,29 +638,8 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       onDragStart={({ active }) => {
         setActiveId(active);
       }}
-      // onDragMove={({ active, over }) => {
-      //   if (!over || active.id === over.id) {
-      //     setIndicator(null);
-      //     return;
-      //   }
-
-      //   const isBelowOverItem =
-      //     active.rect.current.translated &&
-      //     active.rect.current.translated.top >
-      //       over.rect.top + (over.rect.height / 4 - 32);
-
-      //   if (isBelowOverItem === null) {
-      //     setIndicator(null);
-      //     return;
-      //   }
-      //   setIndicator({
-      //     id: over.id,
-      //     below: isBelowOverItem,
-      //   });
-      // }}
       onDragEnd={({ active, over }) => {
         setActiveId(null);
-        setIndicator(null);
         // Dragging a day
         if (active.id in places && over?.id) {
           const activeIndex = days.findIndex((day) => day.dayId === active.id);
@@ -939,11 +888,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                     data={place}
                     disabled={isSortingContainer}
                     id={place.placeInfo.placeId!}
-                    below={
-                      indicator && indicator.id === place.placeInfo.placeId
-                        ? indicator.below
-                        : undefined
-                    }
                     onRemove={onRemove}
                     handleMove={handleMove}
                     handleNoteChange={handleNoteChange}
@@ -1014,11 +958,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                         isInDay={day.dayId}
                         disabled={isSortingContainer}
                         id={place.placeInfo.placeId!}
-                        below={
-                          indicator && indicator.id === place.placeInfo.placeId
-                            ? indicator.below
-                            : undefined
-                        }
                         dayIndex={dayIndex}
                         onRemove={onRemove}
                         handleMove={handleMove}
