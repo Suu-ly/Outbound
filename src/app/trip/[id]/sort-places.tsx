@@ -656,7 +656,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       autoScroll={{
         threshold: { y: 0.4, x: 0 },
         interval: 2,
-        acceleration: 6,
+        acceleration: 12,
       }}
       sensors={sensors}
       collisionDetection={collisionDetectionStrategy}
@@ -1027,7 +1027,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                       >
                         {index < places[day.dayId].length - 1 && ( // Not the last item
                           <TravelTimeSelect
-                            isInDay={day.dayId}
                             fromId={place.placeInfo.placeId}
                             fromCoords={place.placeInfo.location}
                             toId={

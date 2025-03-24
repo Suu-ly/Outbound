@@ -335,11 +335,10 @@ export type PlaceDataPlaceInfo = {
   } | null;
 };
 
-type PlaceDataUserPlaceInfo = {
+export type PlaceDataUserPlaceInfo = {
   note: string | null;
   tripOrder: string;
   timeSpent: number;
-  timeToNextPlace: number | null;
 };
 
 export type PlaceDataEntry = {
@@ -428,7 +427,7 @@ export type TravelTimeGraphType = Record<
       drive: DistanceType;
       cycle: DistanceType;
       walk: DistanceType;
-      mode?: SelectTripTravelTime["type"];
+      mode: SelectTripTravelTime["type"] | undefined;
     }
   >
 >;

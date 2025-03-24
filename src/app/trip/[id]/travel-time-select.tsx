@@ -8,19 +8,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Spinner from "@/components/ui/spinner";
-import { getTravelTimesFromObject, minsToString } from "@/lib/utils";
+import { minsToString, roundUpMinutes } from "@/lib/utils";
 import { updatePreferredTravelMode } from "@/server/actions";
 import type { SelectTripTravelTime } from "@/server/db/schema";
 import { ApiResponse, Coordinates, DistanceType } from "@/server/types";
 import { IconBike, IconCar, IconWalk } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { memo, useState } from "react";
 import { toast } from "sonner";
-import { travelTimesAtom, tripDetailsAtom, tripPlacesAtom } from "../atoms";
+import { travelTimesAtom, tripDetailsAtom } from "../atoms";
 
 type TravelTimeSelectProps = {
-  isInDay: string | number;
   fromId: string;
   fromCoords: Coordinates;
   toId: string;
@@ -31,7 +30,6 @@ type TravelTimeSelectProps = {
 
 export const TravelTimeSelect = memo(
   ({
-    isInDay,
     fromId,
     fromCoords,
     toId,
@@ -43,7 +41,6 @@ export const TravelTimeSelect = memo(
     const shouldRoundUp = tripDetails.roundUpTime;
     const tripId = tripDetails.id;
     const [travelTimes, setTravelTimes] = useAtom(travelTimesAtom);
-    const setPlaces = useSetAtom(tripPlacesAtom);
     const data =
       travelTimes[fromId] && travelTimes[fromId][toId]
         ? travelTimes[fromId][toId]
@@ -55,20 +52,6 @@ export const TravelTimeSelect = memo(
     const handleValueChange = (newValue: "walk" | "drive" | "cycle") => {
       if (!data) return;
       setValue(newValue);
-      const duration = getTravelTimesFromObject(newValue, data);
-      setPlaces((prev) => ({
-        ...prev,
-        [isInDay]: prev[isInDay].map((place) => {
-          if (place.placeInfo.placeId !== fromId) return place;
-          return {
-            ...place,
-            userPlaceInfo: {
-              ...place.userPlaceInfo,
-              timeToNextPlace: duration,
-            },
-          };
-        }),
-      }));
       setTravelTimes((prev) => ({
         ...prev,
         [fromId]: {
@@ -88,9 +71,8 @@ export const TravelTimeSelect = memo(
 
     const displayTravelTime = (duration: number, distance: number) => {
       return minsToString(
-        duration,
+        shouldRoundUp ? roundUpMinutes(duration, distance) : duration,
         shouldRoundUp,
-        distance < 3 ? 5 : distance < 10 ? 10 : 15,
       );
     };
 
@@ -137,20 +119,6 @@ export const TravelTimeSelect = memo(
             mode: value,
           },
         },
-      }));
-      const duration = getTravelTimesFromObject(value, travelTimesNew.data);
-      setPlaces((prev) => ({
-        ...prev,
-        [isInDay]: prev[isInDay].map((place) => {
-          if (place.placeInfo.placeId !== fromId) return place;
-          return {
-            ...place,
-            userPlaceInfo: {
-              ...place.userPlaceInfo,
-              timeToNextPlace: duration,
-            },
-          };
-        }),
       }));
       return travelTimesNew.data;
     };

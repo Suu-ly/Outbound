@@ -1,7 +1,6 @@
 import Header from "@/components/header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ButtonLink from "@/components/ui/button-link";
-import { getTravelTimesFromObject } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import {
@@ -69,7 +68,6 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
   const placeData: PlaceData = { saved: [] };
   const travelTimeData: TravelTimeGraphType = {};
 
-  let timeToNextPlace: number | null = null;
   for (let i = 0, length = data.length; i < length; i++) {
     const rowData = data[i];
     // Day with no place
@@ -92,12 +90,6 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
         travelTimeData[rowData.inner.placeId!] = {
           [rowData.travelTime.nextId!]: travelTimes,
         };
-        timeToNextPlace = getTravelTimesFromObject(
-          rowData.travelTime.selectedMode,
-          travelTimes,
-        );
-      } else {
-        timeToNextPlace = null;
       }
       const tempPlaceData = {
         placeInfo: {
@@ -115,7 +107,6 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
         userPlaceInfo: {
           note: rowData.inner.note,
           timeSpent: rowData.inner.timeSpent!,
-          timeToNextPlace: timeToNextPlace,
           tripOrder: rowData.inner.tripOrder,
         },
       };

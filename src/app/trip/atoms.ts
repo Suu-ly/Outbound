@@ -1,3 +1,4 @@
+import { getInfoFromTravelTime, roundUpMinutes } from "@/lib/utils";
 import { SelectTripPlace } from "@/server/db/schema";
 import {
   DayData,
@@ -75,6 +76,7 @@ export const travelTimesAtom = atom<TravelTimeGraphType>({});
 export const computedTravelTimesAtom = atom((get) => {
   const places = get(tripPlacesAtom);
   const shouldRoundUp = get(tripDetailsAtom).roundUpTime;
+  const travelTimes = get(travelTimesAtom);
   const times: Record<keyof typeof places, (number | null)[]> = {};
   const keys = Object.keys(places);
   for (let i = 0, length = keys.length; i < length; i++) {
@@ -84,12 +86,20 @@ export const computedTravelTimesAtom = atom((get) => {
     currentTimes[0] = 0;
     let stopCalculation = false;
     for (let j = 0, placesLength = items.length - 1; j < placesLength; j++) {
-      if (items[j].userPlaceInfo.timeToNextPlace && !stopCalculation) {
+      if (
+        !stopCalculation &&
+        travelTimes[items[j].placeInfo.placeId] &&
+        travelTimes[items[j].placeInfo.placeId][items[j + 1].placeInfo.placeId]
+      ) {
         currentTimeSum += items[j].userPlaceInfo.timeSpent;
-        if (shouldRoundUp)
-          currentTimeSum +=
-            Math.ceil(items[j].userPlaceInfo.timeToNextPlace! / 15) * 15;
-        else currentTimeSum += items[j].userPlaceInfo.timeToNextPlace!;
+        const routes =
+          travelTimes[items[j].placeInfo.placeId][
+            items[j + 1].placeInfo.placeId
+          ];
+        const [duration, distance] = getInfoFromTravelTime(routes.mode, routes);
+        currentTimeSum += shouldRoundUp
+          ? roundUpMinutes(duration, distance)
+          : duration;
         currentTimes[j + 1] = currentTimeSum;
       } else {
         currentTimes[j + 1] = null;

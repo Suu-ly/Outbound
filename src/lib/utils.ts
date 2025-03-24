@@ -1,5 +1,5 @@
 import { SelectTripTravelTime } from "@/server/db/schema";
-import { DistanceType } from "@/server/types";
+import { DistanceType, PlaceDataUserPlaceInfo } from "@/server/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -74,26 +74,27 @@ export function insertBetween(left: string, right: string) {
   return averageStrings(left, right);
 }
 
-export const defaultTripPlaceUserInfo = {
+export const defaultTripPlaceUserInfo: Omit<
+  PlaceDataUserPlaceInfo,
+  "tripOrder"
+> = {
   note: null,
   timeSpent: 120,
-  timeToNextPlace: null,
 };
 
-export function minsToString(
-  minutes: number,
-  roundUp?: boolean,
-  nearest: number = 5,
-) {
+export function roundUpMinutes(minutes: number, distance: number) {
+  const nearest = distance < 3 ? 5 : distance < 10 ? 10 : 15;
+  return Math.ceil((minutes % 60) / nearest) * nearest;
+}
+
+export function minsToString(minutes: number, roundUp?: boolean) {
+  if (minutes === 0) return "None";
   const numHours = Math.floor(minutes / 60);
-  const mins = roundUp
-    ? Math.ceil((minutes % 60) / nearest) * nearest
-    : minutes % 60;
+  const mins = minutes % 60;
   let output = roundUp ? "~" : "";
   if (numHours) output += `${numHours} hr${numHours > 1 ? "s" : ""}`;
   if (numHours && mins) output += " ";
   if (mins) output += `${mins} min${mins > 1 ? "s" : ""}`;
-  if (!output) output = "none";
   return output;
 }
 
@@ -111,12 +112,12 @@ export function minsTo24HourFormat(minutes: number) {
   };
 }
 
-export function getTravelTimesFromObject(
-  mode: SelectTripTravelTime["type"] | null,
+export function getInfoFromTravelTime(
+  mode: SelectTripTravelTime["type"] | undefined,
   times: Record<SelectTripTravelTime["type"], DistanceType>,
 ) {
   if (!mode) mode = "drive";
   const modeTimes = times[mode];
-  if (!modeTimes.route || !modeTimes) return 0;
-  return modeTimes.duration;
+  if (!modeTimes.route || !modeTimes) return [0, 0];
+  return [modeTimes.duration, modeTimes.distance];
 }
