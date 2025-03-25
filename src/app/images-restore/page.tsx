@@ -1,6 +1,6 @@
 import { db } from "@/server/db";
 import { location, place, trip, tripPlace } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { Metadata } from "next";
 import getBingImage from "../api/places/get-bing-image";
 import ImageGetter from "./image-getter";
@@ -31,7 +31,8 @@ export default async function ImageRestorePage() {
         location: place.address,
       })
       .from(place)
-      .where(eq(place.coverImgSmall, "")),
+      .leftJoin(tripPlace, eq(tripPlace.placeId, place.id))
+      .where(and(eq(place.coverImgSmall, ""), isNull(tripPlace.createdAt))),
   ]);
 
   const getBingImageFromServer = async (place: {
