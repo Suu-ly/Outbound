@@ -617,7 +617,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       autoScroll={{
         threshold: { y: 0.4, x: 0 },
         interval: 2,
-        acceleration: 28,
+        acceleration: 24,
         activator: AutoScrollActivator.Pointer,
       }}
       sensors={sensors}

@@ -62,7 +62,7 @@ export default function ViewMapToggle({
         </>
       )}
       <div
-        className={`h-full overflow-auto bg-zinc-50 ${viewMap ? "invisible sm:visible" : ""}`}
+        className={`h-full scroll-p-8 overflow-auto scroll-smooth bg-zinc-50 ${viewMap ? "invisible sm:visible" : ""}`}
       >
         <Button
           variant="outline"
