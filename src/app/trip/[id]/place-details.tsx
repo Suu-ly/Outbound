@@ -10,7 +10,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { forwardRef } from "react";
+import { forwardRef, memo } from "react";
 import { InfoWithCopy, Review } from "./place-details-client-components";
 
 const keyLookup = {
@@ -83,8 +83,8 @@ type PlaceDetailsProps = {
   data: TripPlaceDetails;
 };
 
-export const PlaceDetails = forwardRef<HTMLDivElement, PlaceDetailsProps>(
-  ({ data }, ref) => {
+const PlaceDetails = memo(
+  forwardRef<HTMLDivElement, PlaceDetailsProps>(({ data }, ref) => {
     return (
       <div className="flex flex-col gap-6" ref={ref}>
         <div className="space-y-1 px-4">
@@ -186,7 +186,7 @@ export const PlaceDetails = forwardRef<HTMLDivElement, PlaceDetailsProps>(
         />
       </div>
     );
-  },
+  }),
 );
 
 PlaceDetails.displayName = "PlaceDetails";
