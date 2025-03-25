@@ -132,3 +132,5 @@ export const deleteTripDialogOpenAtom = atom<{
   tripId: string;
   name: string;
 }>();
+
+export const isDraggingAtom = atom(false);

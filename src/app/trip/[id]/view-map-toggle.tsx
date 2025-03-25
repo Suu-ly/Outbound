@@ -10,7 +10,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { IconMap, IconX } from "@tabler/icons-react";
+import { useAtomValue } from "jotai";
 import { useState } from "react";
+import { isDraggingAtom } from "../atoms";
 import { MapLegends } from "./map-view";
 
 const snapPoints = ["68px", "260px"]; // 1. Just the legend header 2. Full bottom sheet
@@ -22,6 +24,7 @@ export default function ViewMapToggle({
 }) {
   const [viewMap, setViewMap] = useState(false);
   const [snap, setSnap] = useState<number | string | null>(snapPoints[0]);
+  const isDragging = useAtomValue(isDraggingAtom);
   const isLarge = useMediaQuery("(min-width: 640px)");
   return (
     <main
@@ -62,7 +65,7 @@ export default function ViewMapToggle({
         </>
       )}
       <div
-        className={`h-full scroll-p-8 overflow-auto scroll-smooth bg-zinc-50 ${viewMap ? "invisible sm:visible" : ""}`}
+        className={`h-full scroll-p-8 overflow-auto ${isDragging ? "scroll-auto" : "scroll-smooth"} bg-zinc-50 ${viewMap ? "invisible sm:visible" : ""}`}
       >
         <Button
           variant="outline"

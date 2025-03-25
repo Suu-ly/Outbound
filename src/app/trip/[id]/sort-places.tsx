@@ -62,7 +62,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Portal } from "@radix-ui/react-portal";
 import { IconMapPinSearch, IconWand } from "@tabler/icons-react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   Dispatch,
   ReactNode,
@@ -73,7 +73,12 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { dayPlacesAtom, tripDetailsAtom, tripPlacesAtom } from "../atoms";
+import {
+  dayPlacesAtom,
+  isDraggingAtom,
+  tripDetailsAtom,
+  tripPlacesAtom,
+} from "../atoms";
 import {
   DayFolderSortWrapper,
   SavedPlacesWrapper,
@@ -386,6 +391,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
 
   const [activeId, setActiveId] = useState<Active | null>(null);
   const isSortingContainer = activeId?.data.current?.type === "container";
+  const setIsDragging = useSetAtom(isDraggingAtom);
 
   /**
    * Custom collision detection strategy optimized for multiple containers
@@ -617,8 +623,8 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       id="Sort-places-dnd-context"
       autoScroll={{
         threshold: { y: 0.4, x: 0 },
-        interval: 4,
-        acceleration: 280,
+        interval: 2,
+        acceleration: 12,
         activator: AutoScrollActivator.Pointer,
       }}
       sensors={sensors}
@@ -628,11 +634,15 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           strategy: MeasuringStrategy.WhileDragging,
         },
       }}
+      onDragPending={() => {
+        setIsDragging(true);
+      }}
       onDragStart={({ active }) => {
         setActiveId(active);
       }}
       onDragEnd={({ active, over }) => {
         setActiveId(null);
+        setIsDragging(false);
         // Dragging a day
         if (active.id in places && over?.id) {
           const activeIndex = days.findIndex((day) => day.dayId === active.id);
