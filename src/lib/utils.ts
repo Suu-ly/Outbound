@@ -121,3 +121,20 @@ export function getInfoFromTravelTime(
   if (!modeTimes.route || !modeTimes) return [0, 0];
   return [modeTimes.duration, modeTimes.distance];
 }
+
+export function getElementId(type: "saved", index: number): string;
+export function getElementId(
+  type: "day",
+  index: number,
+  dayIndex: number,
+): string;
+export function getElementId(
+  type: "saved" | "day",
+  index: number,
+  dayIndex?: number,
+): string {
+  if (type === "saved") return `saved-place-${index + 1}`;
+  if (dayIndex !== undefined) return `day-${dayIndex + 1}-place-${index + 1}`;
+
+  return `place-${index + 1}`;
+}

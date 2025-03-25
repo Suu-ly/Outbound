@@ -165,9 +165,6 @@ const PlaceDetailsSkipped = memo(
       );
     },
   ),
-  (prev, next) => {
-    return prev.data.placeId === next.data.placeId;
-  },
 );
 
 PlaceDetailsSkipped.displayName = "PlaceDetailsSkipped";

@@ -53,6 +53,7 @@ import {
 export type PlaceDetailsCompactProps = {
   data: PlaceDataEntry;
   isInDay?: number | "saved";
+  elementId?: string;
   dayIndex?: number;
   isDragging?: boolean;
   onRemove?: (isInDay: number | "saved", placeId: string) => void;
@@ -79,6 +80,7 @@ const PlaceDetailsCompact = memo(
       {
         data,
         isInDay = "saved",
+        elementId,
         dayIndex,
         isDragging,
         onRemove,
@@ -188,7 +190,7 @@ const PlaceDetailsCompact = memo(
       return (
         <div
           ref={ref}
-          id={data.placeInfo.placeId}
+          id={elementId}
           aria-expanded={expanded === "max" && !isDragging}
           onKeyDown={(e) => {
             // Prevent the keyboard sensor from picking up space or enter

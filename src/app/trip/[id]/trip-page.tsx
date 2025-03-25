@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/popover";
 import { markerColorLookup } from "@/lib/color-lookups";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { insertAfter } from "@/lib/utils";
+import { getElementId, insertAfter } from "@/lib/utils";
 import { addTripDays, deleteTripDays, updateTripDates } from "@/server/actions";
 import { InsertTripDay } from "@/server/db/schema";
 import { PlaceDataEntry } from "@/server/types";
@@ -265,7 +265,10 @@ const NonAdminView = () => {
           >
             {index + 1}
           </div>
-          <PlaceDetailsCompact data={place} />
+          <PlaceDetailsCompact
+            data={place}
+            elementId={getElementId("saved", index)}
+          />
         </div>
       ))}
       <h3 className="font-display text-2xl font-medium">Itinerary</h3>
@@ -291,6 +294,7 @@ const NonAdminView = () => {
                 <PlaceDetailsCompact
                   data={place}
                   isInDay={day.dayId}
+                  elementId={getElementId("day", index, dayIndex)}
                   dayIndex={dayIndex}
                 />
                 {index < places[day.dayId].length - 1 && ( // Not the last item

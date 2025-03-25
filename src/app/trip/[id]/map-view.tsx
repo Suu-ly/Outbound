@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { markerColorLookup } from "@/lib/color-lookups";
+import { getElementId } from "@/lib/utils";
 import { SelectTripPlace } from "@/server/db/schema";
 import { BoundingBox, LngLat } from "@/server/types";
 import { IconRoute, IconSearch, IconX } from "@tabler/icons-react";
@@ -96,6 +97,7 @@ const PlaceMarker = ({
   name,
   coordinates,
   placeId,
+  elementId,
   activePlace,
   dayIndex,
   handleMarkerClick,
@@ -115,6 +117,7 @@ const PlaceMarker = ({
     type: SelectTripPlace["type"],
   ) => void;
   type: SelectTripPlace["type"];
+  elementId?: string;
   dayIndex: number | null;
   dayId: number | null;
   children: ReactNode;
@@ -143,7 +146,8 @@ const PlaceMarker = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
-            href={`#${placeId}`}
+            href={elementId ? `#${elementId}` : "#"}
+            aria-label={name + " map marker"}
             replace
             className={`flex size-6 items-center justify-center rounded-full border-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${colours} ${activePlace === placeId ? "scale-150 shadow-md" : ""}`}
           >
@@ -210,6 +214,7 @@ const TripMarkers = () => {
             place.placeInfo.location.longitude,
             place.placeInfo.location.latitude,
           ]}
+          elementId={getElementId("saved", index)}
           name={place.placeInfo.displayName}
           placeId={place.placeInfo.placeId}
         >
@@ -229,6 +234,7 @@ const TripMarkers = () => {
               place.placeInfo.location.longitude,
               place.placeInfo.location.latitude,
             ]}
+            elementId={getElementId("day", index, dayIndex)}
             name={place.placeInfo.displayName}
             placeId={place.placeInfo.placeId}
           >

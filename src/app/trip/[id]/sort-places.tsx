@@ -14,6 +14,7 @@ import { markerColorLookup } from "@/lib/color-lookups";
 import {
   cn,
   digitStringToMins,
+  getElementId,
   getStartingIndex,
   insertAfter,
   insertBefore,
@@ -880,6 +881,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                     data={place}
                     disabled={isSortingContainer}
                     id={place.placeInfo.placeId!}
+                    elementId={getElementId("saved", index)}
                     onRemove={onRemove}
                     handleMove={handleMove}
                     handleNoteChange={handleNoteChange}
@@ -950,6 +952,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                         disabled={isSortingContainer}
                         id={place.placeInfo.placeId!}
                         dayIndex={dayIndex}
+                        elementId={getElementId("day", index, dayIndex)}
                         onRemove={onRemove}
                         handleMove={handleMove}
                         handleNoteChange={handleNoteChange}
