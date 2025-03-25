@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   title: "Update empty images",
 };
 
+export const revalidate = 3600;
+
 export default async function ImageRestorePage() {
   const [places, placesNoLocation] = await Promise.all([
     db
