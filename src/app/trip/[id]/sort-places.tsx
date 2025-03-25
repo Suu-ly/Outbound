@@ -72,12 +72,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import {
-  dayPlacesAtom,
-  tripDetailsAtom,
-  tripPlacesAtom,
-  tripStartDateAtom,
-} from "../atoms";
+import { dayPlacesAtom, tripDetailsAtom, tripPlacesAtom } from "../atoms";
 import {
   DayFolderSortWrapper,
   SavedPlacesWrapper,
@@ -253,7 +248,6 @@ function DroppableContainer({
 }:
   | {
       day: true;
-      startDate: Date;
       index: number;
       children: ReactNode;
       disabled?: boolean;
@@ -378,7 +372,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   const defaultStartTime = useAtomValue(tripDetailsAtom).startTime;
   const [places, setPlaces] = useAtom(tripPlacesAtom);
   const [days, setDays] = useAtom(dayPlacesAtom);
-  const startDate = useAtomValue(tripStartDateAtom);
 
   const [toBeRemoved, setToBeRemoved] = useState<{
     isInDay: string | number;
@@ -575,7 +568,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
 
   const handleDurationChange = useCallback(
     (isInDay: number | string, placeId: string, timeSpent: number) => {
-      console.log("Running");
       setPlaces((prev) => ({
         ...prev,
         [isInDay]: prev[isInDay].map((place) => {
@@ -919,7 +911,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               key={day.dayId}
               id={day.dayId}
               items={places[day.dayId].map((place) => place.placeInfo.placeId!)}
-              startDate={startDate}
               index={dayIndex}
               handleMove={handleMove}
               setLoadingState={setLoadingState}
@@ -996,7 +987,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           {activeId ? (
             days.some((day) => day.dayId === activeId.id) ? (
               <DayFolderSortWrapper
-                startDate={startDate}
                 index={days.findIndex((day) => day.dayId === activeId.id)}
                 isDragOverlay
                 isOpen={false}

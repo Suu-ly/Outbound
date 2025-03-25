@@ -31,7 +31,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { isTripAdminAtom } from "../atoms";
+import { isTripAdminAtom, tripStartDateAtom } from "../atoms";
 import TripAutocomplete from "./trip-autocomplete";
 
 export type DayFolderProps = {
@@ -43,7 +43,6 @@ export type DayFolderProps = {
   setLoadingState?: Dispatch<SetStateAction<Record<keyof PlaceData, string[]>>>;
   isOpen?: boolean;
   onOpenChange?: Dispatch<SetStateAction<boolean>>;
-  startDate: Date;
   index: number;
   dayId?: number;
   children?: ReactNode;
@@ -60,7 +59,6 @@ const DayFolder = memo(
         handleMove,
         setLoadingState,
         startTimeChange,
-        startDate,
         index,
         children,
       },
@@ -68,11 +66,13 @@ const DayFolder = memo(
     ) => {
       const [open, setOpen] = useState(true);
       const isAdmin = useAtomValue(isTripAdminAtom);
+      const startDate = useAtomValue(tripStartDateAtom);
       const date = useMemo(() => addDays(startDate, index), [startDate, index]);
       const toggleExpand = useCallback(() => {
         if (onOpenChange) onOpenChange((prev) => !prev);
         else setOpen((prev) => !prev);
       }, [onOpenChange]);
+
       return (
         <Collapsible
           ref={ref}

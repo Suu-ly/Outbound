@@ -5,6 +5,7 @@ import { InitialQueryPrepared } from "@/server/types";
 import { Session, User } from "better-auth";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
+import { TZDate } from "react-day-picker";
 import { MapProvider } from "react-map-gl";
 import {
   dayPlacesAtom,
@@ -44,7 +45,14 @@ const HydrateAtoms = ({
 }>) => {
   const useRealData = process.env.NEXT_PUBLIC_USE_REAL_DATA === "true";
   useHydrateAtoms([
-    [tripDetailsAtom, data.tripData],
+    [
+      tripDetailsAtom,
+      {
+        ...data.tripData,
+        startDate: new TZDate(data.tripData.startDate, "UTC"),
+        endDate: new TZDate(data.tripData.endDate, "UTC"),
+      },
+    ],
     [isTripAdminAtom, data.tripData.userId === session?.user.id],
     [tripWindowsAtom, data.windowData],
     [

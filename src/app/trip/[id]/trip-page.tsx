@@ -18,7 +18,7 @@ import { IconCalendarWeek } from "@tabler/icons-react";
 import { differenceInCalendarDays } from "date-fns";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useState } from "react";
-import { type DateRange, TZDate } from "react-day-picker";
+import { type DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import {
   changeTripNameDialogOpenAtom,
@@ -27,7 +27,6 @@ import {
   savedPlacesAmountAtom,
   tripDetailsAtom,
   tripPlacesAtom,
-  tripStartDateAtom,
 } from "../atoms";
 import DayFolder from "./day-folder";
 import PlaceDetailsCompact from "./place-details-compact";
@@ -45,8 +44,8 @@ const TripCalendar = ({ tripId }: { tripId: string }) => {
   const setPlaces = useSetAtom(tripPlacesAtom);
   const [days, setDays] = useAtom(dayPlacesAtom);
   const [date, setDate] = useState<DateRange | undefined>({
-    from: new TZDate(tripData.startDate, "UTC"),
-    to: new TZDate(tripData.endDate, "UTC"),
+    from: tripData.startDate,
+    to: tripData.endDate,
   });
 
   const handleDateSave = async () => {
@@ -252,7 +251,6 @@ const TripCalendar = ({ tripId }: { tripId: string }) => {
 const NonAdminView = () => {
   const places = useAtomValue(tripPlacesAtom);
   const days = useAtomValue(dayPlacesAtom);
-  const startDate = useAtomValue(tripStartDateAtom);
   return (
     <div className="flex flex-col gap-4">
       <h3 className="font-display text-2xl font-medium">Saved Places</h3>
@@ -272,7 +270,7 @@ const NonAdminView = () => {
       ))}
       <h3 className="font-display text-2xl font-medium">Itinerary</h3>
       {days.map((day, dayIndex) => (
-        <DayFolder key={day.dayId} startDate={startDate} index={dayIndex}>
+        <DayFolder key={day.dayId} index={dayIndex}>
           {places[day.dayId].map((place, index) => {
             return (
               <div
@@ -297,7 +295,6 @@ const NonAdminView = () => {
                 />
                 {index < places[day.dayId].length - 1 && ( // Not the last item
                   <TravelTimeSelect
-                    isInDay={day.dayId}
                     fromId={place.placeInfo.placeId}
                     fromCoords={place.placeInfo.location}
                     toId={places[day.dayId][index + 1].placeInfo.placeId}
