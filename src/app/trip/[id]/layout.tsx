@@ -281,20 +281,26 @@ export default async function TripLayout({
     return (
       <div className="flex min-h-dvh flex-col">
         <Header>
-          <Avatar>
-            <AvatarImage
-              src={
-                userSession && userSession.user.image
-                  ? userSession.user.image
-                  : undefined
+          {userSession ? (
+            <Avatar>
+              <AvatarImage src={userSession.user.image ?? undefined} />
+              <AvatarFallback>
+                {userSession
+                  ? userSession.user.name.substring(0, 2).toUpperCase()
+                  : "NA"}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <ButtonLink
+              href={
+                "/login?" +
+                new URLSearchParams([["redirect", `/trip/${id}`]]).toString()
               }
-            />
-            <AvatarFallback>
-              {userSession
-                ? userSession.user.name.substring(0, 2).toUpperCase()
-                : "NA"}
-            </AvatarFallback>
-          </Avatar>
+              size="small"
+            >
+              Login
+            </ButtonLink>
+          )}
         </Header>
         <main className="mx-auto flex w-full max-w-screen-sm grow flex-col items-center justify-center gap-12 p-4">
           <div className="text-center">
@@ -319,11 +325,7 @@ export default async function TripLayout({
         <Header>
           {userSession ? (
             <Avatar>
-              <AvatarImage
-                src={
-                  userSession.user.image ? userSession.user.image : undefined
-                }
-              />
+              <AvatarImage src={userSession.user.image ?? undefined} />
               <AvatarFallback>
                 {userSession
                   ? userSession.user.name.substring(0, 2).toUpperCase()

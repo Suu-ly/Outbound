@@ -35,15 +35,13 @@ async function authenticate() {
 export async function addNewTrip(
   locationId: string,
   locationName: string,
-  userId: string,
   dates: DateRange,
 ) {
   const session = await authenticate();
-  if (!session || session.user.id !== userId)
-    return { message: "Unauthorized", status: "error" };
+  if (!session) return { message: "Unauthorized", status: "error" };
   const result = await db
     .transaction(async (tx) => {
-      if (!dates.from || !dates.to || !locationId || !userId) return false;
+      if (!dates.from || !dates.to || !locationId) return false;
 
       let validId = "";
       let retries = MAX_RETRIES;
@@ -53,7 +51,7 @@ export async function addNewTrip(
 
         const tripData: InsertTrip = {
           id: tripId,
-          userId: userId,
+          userId: session.user.id,
           locationId: locationId,
           name: `Trip to ${locationName}`,
           startDate: dates.from,

@@ -21,7 +21,7 @@ import { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 import { v4 } from "uuid";
 
-export default function NewTrip({ userId }: { userId: string }) {
+export default function NewTrip() {
   const [date, setDate] = useState<DateRange | undefined>(undefined);
   const isLarge = useMediaQuery("(min-width: 768px)");
 
@@ -108,7 +108,7 @@ export default function NewTrip({ userId }: { userId: string }) {
     }
     if (selected && date) {
       setIsLoading(true);
-      const res = await addNewTrip(selected.id, selected.label, userId, {
+      const res = await addNewTrip(selected.id, selected.label, {
         from: new Date(date.from!.getTime()),
         to: new Date(date.to!.getTime()),
       });
@@ -124,17 +124,16 @@ export default function NewTrip({ userId }: { userId: string }) {
     const newTrip = async (
       locationId: string,
       name: string,
-      userId: string,
       date: DateRange,
     ) => {
-      const res = await addNewTrip(locationId, name, userId, date);
+      const res = await addNewTrip(locationId, name, date);
       if (res) {
         setIsLoading(false);
         toast.error(res.message);
       }
     };
     if (bufferedPress.current && selected && date && date.from && date.to) {
-      newTrip(selected.id, selected.label, userId, {
+      newTrip(selected.id, selected.label, {
         from: new Date(date.from!.getTime()),
         to: new Date(date.to!.getTime()),
       });
@@ -142,7 +141,7 @@ export default function NewTrip({ userId }: { userId: string }) {
       bufferedPress.current = false;
       setIsLoading(false);
     }
-  }, [isFetching, date, selected, userId]);
+  }, [isFetching, date, selected]);
 
   return (
     <>

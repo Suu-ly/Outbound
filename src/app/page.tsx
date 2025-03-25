@@ -73,9 +73,7 @@ export default async function Home({
     <div className="flex min-h-dvh flex-col">
       <Header>
         <Avatar>
-          <AvatarImage
-            src={session.user.image ? session.user.image : undefined}
-          />
+          <AvatarImage src={session.user.image ?? undefined} />
           <AvatarFallback>
             {session.user.name.slice(0, 2).toUpperCase()}
           </AvatarFallback>
