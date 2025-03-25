@@ -82,8 +82,6 @@ const getSearchWindows = (
       if (minLat > currentPoint[1]) minLat = currentPoint[1];
       if (maxLat < currentPoint[1]) maxLat = currentPoint[1];
 
-      if (currentPolygon[j + 1][1] - currentPoint[1] === 0)
-        console.log(currentPolygon[j + 1][1] - currentPoint[1]);
       memoizeGradients[j] =
         (currentPolygon[j + 1][0] - currentPoint[0]) /
         (currentPolygon[j + 1][1] - currentPoint[1]);

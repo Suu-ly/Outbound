@@ -16,7 +16,7 @@ export default async function NewTripPage() {
       headers: await headers(),
     })
     .catch((e) => {
-      console.log(e);
+      console.error(e);
     });
   return (
     <div className="flex min-h-dvh flex-col">

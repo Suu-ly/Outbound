@@ -343,7 +343,7 @@ export async function updateTripDayOrder(
       data: true,
     };
   } catch (e) {
-    console.log(e);
+    console.error(e);
     return {
       status: "error",
       message: "Unable to update place preferences",
@@ -392,7 +392,7 @@ export async function addTripDays(
       data: result,
     };
   } catch (e) {
-    console.log(e);
+    console.error(e);
     return {
       status: "error",
       message: "Unable to add trip days",
@@ -455,7 +455,7 @@ export async function deleteTripDays(
       data: true,
     };
   } catch (e) {
-    console.log(e);
+    console.error(e);
     return {
       status: "error",
       message: "Unable to delete trip days",
@@ -480,7 +480,7 @@ export async function updateTripDates(
       data: true,
     };
   } catch (e) {
-    console.log(e);
+    console.error(e);
     return {
       status: "error",
       message: "Unable to update trip dates",
@@ -515,7 +515,7 @@ export async function updatePreferredTravelMode(
       data: true,
     };
   } catch (e) {
-    console.log(e);
+    console.error(e);
     return {
       status: "error",
       message: "Unable to preferred travel method",
