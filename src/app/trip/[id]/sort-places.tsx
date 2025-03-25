@@ -617,8 +617,8 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       id="Sort-places-dnd-context"
       autoScroll={{
         threshold: { y: 0.4, x: 0 },
-        interval: 2,
-        acceleration: 24,
+        interval: 4,
+        acceleration: 280,
         activator: AutoScrollActivator.Pointer,
       }}
       sensors={sensors}
