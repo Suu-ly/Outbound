@@ -102,9 +102,7 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
         e.preventDefault();
     };
 
-    if (typeof window !== "undefined") {
-      setFinalPosition(window.innerHeight - 56 + 24 - 64 - 112);
-    }
+    setFinalPosition(window.innerHeight - 56 + 24 - 64 - 112);
 
     const dragContainer = dragContainerRef.current;
 
