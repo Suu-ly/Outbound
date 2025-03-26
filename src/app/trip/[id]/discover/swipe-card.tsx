@@ -321,7 +321,7 @@ export default memo(
             status === "none"
               ? "bg-zinc-50"
               : status === "reject"
-                ? "bg-red-600"
+                ? "bg-rose-500"
                 : "bg-emerald-500",
             hideScroll ? "overflow-y-hidden" : "overflow-y-auto",
             isDragging || minimised ? "touch-none" : "touch-pan-y",

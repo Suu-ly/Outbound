@@ -282,7 +282,7 @@ const CarouselGoogleImage = React.forwardRef<
         alt={alt}
         referrerPolicy="no-referrer"
       />
-      <div className="absolute bottom-2 right-2 flex gap-3 rounded-lg bg-slate-950/70 p-1.5 backdrop-blur">
+      <div className="absolute bottom-2 right-2 flex gap-3 rounded-lg bg-slate-950/85 p-1.5">
         {photo.authorAttributions.map((author) => (
           <div key={author.uri} className="flex items-center gap-1.5">
             <Avatar className="size-5">
