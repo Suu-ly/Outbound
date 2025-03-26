@@ -79,22 +79,24 @@ export default async function Home({
           </AvatarFallback>
         </Avatar>
       </Header>
-      <main className="mx-auto flex w-full max-w-sm grow flex-col gap-8 bg-zinc-50 px-4 py-8 sm:max-w-7xl">
-        <div className="flex flex-col items-center justify-center gap-8 sm:flex-row">
-          <h1 className="grow font-display text-4xl font-semibold text-slate-900">
-            My Trips
-          </h1>
-          <ButtonLink href="/new" size="large">
-            <IconPlus />
-            New Trip
-          </ButtonLink>
-        </div>
-        <div className="space-y-4">
-          <TripOverviewSortSelect />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-            {trips.map((trip) => (
-              <TripCard trip={trip} key={trip.tripId} />
-            ))}
+      <main className="px-4 py-8">
+        <div className="mx-auto flex w-full max-w-sm grow flex-col gap-8 bg-zinc-50 sm:max-w-7xl">
+          <div className="flex flex-col items-center justify-center gap-8 sm:flex-row">
+            <h1 className="grow font-display text-4xl font-semibold text-slate-900">
+              My Trips
+            </h1>
+            <ButtonLink href="/new" size="large">
+              <IconPlus />
+              New Trip
+            </ButtonLink>
+          </div>
+          <div className="space-y-4">
+            <TripOverviewSortSelect />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+              {trips.map((trip) => (
+                <TripCard trip={trip} key={trip.tripId} />
+              ))}
+            </div>
           </div>
         </div>
       </main>
