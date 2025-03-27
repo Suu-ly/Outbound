@@ -121,6 +121,10 @@ const EditTripNameDialog = ({
         if (!changeTripNameDialogOpen) return;
         const value = inputRef.current?.value;
         if (!value || error) return;
+        if (value === changeTripNameDialogOpen.currentName) {
+          close();
+          return;
+        }
         setIsLoading(true);
         const res = await updateTripName(
           changeTripNameDialogOpen.tripId,

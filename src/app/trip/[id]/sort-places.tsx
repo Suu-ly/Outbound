@@ -568,17 +568,25 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           };
         }),
       }));
-      if (newNote) updateTripPlaceNote(tripId, placeId, note ? note : null);
+      if (newNote)
+        updateTripPlaceNote(tripId, placeId, note ? note : null).then(
+          (data) => {
+            if (data.status === "error") toast.error(data.message);
+          },
+        );
     },
     [setPlaces, tripId],
   );
 
   const handleDurationChange = useCallback(
     (isInDay: number | string, placeId: string, timeSpent: number) => {
+      let durationChanged = false;
       setPlaces((prev) => ({
         ...prev,
         [isInDay]: prev[isInDay].map((place) => {
           if (place.placeInfo.placeId !== placeId) return place;
+          if (place.userPlaceInfo.timeSpent !== timeSpent)
+            durationChanged = true;
           return {
             placeInfo: place.placeInfo,
             userPlaceInfo: {
@@ -588,7 +596,10 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           };
         }),
       }));
-      updateTripTimeSpent(tripId, placeId, timeSpent);
+      if (durationChanged)
+        updateTripTimeSpent(tripId, placeId, timeSpent).then((data) => {
+          if (data.status === "error") toast.error(data.message);
+        });
     },
 
     [setPlaces, tripId],
@@ -607,13 +618,18 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
 
   const onChangeDayTimeConfirm = useCallback(
     (dayId: number, newTime: string) => {
-      updateDayStartTime(dayId, newTime);
+      let timeChanged = false;
       setDays((prev) =>
         prev.map((day) => {
           if (day.dayId !== dayId) return day;
+          if (day.dayStartTime !== newTime) timeChanged = true;
           return { ...day, dayStartTime: newTime };
         }),
       );
+      if (timeChanged)
+        updateDayStartTime(dayId, newTime).then((data) => {
+          if (data.status === "error") toast.error(data.message);
+        });
     },
     [setDays],
   );
@@ -687,9 +703,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         const { container: activeContainer, index: activeIndex } =
           findContainerAndIndex(active.id);
 
-        if (!activeContainer) {
-          return;
-        }
+        if (!activeContainer) return;
         if (!over) return;
         const overId = over.id;
 
