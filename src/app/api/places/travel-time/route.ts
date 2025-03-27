@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
 
   const [driving, cycling, walking] = await Promise.all([
     fetch(
-      `https://api.mapbox.com/directions/v5/mapbox/driving/${fromCoords};${toCoords}?geometries=geojson&waypoints_per_route=true&notifications=none&access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`,
+      `https://api.mapbox.com/directions/v5/mapbox/driving/${fromCoords};${toCoords}?geometries=geojson&exclude=ferry&waypoints_per_route=true&notifications=none&access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`,
       {
         method: "GET",
         headers: {
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
       .then((response) => response.json())
       .then((data) => data as MapboxResponse),
     fetch(
-      `https://api.mapbox.com/directions/v5/mapbox/cycling/${fromCoords};${toCoords}?geometries=geojson&waypoints_per_route=true&notifications=none&access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`,
+      `https://api.mapbox.com/directions/v5/mapbox/cycling/${fromCoords};${toCoords}?geometries=geojson&exclude=ferry&waypoints_per_route=true&notifications=none&access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`,
       {
         method: "GET",
         headers: {
@@ -180,7 +180,7 @@ export async function GET(request: NextRequest) {
       .then((response) => response.json())
       .then((data) => data as MapboxResponse),
     fetch(
-      `https://api.mapbox.com/directions/v5/mapbox/walking/${fromCoords};${toCoords}?geometries=geojson&waypoints_per_route=true&notifications=none&access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`,
+      `https://api.mapbox.com/directions/v5/mapbox/walking/${fromCoords};${toCoords}?geometries=geojson&exclude=ferry&waypoints_per_route=true&notifications=none&access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`,
       {
         method: "GET",
         headers: {
