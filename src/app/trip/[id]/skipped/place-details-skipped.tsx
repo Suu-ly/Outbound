@@ -2,7 +2,6 @@
 
 import OpeningHours from "@/components/opening-hours";
 import ShareButton from "@/components/share-button";
-import TabDisable from "@/components/tab-disable";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -145,21 +144,19 @@ const PlaceDetailsSkipped = memo(
               } as CSSProperties
             }
           >
-            <TabDisable className="flex flex-col pt-2" active={expanded}>
-              <OpeningHours
-                collapsible={false}
-                highligtedDay={new Date().getDay()}
-                hours={data.openingHours?.text}
-                className="gap-1.5 rounded-lg pl-1.5 pr-2"
-                contentClassName="pl-8"
-              />
-              <Link
-                href={`/trip/${tripId}/${data.placeId}`}
-                className="inline-flex gap-1.5 rounded-lg p-2 pl-1.5 text-sm font-medium text-slate-700 ring-offset-white transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 active:ring-2 active:ring-slate-200 active:ring-offset-0 [&_svg]:size-5 [&_svg]:text-slate-600"
-              >
-                <IconExternalLink /> View full information
-              </Link>
-            </TabDisable>
+            <OpeningHours
+              collapsible={false}
+              highligtedDay={new Date().getDay()}
+              hours={data.openingHours?.text}
+              className="gap-1.5 rounded-lg pl-1.5 pr-2"
+              contentClassName="pl-8"
+            />
+            <Link
+              href={`/trip/${tripId}/${data.placeId}`}
+              className="inline-flex gap-1.5 rounded-lg p-2 pl-1.5 text-sm font-medium text-slate-700 ring-offset-white transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 active:ring-2 active:ring-slate-200 active:ring-offset-0 [&_svg]:size-5 [&_svg]:text-slate-600"
+            >
+              <IconExternalLink /> View full information
+            </Link>
           </CollapsibleContent>
         </Collapsible>
       );

@@ -362,6 +362,7 @@ const PlaceDetailsCompact = memo(
               duration: 0.3,
               ease: [0.8, 0, 0.2, 1],
             }}
+            aria-hidden={expanded === "min"}
           >
             {(isAdmin || !!note) && (
               <TabDisable
@@ -385,7 +386,7 @@ const PlaceDetailsCompact = memo(
             <motion.div
               initial={{ height: 0 }}
               animate={
-                expanded === "min" || expanded === "mid" || isDragging
+                expanded !== "max" || isDragging
                   ? { height: 0 }
                   : { height: "auto" }
               }
@@ -393,6 +394,7 @@ const PlaceDetailsCompact = memo(
                 duration: 0.3,
                 ease: [0.8, 0, 0.2, 1],
               }}
+              aria-hidden={expanded !== "max" || isDragging}
             >
               <TabDisable
                 className="flex flex-col pt-2 xl:pt-2"
