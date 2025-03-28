@@ -213,9 +213,9 @@ export async function GET(request: NextRequest) {
       .onConflictDoUpdate({
         target: [travelTime.to, travelTime.from],
         set: {
-          drive: sql`excluded.drive`,
-          cycle: sql`excluded.cycle`,
-          walk: sql`excluded.walk`,
+          drive: sql.raw(`excluded.${travelTime.drive.name}`),
+          cycle: sql.raw(`excluded.${travelTime.cycle.name}`),
+          walk: sql.raw(`excluded.${travelTime.walk.name}`),
         },
       });
   } catch {
