@@ -1,5 +1,9 @@
 import { SelectTripTravelTime } from "@/server/db/schema";
-import { DistanceType, PlaceDataUserPlaceInfo } from "@/server/types";
+import {
+  DistanceType,
+  PlaceDataUserPlaceInfo,
+  PlacesResult,
+} from "@/server/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -138,3 +142,26 @@ export function getElementId(
 
   return `place-${index + 1}`;
 }
+
+export const getCountry = (
+  addressComponents: PlacesResult["places"][number]["addressComponents"],
+) => {
+  let out = "";
+  for (let i = addressComponents.length - 1; i >= 0; i--) {
+    const types = addressComponents[i].types;
+    if (types.some((type) => type === "country"))
+      return addressComponents[i].longText;
+    else if (
+      types.some(
+        (type) =>
+          type === "administrative_area_level_1" ||
+          type === "locality" ||
+          type === "political",
+      ) &&
+      !out
+    ) {
+      out = addressComponents[i].longText;
+    }
+  }
+  return out;
+};
