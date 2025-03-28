@@ -1,10 +1,11 @@
-import "server-only";
+// import "server-only";
 
 import {
   boolean,
   date,
   doublePrecision,
   foreignKey,
+  index,
   integer,
   jsonb,
   pgEnum,
@@ -43,38 +44,50 @@ export const user = pgTable("user", {
 export type InsertUser = typeof user.$inferInsert;
 export type SelectUser = typeof user.$inferSelect;
 
-export const session = pgTable("session", {
-  id: text("id").primaryKey(),
-  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
-  token: text("token").notNull().unique(),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, {
-      onDelete: "cascade",
-    }),
-});
+export const session = pgTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, {
+        onDelete: "cascade",
+      }),
+  },
+  (table) => {
+    return [index("session_user_id_index").on(table.userId)];
+  },
+);
 
-export const account = pgTable("account", {
-  id: text("id").primaryKey(),
-  accountId: text("account_id").notNull(),
-  providerId: text("provider_id").notNull(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  accessToken: text("access_token"),
-  refreshToken: text("refresh_token"),
-  idToken: text("id_token"),
-  accessTokenExpiresAt: timestamp("access_token_expires_at"),
-  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-  scope: text("scope"),
-  password: text("password"),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
-  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
-});
+export const account = pgTable(
+  "account",
+  {
+    id: text("id").primaryKey(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+  },
+  (table) => {
+    return [index("account_user_id_index").on(table.userId)];
+  },
+);
 
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
@@ -85,20 +98,26 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updated_at", { mode: "date" }),
 });
 
-export const resetLink = pgTable("reset_link", {
-  id: varchar("id", { length: 12 }).primaryKey(),
-  userId: text("user_id")
-    .references(() => user.id, { onDelete: "cascade" })
-    .notNull(),
-  createdAt: timestamp("created_at", {
-    withTimezone: true,
-    mode: "date",
-    precision: 3,
-  })
-    .notNull()
-    .defaultNow(),
-  active: boolean("active").notNull().default(true),
-});
+export const resetLink = pgTable(
+  "reset_link",
+  {
+    id: varchar("id", { length: 12 }).primaryKey(),
+    userId: text("user_id")
+      .references(() => user.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+      precision: 3,
+    })
+      .notNull()
+      .defaultNow(),
+    active: boolean("active").notNull().default(true),
+  },
+  (table) => {
+    return [index("reset_link_user_id_index").on(table.userId)];
+  },
+);
 
 export type InsertResetLink = typeof resetLink.$inferInsert;
 export type SelectResetLink = typeof resetLink.$inferSelect;
@@ -190,51 +209,66 @@ export const place = pgTable("place", {
 export type InsertPlace = typeof place.$inferInsert;
 export type SelectPlace = typeof place.$inferSelect;
 
-export const trip = pgTable("trip", {
-  id: varchar("id", { length: 12 }).primaryKey(),
-  // User ID foreign key
-  userId: text("user_id")
-    .references(() => user.id, {
-      onDelete: "cascade",
+export const trip = pgTable(
+  "trip",
+  {
+    id: varchar("id", { length: 12 }).primaryKey(),
+    // User ID foreign key
+    userId: text("user_id")
+      .references(() => user.id, {
+        onDelete: "cascade",
+      })
+      .notNull(),
+    // Location ID foreign key
+    locationId: text("location_id")
+      .references(() => location.id)
+      .notNull(),
+    name: text("name").notNull(),
+    startDate: date("start_date", { mode: "date" }).notNull(),
+    endDate: date("end_date", { mode: "date" }).notNull(),
+    private: boolean("private").notNull().default(true),
+    roundUpTime: boolean("round_up_time").notNull().default(true),
+    currentSearchIndex: integer("current_search_index").default(0).notNull(),
+    nextPageToken: text("next_page_token").array(),
+    startTime: varchar("start_time", { length: 4 }).notNull().default("0900"),
+    endTime: varchar("end_time", { length: 4 }).notNull().default("2100"),
+    updatedAt: timestamp("updated_at", {
+      mode: "date",
+      precision: 3,
     })
-    .notNull(),
-  // Location ID foreign key
-  locationId: text("location_id")
-    .references(() => location.id)
-    .notNull(),
-  name: text("name").notNull(),
-  startDate: date("start_date", { mode: "date" }).notNull(),
-  endDate: date("end_date", { mode: "date" }).notNull(),
-  private: boolean("private").notNull().default(true),
-  roundUpTime: boolean("round_up_time").notNull().default(true),
-  currentSearchIndex: integer("current_search_index").default(0).notNull(),
-  nextPageToken: text("next_page_token").array(),
-  startTime: varchar("start_time", { length: 4 }).notNull().default("0900"),
-  endTime: varchar("end_time", { length: 4 }).notNull().default("2100"),
-  updatedAt: timestamp("updated_at", {
-    mode: "date",
-    precision: 3,
-  })
-    .notNull()
-    .$onUpdateFn(() => new Date()),
-});
+      .notNull()
+      .$onUpdateFn(() => new Date()),
+  },
+  (table) => {
+    return [
+      index("trip_location_id_index").on(table.locationId),
+      index("trip_user_id_index").on(table.userId),
+    ];
+  },
+);
 
 export type InsertTrip = typeof trip.$inferInsert;
 export type SelectTrip = typeof trip.$inferSelect;
 
-export const tripDay = pgTable("trip_day", {
-  id: serial("id").primaryKey(),
-  tripId: varchar("trip_id", { length: 12 })
-    .references(() => trip.id, {
-      onDelete: "cascade",
-    })
-    .notNull(),
-  order: text("order").notNull(), // SET COLLATE TO POSIX OR C!
-  startTime: varchar("start_time", { length: 4 })
-    .notNull()
-    .default("auto")
-    .notNull(),
-});
+export const tripDay = pgTable(
+  "trip_day",
+  {
+    id: serial("id").primaryKey(),
+    tripId: varchar("trip_id", { length: 12 })
+      .references(() => trip.id, {
+        onDelete: "cascade",
+      })
+      .notNull(),
+    order: text("order").notNull(), // SET COLLATE TO POSIX OR C!
+    startTime: varchar("start_time", { length: 4 })
+      .notNull()
+      .default("auto")
+      .notNull(),
+  },
+  (table) => {
+    return [index("trip_day_trip_id_index").on(table.tripId)];
+  },
+);
 
 export type InsertTripDay = typeof tripDay.$inferInsert;
 export type SelectTripDay = typeof tripDay.$inferSelect;
@@ -252,7 +286,7 @@ export const tripPlace = pgTable(
       .references(() => trip.id, { onDelete: "cascade" })
       .notNull(),
     placeId: text("place_id")
-      .references(() => place.id)
+      .references(() => place.id, { onUpdate: "cascade" })
       .notNull(),
     dayId: integer("day_id").references(() => tripDay.id, {
       onDelete: "set null",
@@ -281,6 +315,9 @@ export const tripPlace = pgTable(
         name: "trip_place_id",
         columns: [table.tripId, table.placeId],
       }),
+      index("trip_place_place_id_index").on(table.placeId),
+      index("trip_place_trip_id_index").on(table.tripId),
+      index("trip_place_day_id_index").on(table.dayId),
     ];
   },
 );
@@ -293,10 +330,10 @@ export const travelTime = pgTable(
   "travel_time",
   {
     from: text("from")
-      .references(() => place.id, { onDelete: "cascade" })
+      .references(() => place.id, { onUpdate: "cascade" })
       .notNull(),
     to: text("to")
-      .references(() => place.id, { onDelete: "cascade" })
+      .references(() => place.id, { onUpdate: "cascade" })
       .notNull(),
     walk: jsonb("walk").$type<DistanceType>(),
     cycle: jsonb("cycle").$type<DistanceType>(),
@@ -308,6 +345,8 @@ export const travelTime = pgTable(
         name: "travel_time_id",
         columns: [table.from, table.to],
       }),
+      index("travel_time_from_index").on(table.from),
+      index("travel_time_to_index").on(table.to),
     ];
   },
 );
@@ -342,6 +381,7 @@ export const tripTravelTime = pgTable(
         columns: [table.from, table.to],
         foreignColumns: [travelTime.from, travelTime.to],
       }).onDelete("cascade"),
+      index("trip_travel_time_trip_id_index").on(table.tripId),
     ];
   },
 );
