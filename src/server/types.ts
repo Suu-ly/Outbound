@@ -196,6 +196,12 @@ export type PlacesResult = {
     primaryType?: string;
     formattedAddress: string;
     shortFormattedAddress?: string;
+    addressComponents: {
+      longText: string;
+      shortText: string;
+      types: string[];
+      languageCode: string;
+    }[];
     editorialSummary?: {
       text: string;
       languageCode: string;

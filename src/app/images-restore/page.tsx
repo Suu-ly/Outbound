@@ -28,7 +28,7 @@ export default async function ImageRestorePage() {
       .select({
         name: place.displayName,
         id: place.id,
-        location: place.address,
+        location: place.country,
       })
       .from(place)
       .leftJoin(tripPlace, eq(tripPlace.placeId, place.id))

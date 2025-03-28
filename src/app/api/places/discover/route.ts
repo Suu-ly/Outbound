@@ -1,4 +1,5 @@
 import { typeColorLookup } from "@/lib/color-lookups";
+import { getCountry } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { redis } from "@/server/cache";
 import { db } from "@/server/db";
@@ -9,6 +10,7 @@ import {
   type GoogleError,
   type PlacesResult,
 } from "@/server/types";
+import { sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
 import getBingImage from "../get-bing-image";
@@ -98,7 +100,7 @@ export async function GET(request: NextRequest) {
       method: "POST",
       headers: {
         "X-Goog-FieldMask":
-          "contextualContents.justifications.reviewJustification.highlightedText.text,places.id,places.name,nextPageToken,places.googleMapsUri,places.accessibilityOptions,places.shortFormattedAddress,places.formattedAddress,places.displayName,places.iconBackgroundColor,places.location,places.photos,places.primaryType,places.primaryTypeDisplayName,places.types,places.viewport,places.regularOpeningHours,places.userRatingCount,places.websiteUri,places.rating,places.internationalPhoneNumber,places.allowsDogs,places.editorialSummary,places.goodForChildren,places.goodForGroups,places.goodForWatchingSports,places.liveMusic,places.parkingOptions,places.paymentOptions,places.outdoorSeating,places.restroom,places.reviews",
+          "contextualContents.justifications.reviewJustification.highlightedText.text,places.id,places.name,nextPageToken,places.googleMapsUri,places.accessibilityOptions,places.shortFormattedAddress,places.formattedAddress,places.addressComponents,places.displayName,places.iconBackgroundColor,places.location,places.photos,places.primaryType,places.primaryTypeDisplayName,places.types,places.viewport,places.regularOpeningHours,places.userRatingCount,places.websiteUri,places.rating,places.internationalPhoneNumber,places.allowsDogs,places.editorialSummary,places.goodForChildren,places.goodForGroups,places.goodForWatchingSports,places.liveMusic,places.parkingOptions,places.paymentOptions,places.outdoorSeating,places.restroom,places.reviews",
         "X-Goog-Api-Key": process.env.GOOGLE_SECRET,
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -168,6 +170,7 @@ export async function GET(request: NextRequest) {
         primaryTypeDisplayName:
           place.primaryTypeDisplayName?.text ?? "Tourist Attraction",
         address: place.shortFormattedAddress ?? place.formattedAddress,
+        country: getCountry(place.addressComponents),
         typeColor: typeColorLookup[place.iconBackgroundColor] || "#0891b2",
         phone: place.internationalPhoneNumber ?? null,
         location: place.location,
@@ -224,7 +227,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    //Ensure the place is inserted first
+    //Ensure the place is inserted first and update the values
     await db
       .insert(place)
       .values(
@@ -233,7 +236,34 @@ export async function GET(request: NextRequest) {
           photos: undefined,
         })),
       )
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: place.id,
+        set: {
+          id: sql`excluded.${place.id.name}`,
+          name: sql`excluded.${place.name.name}`,
+          displayName: sql`excluded.${place.displayName.name}`,
+          types: sql`excluded.${place.types.name}`,
+          primaryTypeDisplayName: sql`excluded.${place.primaryTypeDisplayName.name}`,
+          address: sql`excluded.${place.address.name}`,
+          country: sql`excluded.${place.country.name}`,
+          typeColor: sql`excluded.${place.typeColor.name}`,
+          phone: sql`excluded.${place.phone.name}`,
+          location: sql`excluded.${place.location.name}`,
+          viewport: sql`excluded.${place.viewport.name}`,
+          rating: sql`excluded.${place.rating.name}`,
+          ratingCount: sql`excluded.${place.ratingCount.name}`,
+          reviews: sql`excluded.${place.reviews.name}`,
+          website: sql`excluded.${place.website.name}`,
+          googleMapsLink: sql`excluded.${place.googleMapsLink.name}`,
+          description: sql`excluded.${place.description.name}`,
+          openingHours: sql`excluded.${place.openingHours.name}`,
+          accessibilityOptions: sql`excluded.${place.accessibilityOptions.name}`,
+          parkingOptions: sql`excluded.${place.parkingOptions.name}`,
+          paymentOptions: sql`excluded.${place.paymentOptions.name}`,
+          amenities: sql`excluded.${place.amenities.name}`,
+          additionalInfo: sql`excluded.${place.additionalInfo.name}`,
+        },
+      });
 
     const [returnedIds] = await Promise.all([
       db
