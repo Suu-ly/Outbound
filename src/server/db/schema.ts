@@ -37,8 +37,10 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),
   image: text("image"),
-  createdAt: timestamp("created_at", { mode: "date" }).notNull(),
-  updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdateFn(() => new Date()),
 });
 
 export type InsertUser = typeof user.$inferInsert;
@@ -48,10 +50,12 @@ export const session = pgTable(
   "session",
   {
     id: text("id").primaryKey(),
-    expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
     token: text("token").notNull().unique(),
     createdAt: timestamp("created_at").notNull(),
-    updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .$onUpdateFn(() => new Date()),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
     userId: text("user_id")
@@ -81,8 +85,10 @@ export const account = pgTable(
     refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
     scope: text("scope"),
     password: text("password"),
-    createdAt: timestamp("created_at", { mode: "date" }).notNull(),
-    updatedAt: timestamp("updated_at", { mode: "date" }).notNull(),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .$onUpdateFn(() => new Date()),
   },
   (table) => {
     return [index("account_user_id_index").on(table.userId)];
@@ -93,9 +99,9 @@ export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
-  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
-  createdAt: timestamp("created_at", { mode: "date" }),
-  updatedAt: timestamp("updated_at", { mode: "date" }),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at").$onUpdateFn(() => new Date()),
 });
 
 export const resetLink = pgTable(

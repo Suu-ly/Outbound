@@ -4,6 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
 import { config } from "dotenv";
+import * as schema from "./db/schema";
 import { sendEmail } from "./send-email";
 
 config({ path: ".env" });
@@ -18,6 +19,7 @@ if (!process.env.GITHUB_CLIENT_SECRET) {
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
+    schema,
   }),
   session: {
     cookieCache: {
