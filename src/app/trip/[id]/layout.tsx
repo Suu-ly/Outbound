@@ -186,6 +186,10 @@ export default async function TripLayout({
   const [userSession, data] = await Promise.all([
     auth.api.getSession({
       headers: header,
+      query: {
+        // @ts-expect-error there's some kinda bug with better-auth
+        disableRefresh: true,
+      },
     }),
     db
       .with(inner)

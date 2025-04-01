@@ -184,19 +184,25 @@ export async function GET(request: NextRequest) {
   const userSession = await auth.api
     .getSession({
       headers: requestHeaders,
+      asResponse: true,
     })
     .catch(() => {
       throw new Error("Unable to verify user status");
     });
 
-  if (!userSession)
+  const setCookies = userSession.headers.getSetCookie();
+  const userSessionData = await userSession.json();
+  const updateCookies = new Headers();
+  setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
+  if (!userSessionData)
     return Response.json(
       {
         status: "error",
         message: "Unauthorized",
       },
       {
-        status: 403,
+        status: 401,
+        headers: updateCookies,
       },
     );
 
@@ -214,6 +220,7 @@ export async function GET(request: NextRequest) {
       },
       {
         status: 400,
+        headers: updateCookies,
       },
     );
   }
@@ -261,14 +268,14 @@ export async function GET(request: NextRequest) {
   if ("error" in bounds) {
     return Response.json(
       { message: bounds.error.message, status: "error" },
-      { status: 500 },
+      { status: 500, headers: updateCookies },
     );
   }
 
   if (images.status === "error") {
     return Response.json(
       { message: images.message, status: "error" },
-      { status: 500 },
+      { status: 500, headers: updateCookies },
     );
   }
 
@@ -313,12 +320,15 @@ export async function GET(request: NextRequest) {
   // Insert information into database
   await db.insert(location).values(insertValue).onConflictDoNothing();
 
-  return Response.json({
-    data: {
-      id: id,
-      label: name,
-      subtitle: country,
+  return Response.json(
+    {
+      data: {
+        id: id,
+        label: name,
+        subtitle: country,
+      },
+      status: "success",
     },
-    status: "success",
-  });
+    { headers: updateCookies },
+  );
 }

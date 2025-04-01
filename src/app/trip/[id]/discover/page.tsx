@@ -40,6 +40,10 @@ export default async function TripSwipePage({
   const [user, [tripUserId]] = await Promise.all([
     auth.api.getSession({
       headers: header,
+      query: {
+        // @ts-expect-error there's some kinda bug with better-auth
+        disableRefresh: true,
+      },
     }),
     db
       .select({ userId: trip.userId })

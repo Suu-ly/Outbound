@@ -16,19 +16,24 @@ export async function GET(request: NextRequest) {
   const userSession = await auth.api
     .getSession({
       headers: await headers(),
+      asResponse: true,
     })
     .catch(() => {
       throw new Error("Unable to verify user status");
     });
-
-  if (!userSession)
+  const setCookies = userSession.headers.getSetCookie();
+  const userSessionData = await userSession.json();
+  const updateCookies = new Headers();
+  setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
+  if (!userSessionData)
     return Response.json(
       {
         status: "error",
         message: "Unauthorized",
       },
       {
-        status: 403,
+        status: 401,
+        headers: updateCookies,
       },
     );
 
@@ -43,6 +48,7 @@ export async function GET(request: NextRequest) {
       },
       {
         status: 400,
+        headers: updateCookies,
       },
     );
   }
@@ -100,8 +106,11 @@ export async function GET(request: NextRequest) {
 
   await Promise.all(redisSet);
 
-  return Response.json({
-    data: result,
-    status: "success",
-  });
+  return Response.json(
+    {
+      data: result,
+      status: "success",
+    },
+    { headers: updateCookies },
+  );
 }

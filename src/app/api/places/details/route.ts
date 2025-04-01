@@ -27,19 +27,24 @@ export async function GET(request: NextRequest) {
   const userSession = await auth.api
     .getSession({
       headers: await headers(),
+      asResponse: true,
     })
     .catch(() => {
       throw new Error("Unable to verify user status");
     });
-
-  if (!userSession)
+  const setCookies = userSession.headers.getSetCookie();
+  const userSessionData = await userSession.json();
+  const updateCookies = new Headers();
+  setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
+  if (!userSessionData)
     return Response.json(
       {
         status: "error",
         message: "Unauthorized",
       },
       {
-        status: 403,
+        status: 401,
+        headers: updateCookies,
       },
     );
 
@@ -57,6 +62,7 @@ export async function GET(request: NextRequest) {
       },
       {
         status: 400,
+        headers: updateCookies,
       },
     );
   }
@@ -93,18 +99,24 @@ export async function GET(request: NextRequest) {
       .returning({ order: tripPlace.order });
 
     if (order.length === 0)
-      return Response.json({
-        message: "Place already added",
-        status: "error",
-      });
+      return Response.json(
+        {
+          message: "Place already added",
+          status: "error",
+        },
+        { headers: updateCookies, status: 400 },
+      );
 
-    return Response.json({
-      data: {
-        place: data.data,
-        order: order[0].order,
+    return Response.json(
+      {
+        data: {
+          place: data.data,
+          order: order[0].order,
+        },
+        status: "success",
       },
-      status: "success",
-    });
+      { headers: updateCookies },
+    );
   }
 
   const response = await fetch(
@@ -130,7 +142,7 @@ export async function GET(request: NextRequest) {
   if ("error" in places) {
     return Response.json(
       { message: places.error.message, status: "error" },
-      { status: response.status },
+      { status: response.status, headers: updateCookies },
     );
   }
 
@@ -289,15 +301,21 @@ export async function GET(request: NextRequest) {
     ]);
 
     if (order.length === 0)
-      return Response.json({
-        message: "Place already added",
-        status: "error",
-      });
+      return Response.json(
+        {
+          message: "Place already added",
+          status: "error",
+        },
+        { headers: updateCookies, status: 400 },
+      );
 
-    return Response.json({
-      data: { place: result, order: order[0].order },
-      status: "success",
-    });
+    return Response.json(
+      {
+        data: { place: result, order: order[0].order },
+        status: "success",
+      },
+      { headers: updateCookies },
+    );
   }
   // No places returned
   return Response.json(
@@ -307,6 +325,7 @@ export async function GET(request: NextRequest) {
     },
     {
       status: 404,
+      headers: updateCookies,
     },
   );
 }

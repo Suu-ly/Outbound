@@ -21,6 +21,10 @@ export default async function Home({
   const session = await auth.api
     .getSession({
       headers: await headers(),
+      query: {
+        // @ts-expect-error there's some kinda bug with better-auth
+        disableRefresh: true,
+      },
     })
     .catch((e) => {
       console.error(e);

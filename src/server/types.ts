@@ -272,7 +272,7 @@ export type InitialQuery = {
     viewport: BoundingBox;
     windows: BoundingBox[];
   };
-  place: SelectPlace | null;
+  place: Omit<SelectPlace, "country"> | null;
   inner: {
     placeId: string | null;
     dayId: number | null;
@@ -366,7 +366,7 @@ export type InitialQueryPrepared = {
   travelTimeData: TravelTimeGraphType;
 };
 
-export type TripPlaceDetails = SelectPlace & {
+export type TripPlaceDetails = Omit<SelectPlace, "country"> & {
   photos?: PlacesResult["places"][number]["photos"] | null;
 };
 

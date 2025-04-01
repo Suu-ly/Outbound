@@ -100,19 +100,25 @@ export async function GET(request: NextRequest) {
   const userSession = await auth.api
     .getSession({
       headers: requestHeaders,
+      asResponse: true,
     })
     .catch(() => {
       throw new Error("Unable to verify user status");
     });
 
-  if (!userSession)
+  const setCookies = userSession.headers.getSetCookie();
+  const userSessionData = await userSession.json();
+  const updateCookies = new Headers();
+  setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
+  if (!userSessionData)
     return Response.json(
       {
         status: "error",
         message: "Unauthorized",
       },
       {
-        status: 403,
+        status: 401,
+        headers: updateCookies,
       },
     );
 
@@ -132,6 +138,7 @@ export async function GET(request: NextRequest) {
       },
       {
         status: 400,
+        headers: updateCookies,
       },
     );
   }
@@ -148,10 +155,13 @@ export async function GET(request: NextRequest) {
       })
       .onConflictDoNothing();
 
-    return Response.json({
-      data: data,
-      status: "success",
-    });
+    return Response.json(
+      {
+        data: data,
+        status: "success",
+      },
+      { headers: updateCookies },
+    );
   }
 
   const [driving, cycling, walking] = await Promise.all([
@@ -194,10 +204,13 @@ export async function GET(request: NextRequest) {
   ]);
 
   if (!("code" in driving) || !("code" in cycling) || !("code" in walking))
-    return Response.json({
-      message: "An unexpected error has occurred when fetching travel times",
-      status: "error",
-    });
+    return Response.json(
+      {
+        message: "An unexpected error has occurred when fetching travel times",
+        status: "error",
+      },
+      { headers: updateCookies },
+    );
 
   const result = {
     drive: getTravelTimesFromResponse(driving),
@@ -219,10 +232,13 @@ export async function GET(request: NextRequest) {
         },
       });
   } catch {
-    return Response.json({
-      message: "An error has occurred when fetching travel times",
-      status: "error",
-    });
+    return Response.json(
+      {
+        message: "An error has occurred when fetching travel times",
+        status: "error",
+      },
+      { headers: updateCookies },
+    );
   }
 
   await Promise.all([
@@ -235,8 +251,11 @@ export async function GET(request: NextRequest) {
     redis.set(`${fromCoords};${toCoords}`, result, { ex: 2624016 }), // 1 month expiry
   ]);
 
-  return Response.json({
-    data: result,
-    status: "success",
-  });
+  return Response.json(
+    {
+      data: result,
+      status: "success",
+    },
+    { headers: updateCookies },
+  );
 }
