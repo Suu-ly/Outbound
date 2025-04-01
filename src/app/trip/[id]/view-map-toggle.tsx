@@ -57,7 +57,10 @@ export default function ViewMapToggle({
                 to
               </DrawerDescription>
               <Separator />
-              <div className="max-h-48 space-y-3 overflow-auto p-4">
+              <div
+                className="max-h-48 space-y-3 overflow-auto overscroll-y-none p-4"
+                data-vaul-no-drag={true}
+              >
                 <MapLegends />
               </div>
             </DrawerContent>
