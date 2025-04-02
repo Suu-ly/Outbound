@@ -3,7 +3,7 @@
 import { getStartingIndex, insertAfter } from "@/lib/utils";
 import { differenceInCalendarDays } from "date-fns";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { customAlphabet } from "nanoid";
+import { customAlphabet, nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -21,6 +21,7 @@ import {
   tripPlace,
   tripTravelTime,
 } from "./db/schema";
+import { supabase } from "./supabase";
 import { ApiResponse, DayData } from "./types";
 
 const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -747,6 +748,59 @@ export async function updatePlaceImage(
     return {
       status: "error",
       message: "Unable to update cover image!",
+    };
+  }
+}
+
+function base64ToArrayBuffer(base64: string) {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+export async function updateAvatar(image: string): Promise<ApiResponse<true>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
+
+  const { data, error } = await supabase.storage
+    .from("profile-pictures")
+    .upload(
+      `${session.user.id}.jpeg`,
+      base64ToArrayBuffer(image.split("base64,")[1]),
+      {
+        contentType: "image/jpeg",
+        upsert: true,
+      },
+    );
+
+  if (error || !data) {
+    console.error(error.message);
+    return { message: error.message, status: "error" };
+  }
+
+  const { data: path } = supabase.storage
+    .from("profile-pictures")
+    .getPublicUrl(`${session.user.id}.jpeg`);
+
+  try {
+    await auth.api.updateUser({
+      headers: await headers(),
+      body: {
+        image: path.publicUrl + `?v=${nanoid(6)}`,
+      },
+    });
+    revalidatePath("/account");
+    return {
+      status: "success",
+      data: true,
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Unable to update avatar!",
     };
   }
 }

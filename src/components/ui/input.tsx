@@ -54,7 +54,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ref={composeRefs(inputRef, ref)}
           {...props}
           className={cn(
-            "w-full bg-transparent file:border-0 file:bg-transparent file:text-slate-900 focus-visible:outline-none",
+            "w-full bg-transparent file:h-full file:border-0 file:bg-transparent file:text-slate-900 focus-visible:outline-none",
             large && "text-2xl",
             !left && "indent-4",
           )}

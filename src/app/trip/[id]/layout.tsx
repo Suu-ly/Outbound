@@ -23,6 +23,7 @@ import {
 import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
 import { Metadata } from "next";
 import { headers } from "next/headers";
+import Link from "next/link";
 import MapView from "./map-view";
 import { TripPageDialogs } from "./trip-dialogs";
 import TripHeaderItems from "./trip-header-items";
@@ -286,14 +287,17 @@ export default async function TripLayout({
       <div className="flex min-h-dvh flex-col">
         <Header>
           {userSession ? (
-            <Avatar>
-              <AvatarImage src={userSession.user.image ?? undefined} />
-              <AvatarFallback>
-                {userSession
-                  ? userSession.user.name.substring(0, 2).toUpperCase()
-                  : "NA"}
-              </AvatarFallback>
-            </Avatar>
+            <Link
+              href="/account"
+              className="rounded-full ring-slate-400 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            >
+              <Avatar>
+                <AvatarImage src={userSession.user.image ?? undefined} />
+                <AvatarFallback>
+                  {userSession.user.name.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
           ) : (
             <ButtonLink
               href={

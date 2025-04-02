@@ -9,6 +9,7 @@ import { IconPlus } from "@tabler/icons-react";
 import { and, count, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import Image from "next/image";
+import Link from "next/link";
 import TripCard from "./trip-card";
 import TripOverviewSortSelect from "./trip-overview-sort-select";
 import { TripDialogs } from "./trip/[id]/trip-dialogs";
@@ -76,12 +77,17 @@ export default async function Home({
   return (
     <div className="flex min-h-dvh flex-col">
       <Header>
-        <Avatar>
-          <AvatarImage src={session.user.image ?? undefined} />
-          <AvatarFallback>
-            {session.user.name.slice(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <Link
+          href="/account"
+          className="rounded-full ring-slate-400 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        >
+          <Avatar>
+            <AvatarImage src={session.user.image ?? undefined} />
+            <AvatarFallback>
+              {session.user.name.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
       </Header>
       <main className="px-4 py-8">
         <div className="mx-auto flex w-full max-w-sm grow flex-col gap-8 bg-zinc-50 sm:max-w-7xl">
