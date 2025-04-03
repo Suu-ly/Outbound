@@ -5,6 +5,7 @@ import DrawerDialog from "@/components/ui/drawer-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Spinner from "@/components/ui/spinner";
+import { authClient } from "@/lib/auth-client";
 import { updateAvatar, updatePassword, updateUserName } from "@/server/actions";
 import { IconEdit, IconPhoto } from "@tabler/icons-react";
 import { User } from "better-auth";
@@ -215,6 +216,55 @@ export function EditNameDialog({
               else setError("");
             }}
             disabled={isLoading}
+          />
+          <span className="mt-2 block text-sm font-medium text-red-500">
+            {error}
+          </span>
+        </>
+      }
+    >
+      {children}
+    </DrawerDialog>
+  );
+}
+
+export function DeleteUserDialog({ children }: { children: ReactNode }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>();
+
+  const handleDeleteUser = async () => {
+    if (!inputRef.current || !inputRef.current.value) return false;
+    setIsLoading(true);
+    const { error } = await authClient.deleteUser({
+      callbackURL: "/",
+      password: inputRef.current.value,
+    });
+    if (error) {
+      setError(error.message);
+    }
+    setIsLoading(false);
+  };
+
+  return (
+    <DrawerDialog
+      loading={isLoading}
+      header="Delete account?"
+      description={
+        "You will delete all your data and trips. You cannot undo this action.\n\nTo confirm, please enter your password below. "
+      }
+      mainActionLabel="Delete"
+      onMainAction={async () => {
+        await handleDeleteUser();
+      }}
+      destructive
+      content={
+        <>
+          <Input
+            type="text"
+            ref={inputRef}
+            disabled={isLoading}
+            placeholder="Enter your password to delete"
           />
           <span className="mt-2 block text-sm font-medium text-red-500">
             {error}

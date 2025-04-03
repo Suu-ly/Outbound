@@ -10,6 +10,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   AvatarEdit,
+  DeleteUserDialog,
   EditNameDialog,
   EditPasswordDialog,
 } from "./account-controls";
@@ -106,17 +107,19 @@ export default async function AccountPage() {
           <h3 className="w-32 shrink-0 text-sm font-medium text-slate-900">
             Delete Account
           </h3>
-          <div className="flex grow flex-col items-end gap-3 rounded-xl border-2 border-rose-200 p-4">
+          <div className="flex grow flex-col items-end gap-6 rounded-xl border-2 border-rose-200 p-4">
             <p className="text-sm text-slate-700">
               Deleting your account will permanently delete all of your data and
               trips. You cannot undo this action. Please proceed with caution.
             </p>
-            <Button
-              variant="secondary"
-              className="bg-red-200 text-rose-700 hover:bg-rose-200/90 hover:text-rose-800 active:ring-rose-300"
-            >
-              Delete
-            </Button>
+            <DeleteUserDialog>
+              <Button
+                variant="secondary"
+                className="bg-red-200 text-rose-700 hover:bg-rose-200/90 hover:text-rose-800 active:ring-rose-300"
+              >
+                Delete
+              </Button>
+            </DeleteUserDialog>
           </div>
         </div>
       </main>

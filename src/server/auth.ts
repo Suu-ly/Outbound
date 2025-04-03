@@ -26,6 +26,12 @@ export const auth = betterAuth({
       enabled: true,
       maxAge: 300, // Cache duration in seconds
     },
+    freshAge: 0,
+  },
+  user: {
+    deleteUser: {
+      enabled: true,
+    },
   },
   emailAndPassword: {
     enabled: true,
