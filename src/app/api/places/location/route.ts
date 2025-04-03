@@ -1,3 +1,4 @@
+import { safeJson } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { InsertLocation, location } from "@/server/db/schema";
@@ -7,7 +8,6 @@ import {
   type GoogleError,
 } from "@/server/types";
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
 import getBingImage from "../get-bing-image";
 
@@ -180,7 +180,7 @@ export async function GET(request: NextRequest) {
   if (!process.env.GOOGLE_SECRET) {
     throw new Error("Google API Key is not set");
   }
-  const requestHeaders = await headers();
+  const requestHeaders = request.headers;
   const userSession = await auth.api
     .getSession({
       headers: requestHeaders,
@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
     });
 
   const setCookies = userSession.headers.getSetCookie();
-  const userSessionData = await userSession.json();
+  const userSessionData = await safeJson(userSession);
   const updateCookies = new Headers();
   setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
   if (!userSessionData)

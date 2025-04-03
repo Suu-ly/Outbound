@@ -1,7 +1,5 @@
-import { auth } from "@/server/auth";
 import { redis } from "@/server/cache";
 import { ApiResponse, type GoogleError } from "@/server/types";
-import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
 
 type PlaceImageResponse =
@@ -15,20 +13,11 @@ export async function GET(request: NextRequest) {
   if (!process.env.GOOGLE_SECRET) {
     throw new Error("Google API Key is not set");
   }
-  const userSession = await auth.api
-    .getSession({
-      headers: await headers(),
-      asResponse: true,
-    })
-    .catch(() => {
-      throw new Error("Unable to verify user status");
-    });
-  const setCookies = userSession.headers.getSetCookie();
-  const userSessionData = await userSession.json();
-  const updateCookies = new Headers();
-  setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
-
-  if (!userSessionData)
+  if (!process.env.NEXT_PUBLIC_URL) {
+    throw new Error("URL is not set!");
+  }
+  const referer = request.headers.get("Referer");
+  if (!referer?.startsWith(process.env.NEXT_PUBLIC_URL))
     return Response.json(
       {
         status: "error",
@@ -36,7 +25,6 @@ export async function GET(request: NextRequest) {
       },
       {
         status: 401,
-        headers: updateCookies,
       },
     );
 
@@ -51,7 +39,6 @@ export async function GET(request: NextRequest) {
       },
       {
         status: 400,
-        headers: updateCookies,
       },
     );
   }
@@ -83,7 +70,7 @@ export async function GET(request: NextRequest) {
   if ("error" in image) {
     return Response.json(
       { message: image.error.message, status: "error" },
-      { status: 500, headers: updateCookies },
+      { status: 500 },
     );
   }
 
@@ -96,11 +83,8 @@ export async function GET(request: NextRequest) {
     { ex: 1209600 }, // 14 days
   );
 
-  return Response.json(
-    {
-      data: image.photoUri,
-      status: "success",
-    },
-    { headers: updateCookies },
-  );
+  return Response.json({
+    data: image.photoUri,
+    status: "success",
+  });
 }

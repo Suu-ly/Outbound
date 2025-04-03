@@ -1,17 +1,25 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
+const SIGNED_OUT_ROUTES = [
+  "/login",
+  "/register",
+  "/register/email",
+  "/verify",
+  "/forget-password",
+  "/reset-password",
+  "/reset-password/success",
+];
+
 export default function middleware(request: NextRequest) {
-  const signedOutRoutes =
-    /\/login|\/register|\/register\/email|\/verify|\/reset-password|\/forget-password|\/reset-password\/success/g;
   const pathName = request.nextUrl.pathname;
-  const isSignedOutRoutes = signedOutRoutes.test(pathName);
+  const isSignedOutRoutes = SIGNED_OUT_ROUTES.includes(pathName);
 
   const sessionCookie = getSessionCookie(request);
 
   // User is not logged in
   if (!sessionCookie) {
-    if (isSignedOutRoutes || /\/trip\/[a-z0-9]{12}(\/\w*)?/.test(pathName)) {
+    if (isSignedOutRoutes) {
       return NextResponse.next();
     }
     const redirect = new URLSearchParams([["redirect", pathName]]);
@@ -37,6 +45,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt, other static assets
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).+)",
+    "/((?!api|trip|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).+)",
   ],
 };

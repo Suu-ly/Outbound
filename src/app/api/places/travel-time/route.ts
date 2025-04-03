@@ -1,3 +1,4 @@
+import { safeJson } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { redis } from "@/server/cache";
 import { db } from "@/server/db";
@@ -8,7 +9,6 @@ import {
 } from "@/server/db/schema";
 import { DistanceType } from "@/server/types";
 import { sql } from "drizzle-orm";
-import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
 
 type MapboxResponse =
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
   if (!process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
     throw new Error("Mapbox token not set!");
   }
-  const requestHeaders = await headers();
+  const requestHeaders = request.headers;
   const userSession = await auth.api
     .getSession({
       headers: requestHeaders,
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
     });
 
   const setCookies = userSession.headers.getSetCookie();
-  const userSessionData = await userSession.json();
+  const userSessionData = await safeJson(userSession);
   const updateCookies = new Headers();
   setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
   if (!userSessionData)

@@ -11,6 +11,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export async function safeJson(response: Response) {
+  try {
+    const res = await response.json();
+    return res;
+  } catch {
+    return null;
+  }
+}
+
 const BASE = 95; // 95 printable ASCII characters
 const MID = Math.floor(BASE / 2); // Averaging is not entirely precise because base is odd
 const ASCII_START = 32; // Space (ASCII 32)

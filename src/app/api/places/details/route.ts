@@ -1,5 +1,5 @@
 import { typeColorLookup } from "@/lib/color-lookups";
-import { getCountry } from "@/lib/utils";
+import { getCountry, safeJson } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { redis } from "@/server/cache";
 import { db } from "@/server/db";
@@ -11,7 +11,6 @@ import {
   type PlacesResult,
 } from "@/server/types";
 import { sql } from "drizzle-orm";
-import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
 import getBingImage from "../get-bing-image";
 
@@ -26,14 +25,14 @@ export async function GET(request: NextRequest) {
   }
   const userSession = await auth.api
     .getSession({
-      headers: await headers(),
+      headers: request.headers,
       asResponse: true,
     })
     .catch(() => {
       throw new Error("Unable to verify user status");
     });
   const setCookies = userSession.headers.getSetCookie();
-  const userSessionData = await userSession.json();
+  const userSessionData = await safeJson(userSession);
   const updateCookies = new Headers();
   setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
   if (!userSessionData)

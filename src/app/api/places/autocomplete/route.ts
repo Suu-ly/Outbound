@@ -1,6 +1,6 @@
+import { safeJson } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { type AutocompleteReturn, type GoogleError } from "@/server/types";
-import { headers } from "next/headers";
 import { type NextRequest } from "next/server";
 
 type AutocompleteResponse =
@@ -29,14 +29,14 @@ export async function GET(request: NextRequest) {
   }
   const userSession = await auth.api
     .getSession({
-      headers: await headers(),
+      headers: request.headers,
       asResponse: true,
     })
     .catch(() => {
       throw new Error("Unable to verify user status");
     });
   const setCookies = userSession.headers.getSetCookie();
-  const userSessionData = await userSession.json();
+  const userSessionData = await safeJson(userSession);
   const updateCookies = new Headers();
   setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
   if (!userSessionData)
