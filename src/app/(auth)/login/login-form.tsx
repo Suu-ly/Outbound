@@ -1,4 +1,5 @@
 "use client";
+import TogglePasswordButton from "@/components/toggle-password-button";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -11,7 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { IconEye, IconEyeClosed } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -115,15 +115,10 @@ const LoginForm = () => {
                     {...field}
                     type={showPassword ? "text" : "password"}
                     right={
-                      <Button
-                        size="small"
-                        iconOnly
-                        variant="ghost"
-                        type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                      >
-                        {showPassword ? <IconEyeClosed /> : <IconEye />}
-                      </Button>
+                      <TogglePasswordButton
+                        showPassword={showPassword}
+                        setShowPassword={setShowPassword}
+                      />
                     }
                   />
                 </FormControl>
