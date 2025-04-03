@@ -6,7 +6,7 @@ import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { location, trip, tripPlace } from "@/server/db/schema";
 import { IconPlus } from "@tabler/icons-react";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
@@ -72,7 +72,11 @@ export default async function Home({
     )
     .where(eq(trip.userId, session.user.id))
     .groupBy(trip.id, location.coverImgSmall)
-    .orderBy(sortMethod === "date" ? trip.startDate : desc(trip.updatedAt));
+    .orderBy(
+      sortMethod === "date"
+        ? sql`${trip.startDate} < CURRENT_DATE, abs(${trip.startDate} - CURRENT_DATE)`
+        : desc(trip.updatedAt),
+    );
 
   return (
     <div className="flex min-h-dvh flex-col">
