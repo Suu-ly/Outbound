@@ -29,7 +29,9 @@ const formSchema = z
     email: z.string().email({ message: "Please check your email!" }),
     password: z
       .string({ required_error: "Please enter a password!" })
-      .min(8, { message: "The password is too short!" })
+      .min(8, {
+        message: "The password needs to be at least 8 characters long!",
+      })
       .max(128, { message: "The password is too long!" }),
     confirm: z
       .string({ required_error: "Please confirm your password!" })
