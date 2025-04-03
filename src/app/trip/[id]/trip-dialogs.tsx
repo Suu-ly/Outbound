@@ -105,7 +105,7 @@ const EditTripNameDialog = ({
             ref={inputRef}
             defaultValue={changeTripNameDialogOpen?.currentName}
             onChange={(e) => {
-              if (e.currentTarget.value.length < 3)
+              if (e.currentTarget.value.trim().length < 3)
                 setError("Trip name must be at least 3 characters!");
               else setError("");
             }}
@@ -121,19 +121,20 @@ const EditTripNameDialog = ({
         if (!changeTripNameDialogOpen) return;
         const value = inputRef.current?.value;
         if (!value || error) return;
-        if (value === changeTripNameDialogOpen.currentName) {
+        const trimmed = value.trim();
+        if (trimmed === changeTripNameDialogOpen.currentName) {
           close();
           return;
         }
         setIsLoading(true);
         const res = await updateTripName(
           changeTripNameDialogOpen.tripId,
-          value,
+          trimmed,
         );
         setIsLoading(false);
         if (res.status === "error") toast.error(res.message);
         else if (onEditNameSuccess) {
-          onEditNameSuccess(value);
+          onEditNameSuccess(trimmed);
         }
         close();
       }}
