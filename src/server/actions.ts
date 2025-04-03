@@ -785,22 +785,55 @@ export async function updateAvatar(image: string): Promise<ApiResponse<true>> {
     .from("profile-pictures")
     .getPublicUrl(`${session.user.id}.jpeg`);
 
-  try {
-    await auth.api.updateUser({
-      headers: await headers(),
-      body: {
-        image: path.publicUrl + `?v=${nanoid(6)}`,
-      },
-    });
+  const res = await auth.api.updateUser({
+    headers: await headers(),
+    body: {
+      image: path.publicUrl + `?v=${nanoid(6)}`,
+    },
+  });
+  if (res.status) {
     revalidatePath("/account");
     return {
       status: "success",
       data: true,
     };
-  } catch {
-    return {
-      status: "error",
-      message: "Unable to update avatar!",
-    };
+  }
+  return {
+    status: "error",
+    message: "Unable to update avatar!",
+  };
+}
+
+export async function updateUserName(name: string): Promise<ApiResponse<true>> {
+  const res = await auth.api.updateUser({
+    headers: await headers(),
+    body: {
+      name: name,
+    },
+  });
+  if (res.status) {
+    revalidatePath("/account");
+    return { status: "success", data: true };
+  }
+  return { status: "error", message: "Unable to update your name!" };
+}
+
+export async function updatePassword(
+  password: string,
+  currentPassword: string,
+): Promise<ApiResponse<true>> {
+  try {
+    await auth.api.changePassword({
+      headers: await headers(),
+      body: {
+        newPassword: password,
+        currentPassword: currentPassword,
+      },
+    });
+
+    return { status: "success", data: true };
+  } catch (e: unknown) {
+    if (e instanceof Error) return { status: "error", message: e.message };
+    else return { status: "error", message: "Unable to update password!" };
   }
 }
