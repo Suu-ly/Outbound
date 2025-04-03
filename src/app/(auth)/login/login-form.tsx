@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please check your email!" }),
+  email: z.string().trim().email({ message: "Please check your email!" }),
   password: z
     .string({ required_error: "Please enter a password!" })
     .min(1, { message: "Please enter a password!" }),
