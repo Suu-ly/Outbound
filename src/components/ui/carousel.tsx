@@ -241,7 +241,6 @@ const CarouselGoogleImage = React.forwardRef<
   const inView = slidesInView.includes(index);
 
   const getGoogleImage = async (name: string) => {
-    if (process.env.NEXT_PUBLIC_USE_REAL_DATA === "false") return "";
     const urlParams = new URLSearchParams([["name", name]]);
     const data = await fetch(`/api/places/image?${urlParams.toString()}`)
       .then((response) => response.json())

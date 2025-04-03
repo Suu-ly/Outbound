@@ -1,6 +1,5 @@
 "use client";
 
-import { data as MockData } from "@/resources/mock-data";
 import { InitialQueryPrepared } from "@/server/types";
 import { Session, User } from "better-auth";
 import { Provider } from "jotai";
@@ -43,7 +42,6 @@ const HydrateAtoms = ({
   data: InitialQueryPrepared;
   session: { session: Session; user: User } | null;
 }>) => {
-  const useRealData = process.env.NEXT_PUBLIC_USE_REAL_DATA === "true";
   useHydrateAtoms([
     [
       tripDetailsAtom,
@@ -55,10 +53,7 @@ const HydrateAtoms = ({
     ],
     [isTripAdminAtom, data.tripData.userId === session?.user.id],
     [tripWindowsAtom, data.windowData],
-    [
-      discoverPlacesAtom,
-      useRealData ? data.discoverData : [...MockData, ...MockData],
-    ],
+    [discoverPlacesAtom, data.discoverData],
     [tripPlacesAtom, data.placeData],
     [dayPlacesAtom, data.dayData],
     [travelTimesAtom, data.travelTimeData],

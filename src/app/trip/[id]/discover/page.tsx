@@ -33,7 +33,6 @@ export default async function TripSwipePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const realData = process.env.NEXT_PUBLIC_USE_REAL_DATA === "true";
   const tripId = (await params).id;
   const header = await headers();
 
@@ -59,7 +58,7 @@ export default async function TripSwipePage({
       <div className="sm:hidden">
         <MapLegendPanel />
       </div>
-      {realData && <DiscoverManager tripId={tripId} />}
+      <DiscoverManager tripId={tripId} />
       <MissingImageManager />
       <SwipeManager tripId={tripId} />
     </>
