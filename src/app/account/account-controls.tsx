@@ -181,6 +181,7 @@ export function EditNameDialog({
   const handleUserNameChange = async () => {
     if (!inputRef.current || inputRef.current.value.trim().length < 2 || error)
       return false;
+    if (inputRef.current.value.trim() === currentName) return true;
     setIsLoading(true);
     const res = await updateUserName(inputRef.current.value.trim());
     setIsLoading(false);
