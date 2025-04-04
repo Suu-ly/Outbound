@@ -145,6 +145,7 @@ export default function TripHeaderItems({ loggedIn }: { loggedIn: boolean }) {
             new URLSearchParams([["redirect", `/trip/${id}`]]).toString()
           }
           size="small"
+          prefetch={false}
         >
           Login
         </ButtonLink>

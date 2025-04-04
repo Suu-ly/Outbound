@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export interface ButtonLinkProps
-  extends React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  extends React.ComponentPropsWithoutRef<typeof Link>,
     VariantProps<typeof buttonVariants> {
   href: string;
 }

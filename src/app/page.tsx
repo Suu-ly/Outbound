@@ -35,7 +35,7 @@ export default async function Home({
     return (
       <div className="flex min-h-dvh flex-col">
         <Header>
-          <ButtonLink size="small" href="/login">
+          <ButtonLink size="small" href="/login" prefetch={false}>
             Login
           </ButtonLink>
         </Header>
@@ -99,7 +99,7 @@ export default async function Home({
             <h1 className="grow font-display text-4xl font-semibold text-slate-900">
               My Trips
             </h1>
-            <ButtonLink href="/new" size="large">
+            <ButtonLink href="/new" size="large" prefetch={false}>
               <IconPlus />
               New Trip
             </ButtonLink>

@@ -305,6 +305,7 @@ export default async function TripLayout({
                 new URLSearchParams([["redirect", `/trip/${id}`]]).toString()
               }
               size="small"
+              prefetch={false}
             >
               Login
             </ButtonLink>
@@ -347,6 +348,7 @@ export default async function TripLayout({
                 new URLSearchParams([["redirect", `/trip/${id}`]]).toString()
               }
               size="small"
+              prefetch={false}
             >
               Login
             </ButtonLink>
