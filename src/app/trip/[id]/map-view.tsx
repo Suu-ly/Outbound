@@ -151,6 +151,10 @@ const PlaceMarker = ({
             replace
             className={`flex size-6 items-center justify-center rounded-full border-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${colours} ${activePlace === placeId ? "scale-150 shadow-md" : ""}`}
           >
+            <span
+              className="absolute size-10 rounded-full"
+              aria-hidden={true}
+            ></span>
             {children}
           </Link>
         </TooltipTrigger>
@@ -390,9 +394,20 @@ const RouteLines = ({ activeDay }: { activeDay: string | number }) => {
         }}
         paint={{
           "line-color":
+            markerColorLookup[dayIndex % markerColorLookup.length].hexBorder,
+          "line-width": ["interpolate", ["linear"], ["zoom"], 5, 4, 15, 12],
+        }}
+      />
+      <Layer
+        type="line"
+        layout={{
+          "line-cap": "round",
+          "line-join": "round",
+        }}
+        paint={{
+          "line-color":
             markerColorLookup[dayIndex % markerColorLookup.length].hex,
           "line-width": ["interpolate", ["linear"], ["zoom"], 5, 2, 15, 8],
-          "line-opacity": ["interpolate", ["linear"], ["zoom"], 10, 1, 15, 0.6],
         }}
       />
     </Source>

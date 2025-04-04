@@ -16,6 +16,7 @@ export const markerColorLookup = [
     bg: "bg-purple-300",
     fill: "fill-purple-300",
     hex: "#d8b4fe",
+    hexBorder: "#581c87",
   },
   {
     text: "text-brand-900",
@@ -23,6 +24,7 @@ export const markerColorLookup = [
     bg: "bg-brand-300",
     fill: "fill-brand-300",
     hex: "#6CC1F2",
+    hexBorder: "#0A3057",
   },
   {
     text: "text-orange-900",
@@ -30,6 +32,7 @@ export const markerColorLookup = [
     bg: "bg-orange-300",
     fill: "fill-orange-300",
     hex: "#fdba74",
+    hexBorder: "#7c2d12",
   },
   {
     text: "text-blue-900",
@@ -37,6 +40,7 @@ export const markerColorLookup = [
     bg: "bg-blue-200",
     fill: "fill-blue-200",
     hex: "#bfdbfe",
+    hexBorder: "#1e3a8a",
   },
   {
     text: "text-lime-900",
@@ -44,6 +48,7 @@ export const markerColorLookup = [
     bg: "bg-lime-300",
     fill: "fill-lime-300",
     hex: "#bef264",
+    hexBorder: "#365314",
   },
   {
     text: "text-pink-900",
@@ -51,6 +56,7 @@ export const markerColorLookup = [
     bg: "bg-pink-300",
     fill: "fill-pink-300",
     hex: "#f9a8d4",
+    hexBorder: "#831843",
   },
   {
     text: "text-yellow-900",
@@ -58,6 +64,7 @@ export const markerColorLookup = [
     bg: "bg-yellow-200",
     fill: "fill-yellow-200",
     hex: "#fef08a",
+    hexBorder: "#713f12",
   },
   {
     text: "text-teal-900",
@@ -65,6 +72,7 @@ export const markerColorLookup = [
     bg: "bg-teal-300",
     fill: "fill-teal-300",
     hex: "#5eead4",
+    hexBorder: "#134e4a",
   },
   {
     text: "text-rose-900",
@@ -72,6 +80,7 @@ export const markerColorLookup = [
     bg: "bg-rose-300",
     fill: "fill-rose-300",
     hex: "#fda4af",
+    hexBorder: "#881337",
   },
   {
     text: "text-green-900",
@@ -79,6 +88,7 @@ export const markerColorLookup = [
     bg: "bg-green-300",
     fill: "fill-green-300",
     hex: "#86efac",
+    hexBorder: "#14532d",
   },
   {
     text: "text-purple-100",
@@ -86,6 +96,7 @@ export const markerColorLookup = [
     bg: "bg-purple-700",
     fill: "fill-purple-700",
     hex: "#7e22ce",
+    hexBorder: "#f3e8ff",
   },
   {
     text: "text-lime-100",
@@ -93,6 +104,7 @@ export const markerColorLookup = [
     bg: "bg-lime-700",
     fill: "fill-lime-700",
     hex: "#4d7c0f",
+    hexBorder: "#ecfccb",
   },
   {
     text: "text-stone-100",
@@ -100,6 +112,7 @@ export const markerColorLookup = [
     bg: "bg-stone-800",
     fill: "fill-stone-800",
     hex: "#292524",
+    hexBorder: "#f5f5f4",
   },
   {
     text: "text-pink-100",
@@ -107,6 +120,7 @@ export const markerColorLookup = [
     bg: "bg-pink-700",
     fill: "fill-pink-700",
     hex: "#be185d",
+    hexBorder: "#fce7f3",
   },
   {
     text: "text-teal-100",
@@ -114,6 +128,7 @@ export const markerColorLookup = [
     bg: "bg-teal-700",
     fill: "fill-teal-700",
     hex: "#0f766e",
+    hexBorder: "#ccfbf1",
   },
   {
     text: "text-orange-100",
@@ -121,6 +136,7 @@ export const markerColorLookup = [
     bg: "bg-orange-700",
     fill: "fill-orange-700",
     hex: "#c2410c",
+    hexBorder: "#ffedd5",
   },
   {
     text: "text-brand-100",
@@ -128,6 +144,7 @@ export const markerColorLookup = [
     bg: "bg-brand-700",
     fill: "fill-brand-700",
     hex: "#08538C",
+    hexBorder: "#D5EFFD",
   },
   {
     text: "text-green-100",
@@ -135,5 +152,6 @@ export const markerColorLookup = [
     bg: "bg-green-700",
     fill: "fill-green-700",
     hex: "#15803d",
+    hexBorder: "#dcfce7",
   },
 ];
