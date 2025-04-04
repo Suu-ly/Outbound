@@ -9,6 +9,7 @@ import { authClient } from "@/lib/auth-client";
 import { updateAvatar, updatePassword, updateUserName } from "@/server/actions";
 import { IconEdit, IconPhoto } from "@tabler/icons-react";
 import { User } from "better-auth";
+import pica from "pica";
 import { KeyboardEvent, ReactNode, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -31,49 +32,31 @@ export function AvatarEdit({
     if (!file) return;
     setIsLoading(true);
     const reader = new FileReader();
-    if (file.type === "image/svg+xml") {
-      reader.readAsText(file);
-    } else {
-      reader.readAsDataURL(file);
-    }
+    reader.readAsDataURL(file);
     reader.onloadend = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = AVATAR_SIZE;
-      canvas.height = AVATAR_SIZE;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      ctx.imageSmoothingQuality = "high";
-      ctx.imageSmoothingEnabled = true;
-      // Fill background
-      ctx.fillRect(0, 0, AVATAR_SIZE, AVATAR_SIZE);
-
       // Load image
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         const height = img.height;
         const width = img.width;
-
-        if (width > height) {
-          ctx.drawImage(
-            img,
-            AVATAR_SIZE * (1 - width / height) * 0.5,
-            0,
-            (AVATAR_SIZE * width) / height,
-            AVATAR_SIZE,
-          );
-        } else {
-          ctx.drawImage(
-            img,
-            0,
-            AVATAR_SIZE * (1 - height / width) * 0.5,
-            AVATAR_SIZE,
-            (AVATAR_SIZE * height) / width,
-          );
-        }
+        const side = Math.min(width, height);
+        const canvas = document.createElement("canvas");
+        canvas.height = side;
+        canvas.width = side;
+        const output = document.createElement("canvas");
+        output.height = AVATAR_SIZE;
+        output.width = AVATAR_SIZE;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        // Crop image into a square
+        ctx.drawImage(img, (side - width) / 2, (side - height) / 2);
+        await pica().resize(canvas, output, {
+          filter: "mks2013",
+        });
         setIsLoading(false);
-        setAvatarContent(canvas.toDataURL("image/jpeg"));
+        setAvatarContent(output.toDataURL("image/jpeg"));
+        canvas.remove();
+        output.remove();
       };
       img.src = reader.result as string;
     };
@@ -110,6 +93,14 @@ export function AvatarEdit({
         <div className="flex justify-center">
           {user.image ? (
             <div className="group relative isolate overflow-hidden rounded-full border-2 border-slate-200 ring-slate-400 transition-shadow has-[label:focus-visible]:ring-2 has-[label:focus-visible]:ring-offset-2">
+              {isLoading && (
+                <div
+                  className="absolute z-10 flex size-full items-center justify-center bg-slate-950/70 text-slate-50 backdrop-blur-sm delay-300 duration-300 animate-in fade-in-0 fill-mode-both"
+                  role="presentation"
+                >
+                  <Spinner className="size-6" />
+                </div>
+              )}
               <label
                 aria-label="Edit user avatar"
                 tabIndex={0}
