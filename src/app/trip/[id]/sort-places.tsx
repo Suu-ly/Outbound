@@ -638,7 +638,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     <DndContext
       id="Sort-places-dnd-context"
       autoScroll={{
-        threshold: { y: 0.4, x: 0 },
+        threshold: { y: 0.25, x: 0 },
         interval: 2,
         acceleration: 12,
         activator: AutoScrollActivator.Pointer,
@@ -703,158 +703,156 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         const { container: activeContainer, index: activeIndex } =
           findContainerAndIndex(active.id);
 
-        if (!activeContainer) return;
-        if (!over) return;
+        if (!activeContainer || !over) return;
         const overId = over.id;
 
         const { container: overContainer, index: overIndex } =
           findContainerAndIndex(overId);
 
+        if (!overContainer) return;
+
+        // Nothing happened
+        if (activeContainer === overContainer && overId === active.id) {
+          return;
+        }
+
         // Dragging a place
-        if (overContainer) {
-          // Nothing happened
-          if (activeContainer === overContainer && overId === active.id) {
-            return;
-          }
+        let newOrder = "";
+        const overPlaces = places[overContainer];
+        const getOrder = (index: number) =>
+          overPlaces[index].userPlaceInfo.tripOrder;
 
-          let newOrder = "";
-          const overPlaces = places[overContainer];
-          const getOrder = (index: number) =>
-            overPlaces[index].userPlaceInfo.tripOrder;
+        let newIndex: number;
+        // Is dragging item currently below the item we are dragging over
+        const isBelowOverItem =
+          active.rect.current.translated &&
+          active.rect.current.translated.top >
+            over.rect.top + (over.rect.height / 4 - 32);
 
-          let newIndex: number;
-          // Is dragging item currently below the item we are dragging over
-          const isBelowOverItem =
-            active.rect.current.translated &&
-            active.rect.current.translated.top >
-              over.rect.top + (over.rect.height / 4 - 32);
-
-          if (overId in places) {
-            // Over a empty/closed day or saved places
-            newIndex = overPlaces.length;
-            if (overPlaces.length > 0)
-              newOrder = insertAfter(getOrder(overPlaces.length - 1));
-            else newOrder = getStartingIndex();
-            setPlaces((currentPlaces) => ({
-              ...currentPlaces,
-              [activeContainer]: currentPlaces[activeContainer].filter(
-                (place) => place.placeInfo.placeId !== active.id,
-              ), // remove item from current container
-              [overContainer]: [
-                // and add item to new container at the end
-                ...currentPlaces[overContainer],
-                {
-                  ...currentPlaces[activeContainer][activeIndex],
-                  userPlaceInfo: {
-                    ...currentPlaces[activeContainer][activeIndex]
-                      .userPlaceInfo,
-                    tripOrder: newOrder,
-                  },
-                },
-              ],
-            }));
-          } else if (activeContainer !== overContainer) {
-            // If cannot find the index, set as last item
-            newIndex =
-              overIndex >= 0
-                ? isBelowOverItem
-                  ? overIndex + 1
-                  : overIndex
-                : overPlaces.length;
-
-            if (newIndex > overIndex) {
-              // Over index item moves UP to make space
-              if (overIndex === overPlaces.length - 1)
-                newOrder = insertAfter(getOrder(overPlaces.length - 1));
-              else
-                newOrder = insertBetween(
-                  getOrder(overIndex),
-                  getOrder(overIndex + 1),
-                );
-            } else {
-              // Over index item moves DOWN to make space
-              if (overIndex === 0) newOrder = insertBefore(getOrder(0));
-              else
-                newOrder = insertBetween(
-                  getOrder(overIndex - 1),
-                  getOrder(overIndex),
-                );
-            }
-            setPlaces((currentPlaces) => ({
-              ...currentPlaces,
-              [activeContainer]: currentPlaces[activeContainer].filter(
-                (place) => place.placeInfo.placeId !== active.id,
-              ), // remove item from current container
-              [overContainer]: [
-                // and add item to new container at the index
-                ...currentPlaces[overContainer].slice(0, newIndex),
-                {
-                  ...currentPlaces[activeContainer][activeIndex],
-                  userPlaceInfo: {
-                    ...currentPlaces[activeContainer][activeIndex]
-                      .userPlaceInfo,
-                    tripOrder: newOrder,
-                  },
-                },
-                ...currentPlaces[overContainer].slice(newIndex),
-              ],
-            }));
-          } else {
-            // Dragging within the same container
-            if (activeIndex > overIndex)
-              newIndex = isBelowOverItem ? overIndex + 1 : overIndex;
-            else newIndex = isBelowOverItem ? overIndex : overIndex - 1;
-
-            if (activeIndex === newIndex) return;
-
-            if (activeIndex > newIndex) {
-              // Items move DOWN to make space
-              if (newIndex === 0) newOrder = insertBefore(getOrder(0));
-              else
-                newOrder = insertBetween(
-                  getOrder(newIndex - 1),
-                  getOrder(newIndex),
-                );
-            } else {
-              // Items move UP to make space
-              if (newIndex === overPlaces.length - 1)
-                newOrder = insertAfter(getOrder(overPlaces.length - 1));
-              else
-                newOrder = insertBetween(
-                  getOrder(newIndex),
-                  getOrder(newIndex + 1),
-                );
-            }
-            setPlaces((currentPlaces) => {
-              const newArr = arrayMove(
-                currentPlaces[overContainer],
-                activeIndex,
-                newIndex,
-              );
-              newArr[newIndex] = {
-                ...newArr[newIndex],
+        if (overId in places) {
+          // Over a empty/closed day or saved places
+          newIndex = overPlaces.length;
+          if (overPlaces.length > 0)
+            newOrder = insertAfter(getOrder(overPlaces.length - 1));
+          else newOrder = getStartingIndex();
+          setPlaces((currentPlaces) => ({
+            ...currentPlaces,
+            [activeContainer]: currentPlaces[activeContainer].filter(
+              (place) => place.placeInfo.placeId !== active.id,
+            ), // remove item from current container
+            [overContainer]: [
+              // and add item to new container at the end
+              ...currentPlaces[overContainer],
+              {
+                ...currentPlaces[activeContainer][activeIndex],
                 userPlaceInfo: {
-                  ...newArr[newIndex].userPlaceInfo,
+                  ...currentPlaces[activeContainer][activeIndex].userPlaceInfo,
                   tripOrder: newOrder,
                 },
-              };
+              },
+            ],
+          }));
+        } else if (activeContainer !== overContainer) {
+          // If cannot find the index, set as last item
+          newIndex =
+            overIndex >= 0
+              ? isBelowOverItem
+                ? overIndex + 1
+                : overIndex
+              : overPlaces.length;
 
-              return {
-                ...currentPlaces,
-                [overContainer]: newArr,
-              };
-            });
+          if (newIndex > overIndex) {
+            // Over index item moves UP to make space
+            if (overIndex === overPlaces.length - 1)
+              newOrder = insertAfter(getOrder(overPlaces.length - 1));
+            else
+              newOrder = insertBetween(
+                getOrder(overIndex),
+                getOrder(overIndex + 1),
+              );
+          } else {
+            // Over index item moves DOWN to make space
+            if (overIndex === 0) newOrder = insertBefore(getOrder(0));
+            else
+              newOrder = insertBetween(
+                getOrder(overIndex - 1),
+                getOrder(overIndex),
+              );
           }
-          console.log("New order", newOrder);
-          updateTripPlaceOrder(
-            tripId,
-            String(active.id),
-            newOrder,
-            overContainer !== "saved" ? Number(overContainer) : null,
-          ).then((data) => {
-            if (data.status === "error") toast.error(data.message);
+          setPlaces((currentPlaces) => ({
+            ...currentPlaces,
+            [activeContainer]: currentPlaces[activeContainer].filter(
+              (place) => place.placeInfo.placeId !== active.id,
+            ), // remove item from current container
+            [overContainer]: [
+              // and add item to new container at the index
+              ...currentPlaces[overContainer].slice(0, newIndex),
+              {
+                ...currentPlaces[activeContainer][activeIndex],
+                userPlaceInfo: {
+                  ...currentPlaces[activeContainer][activeIndex].userPlaceInfo,
+                  tripOrder: newOrder,
+                },
+              },
+              ...currentPlaces[overContainer].slice(newIndex),
+            ],
+          }));
+        } else {
+          // Dragging within the same container
+          if (activeIndex > overIndex)
+            newIndex = isBelowOverItem ? overIndex + 1 : overIndex;
+          else newIndex = isBelowOverItem ? overIndex : overIndex - 1;
+
+          // Nothing happened
+          if (activeIndex === newIndex) return;
+
+          if (activeIndex > newIndex) {
+            // Items move DOWN to make space
+            if (newIndex === 0) newOrder = insertBefore(getOrder(0));
+            else
+              newOrder = insertBetween(
+                getOrder(newIndex - 1),
+                getOrder(newIndex),
+              );
+          } else {
+            // Items move UP to make space
+            if (newIndex === overPlaces.length - 1)
+              newOrder = insertAfter(getOrder(overPlaces.length - 1));
+            else
+              newOrder = insertBetween(
+                getOrder(newIndex),
+                getOrder(newIndex + 1),
+              );
+          }
+          setPlaces((currentPlaces) => {
+            const newArr = arrayMove(
+              currentPlaces[overContainer],
+              activeIndex,
+              newIndex,
+            );
+            newArr[newIndex] = {
+              ...newArr[newIndex],
+              userPlaceInfo: {
+                ...newArr[newIndex].userPlaceInfo,
+                tripOrder: newOrder,
+              },
+            };
+
+            return {
+              ...currentPlaces,
+              [overContainer]: newArr,
+            };
           });
         }
+        console.log("New order", newOrder);
+        updateTripPlaceOrder(
+          tripId,
+          String(active.id),
+          newOrder,
+          overContainer !== "saved" ? Number(overContainer) : null,
+        ).then((data) => {
+          if (data.status === "error") toast.error(data.message);
+        });
       }}
       onDragCancel={onDragCancel}
     >
