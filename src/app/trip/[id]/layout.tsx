@@ -279,7 +279,7 @@ export default async function TripLayout({
         ),
       )
       .where(eq(trip.id, id))
-      .orderBy(asc(inner.dayOrder), asc(inner.tripOrder), asc(inner)),
+      .orderBy(asc(inner.dayOrder), asc(inner.tripOrder)),
   ]);
 
   if (data.length === 0)

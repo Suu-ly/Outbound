@@ -53,6 +53,12 @@ function getQueryClient() {
   }
 }
 
+const CookieRefresh = () => {
+  authClient.useSession();
+
+  return null;
+};
+
 export default function Providers({ children }: { children: React.ReactNode }) {
   // NOTE: Avoid useState when initializing the query client if you don't
   //       have a suspense boundary between this and the code that may
@@ -60,12 +66,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   //       render if it suspends and there is no boundary
   const queryClient = getQueryClient();
 
-  authClient.useSession();
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={400}>
-        <Provider>{children}</Provider>
+        <Provider>
+          <CookieRefresh />
+          {children}
+        </Provider>
       </TooltipProvider>
     </QueryClientProvider>
   );
