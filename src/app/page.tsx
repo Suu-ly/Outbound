@@ -46,7 +46,7 @@ export default async function Home({
               Outbound
             </h1>
           </div>
-          <ButtonLink href="/login" size="large">
+          <ButtonLink href="/login" size="large" prefetch={false}>
             Login
           </ButtonLink>
         </main>
@@ -99,7 +99,7 @@ export default async function Home({
             <h1 className="grow font-display text-4xl font-semibold text-slate-900">
               My Trips
             </h1>
-            <ButtonLink href="/new" size="large" prefetch={false}>
+            <ButtonLink href="/new" size="large">
               <IconPlus />
               New Trip
             </ButtonLink>
