@@ -97,7 +97,7 @@ export const defaultTripPlaceUserInfo: Omit<
 
 export function roundUpMinutes(minutes: number, distance: number) {
   const nearest = distance < 3 ? 5 : distance < 10 ? 10 : 15;
-  return Math.ceil((minutes % 60) / nearest) * nearest;
+  return Math.ceil(minutes / nearest) * nearest;
 }
 
 export function minsToString(minutes: number, roundUp?: boolean) {
