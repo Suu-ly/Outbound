@@ -1052,6 +1052,9 @@ async function TSP(data: PlaceDataEntry[]) {
 }
 
 const TRAVEL_SPEED = 32 / 60; // in km/min
+const HIGH_PROB = 0.8;
+const LOW_PROB = 0.2;
+const TRAVEL_TIME_BUFFER = 15;
 
 const getCandidateDays = (
   probs: (PlaceDataEntry & {
@@ -1078,7 +1081,7 @@ const getCandidateDays = (
     let minIndex = 0;
     let placesAdded;
     do {
-      let timeAllowance = allowance + 15; // Some extra buffer
+      let timeAllowance = allowance + TRAVEL_TIME_BUFFER; // Some extra buffer
       let travelTime = 0;
       let currentPlace = probs[i][0];
       let prevPlace = currentPlace;
@@ -1105,7 +1108,7 @@ const getCandidateDays = (
           ) / TRAVEL_SPEED;
         if (
           timeAllowance >= currentPlace.userPlaceInfo.timeSpent + travelTime &&
-          currentPlace.probability >= 0.8
+          currentPlace.probability >= HIGH_PROB
         ) {
           possibleDay.push(probs[i][placeIndex]);
           if (placeIndex === minIndex + 1) minIndex = placeIndex; // Update minIndex so next loop starts slightly earlier
@@ -1156,7 +1159,7 @@ const getCandidateDays = (
         ) / TRAVEL_SPEED;
       if (
         timeAllowance >= currentPlace.userPlaceInfo.timeSpent + travelTime &&
-        currentPlace.probability >= 0.2
+        currentPlace.probability >= LOW_PROB
       ) {
         output[j].push(probs[gaussian][placeIndex]);
         if (placeIndex === minIndex + 1) minIndex = placeIndex; // Update minIndex so next loop starts slightly earlier
@@ -1401,15 +1404,20 @@ export async function generateItinerary(
     .where(eq(trip.id, tripId))
     .orderBy(asc(inner.dayOrder));
   const data = prepareData(rawData);
+
+  if (data.trip.userId !== session.user.id)
+    return { message: "Unauthorized", status: "error" };
+
   const { days: dayWithPlaces, unvisited } = getDays(data);
   for (let i = 0; i < dayWithPlaces.length; i++) {
     dayWithPlaces[i] = await TSP(dayWithPlaces[i]);
   }
-  // If nClusters is 1, day is not truncated
+  // If nClusters is 1, day is not truncated so we truncate here
   if (dayWithPlaces.length === 1) {
     let timeAllowance =
       digitStringToMins(data.trip.endTime) -
-      digitStringToMins(data.trip.startTime);
+      digitStringToMins(data.trip.startTime) +
+      TRAVEL_TIME_BUFFER;
     let currentPlace = dayWithPlaces[0][0];
     let prevPlace = currentPlace;
     let travelTime;
