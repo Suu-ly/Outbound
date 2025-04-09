@@ -5,6 +5,7 @@ import TimePicker from "@/components/time-picker";
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import DrawerDialog from "@/components/ui/drawer-dialog";
+import Spinner from "@/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -72,6 +73,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useTransition,
 } from "react";
 import { toast } from "sonner";
 import {
@@ -389,6 +391,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   const [loadingState, setLoadingState] = useState<
     Record<keyof typeof places, string[]>
   >({});
+  const [isGenerating, startGeneration] = useTransition();
 
   const [activeId, setActiveId] = useState<Active | null>(null);
   const isSortingContainer = activeId?.data.current?.type === "container";
@@ -636,13 +639,15 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   );
 
   const handleGenerateItinerary = useCallback(async () => {
-    const res = await generateItinerary(tripId);
-    if (res.status === "error") toast.error(res.message);
-    else {
-      toast.success("Itinerary generated successfully!");
-      setDays(res.data.days);
-      setPlaces(res.data.places);
-    }
+    startGeneration(async () => {
+      const res = await generateItinerary(tripId);
+      if (res.status === "error") toast.error(res.message);
+      else {
+        toast.success("Itinerary generated successfully!");
+        setDays(res.data.days);
+        setPlaces(res.data.places);
+      }
+    });
   }, [setDays, setPlaces, tripId]);
 
   return (
@@ -934,9 +939,10 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                   variant="secondary"
                   iconOnly
                   aria-label="Generate itinerary"
+                  disabled={isGenerating}
                   onClick={handleGenerateItinerary}
                 >
-                  <IconWand />
+                  {isGenerating ? <Spinner /> : <IconWand />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Generate itinerary</TooltipContent>
