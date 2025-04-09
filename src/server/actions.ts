@@ -1,8 +1,10 @@
 "use server";
 
-import { getStartingIndex, insertAfter } from "@/lib/utils";
+import { GMM } from "@/lib/gmm";
+import { digitStringToMins, getStartingIndex, insertAfter } from "@/lib/utils";
+import distance from "@turf/distance";
 import { differenceInCalendarDays } from "date-fns";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, or, SQL, sql } from "drizzle-orm";
 import { customAlphabet, nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -22,7 +24,13 @@ import {
   tripTravelTime,
 } from "./db/schema";
 import { supabase } from "./supabase";
-import { ApiResponse, DayData } from "./types";
+import {
+  ApiResponse,
+  DayData,
+  InitialQuery,
+  PlaceData,
+  PlaceDataEntry,
+} from "./types";
 
 const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const ID_LENGTH = 12;
@@ -64,7 +72,7 @@ export async function addNewTrip(
           });
           validId = tripId;
         } catch {
-          console.log("This ID already exists", tripId);
+          console.warn("This ID already exists", tripId);
           // Id already exists
           if (retries === 0)
             throw new Error(`Failed to generate a unique trip ID!`);
@@ -835,5 +843,677 @@ export async function updatePassword(
   } catch (e: unknown) {
     if (e instanceof Error) return { status: "error", message: e.message };
     else return { status: "error", message: "Unable to update password!" };
+  }
+}
+
+// -------------------------------------------------------------------------
+//                  Generate itinerary functions
+// -------------------------------------------------------------------------
+
+// Generate Haversine distance matrix of the points in km
+const generateDistanceMatrix = async (data: PlaceDataEntry[]) => {
+  const length = data.length;
+  const distanceMatrix = Array.from(
+    { length: length },
+    () => new Array(length),
+  );
+  for (let i = 0; i < length; i++) {
+    for (let j = i; j < length; j++) {
+      if (j === i) distanceMatrix[i][j] = 0;
+      else {
+        distanceMatrix[i][j] = distance(
+          [
+            data[i].placeInfo.location.longitude,
+            data[i].placeInfo.location.latitude,
+          ],
+          [
+            data[j].placeInfo.location.longitude,
+            data[j].placeInfo.location.latitude,
+          ],
+        );
+        distanceMatrix[j][i] = distanceMatrix[i][j];
+      }
+    }
+  }
+  return distanceMatrix;
+};
+
+// Swaps the two indices of the array
+const swap = (tour: number[], i: number, j: number) => {
+  const newArr = tour.slice(0);
+  const temp = newArr[i];
+  newArr[i] = newArr[j];
+  newArr[j] = temp;
+  return newArr;
+};
+
+const swapEdges = (tour: number[], first: number, second: number) => {
+  return tour.slice(0, first + 1).concat(
+    tour
+      .slice(first + 1, second + 1)
+      .reverse()
+      .concat(tour.slice(second + 1)),
+  );
+};
+
+const detour = (
+  before: number,
+  insert: number,
+  after: number,
+  distanceMatrix: number[][],
+) => {
+  return (
+    distanceMatrix[before][insert] +
+    distanceMatrix[insert][after] -
+    distanceMatrix[before][after]
+  );
+};
+
+const generateRandomPath = (N: number) => {
+  const path = Array.from({ length: N }, (_, i) => i);
+  for (let i = path.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = path[i];
+    path[i] = path[j];
+    path[j] = temp;
+  }
+  return path;
+};
+
+const getTourDistance = (path: number[], distanceMatrix: number[][]) => {
+  if (path.length <= 1) return 0;
+  let distance = distanceMatrix[path[0]][path[path.length - 1]];
+  for (let i = 1; i < path.length; i++) {
+    distance += distanceMatrix[path[i - 1]][path[i]];
+  }
+  return distance;
+};
+async function TSP(data: PlaceDataEntry[]) {
+  if (data.length <= 1) return data;
+  const distances = await generateDistanceMatrix(data);
+  let remaining = generateRandomPath(data.length);
+  // Traversal order indexes
+  let tour: number[] = [remaining[0]];
+
+  // Farthest insertion heuristic
+  for (let i = 1; i < data.length; i++) {
+    let indexInRemaining = 0;
+    let indexInPath = 0;
+    let maxDistance = 20000;
+    let maximalDistanceToTour = -1;
+
+    for (let j = i; j < data.length; j++) {
+      maxDistance = 20000;
+
+      for (let k = 0; k < tour.length; k++) {
+        const currentDistance = distances[tour[k]][remaining[j]];
+        // find minimal distance from j to a point in the subtour
+        if (currentDistance < maxDistance) {
+          maxDistance = currentDistance;
+        }
+      }
+      // for farthest insertion store the point whose minimal distance to the tour is maximal
+      if (maxDistance > maximalDistanceToTour) {
+        if (maxDistance > maximalDistanceToTour) {
+          maximalDistanceToTour = maxDistance;
+          indexInRemaining = j;
+        }
+      }
+    }
+
+    remaining = swap(remaining, indexInRemaining, i);
+
+    // look for the edge in the subtour where insertion would be least costly
+    let smallestDetour = 20000;
+    for (let k = 0; k < tour.length - 1; k++) {
+      const currentDetour = detour(
+        tour[k],
+        remaining[i],
+        tour[k + 1],
+        distances,
+      );
+      if (currentDetour < smallestDetour) {
+        smallestDetour = currentDetour;
+        indexInPath = k;
+      }
+    }
+    // check the detour between last point and first
+    if (
+      detour(tour[tour.length - 1], remaining[i], tour[0], distances) <
+      smallestDetour
+    ) {
+      tour.splice(tour.length, 0, remaining[i]);
+    } else {
+      tour.splice(indexInPath + 1, 0, remaining[i]);
+    }
+  }
+
+  // 2-opt heuristic improvement
+  let bestDistance = getTourDistance(tour, distances);
+  let improved = true;
+  while (improved) {
+    improved = false;
+    for (let i = 0; i < tour.length - 2; i++) {
+      for (let j = i + 2; j < tour.length - 1; j++) {
+        if (
+          distances[tour[i]][tour[i + 1]] + distances[tour[j]][tour[j + 1]] >
+          distances[tour[i]][tour[j]] + distances[tour[j + 1]][tour[i + 1]]
+        ) {
+          tour = swapEdges(tour, i, j);
+          const newDistance = getTourDistance(tour, distances);
+          if (newDistance < bestDistance) {
+            improved = true;
+            bestDistance = newDistance;
+          }
+        }
+      }
+      // check the edge from last point to first point
+      if (
+        distances[tour[i]][tour[i + 1]] +
+          distances[tour[tour.length - 1]][tour[0]] >
+        distances[tour[i]][tour[tour.length - 1]] +
+          distances[tour[0]][tour[i + 1]]
+      ) {
+        tour = swapEdges(tour, i, tour.length - 1);
+        const newDistance = getTourDistance(tour, distances);
+        if (newDistance < bestDistance) {
+          improved = true;
+          bestDistance = newDistance;
+        }
+      }
+    }
+  }
+
+  // Find the largest distance and set the index after it to be the starting
+  let farthest = distances[tour[0]][tour[1]];
+  let farthestIndex = 0;
+  for (let i = 1; i < tour.length - 1; i++) {
+    const distance = distances[tour[i]][tour[i + 1]];
+    if (distance > farthest) {
+      farthest = distance;
+      farthestIndex = i;
+    }
+  } // Check distance of first and last indexes
+  const distance = distances[tour[tour.length - 1]][tour[0]];
+  if (distance > farthest) {
+    farthestIndex = tour.length - 1;
+  }
+  tour =
+    farthestIndex < tour.length - 1
+      ? tour.slice(farthestIndex + 1).concat(tour.slice(0, farthestIndex + 1))
+      : tour;
+
+  const result = new Array(data.length);
+  for (let i = 0; i < data.length; i++) {
+    result[i] = data[tour[i]];
+  }
+
+  return result;
+}
+
+const TRAVEL_SPEED = 32 / 60; // in km/min
+
+const getCandidateDays = (
+  probs: (PlaceDataEntry & {
+    probability: number;
+  })[][],
+  allowance: number,
+  numDays: number,
+) => {
+  // Array containing all the candidate days
+  const output = [];
+  // Keeps track of variables for each candidate day for second pass
+  const resume: {
+    timeLeft: number;
+    gaussian: number;
+  }[] = [];
+  // Keeps track of the index we ended the first pass at for each gaussian
+  const gaussianIndex: number[] = [];
+  // keeps track of which places have already been added to a day
+  const visited: Record<string, boolean> = {};
+
+  // First pass, we accept days only with a high probability of belonging
+  for (let i = 0, length = probs.length; i < length; i++) {
+    if (probs[i].length === 0) continue;
+    let minIndex = 0;
+    let placesAdded;
+    do {
+      let timeAllowance = allowance + 15; // Some extra buffer
+      let travelTime = 0;
+      let currentPlace = probs[i][0];
+      let prevPlace = currentPlace;
+      const possibleDay = [];
+      placesAdded = 0;
+      // Loop through each place and add to possible day if there is time remaining
+      for (
+        let placeIndex = minIndex, length = probs[i].length;
+        placeIndex < length;
+        placeIndex++
+      ) {
+        currentPlace = probs[i][placeIndex];
+        if (visited[currentPlace.placeInfo.placeId]) continue;
+        travelTime =
+          distance(
+            [
+              prevPlace.placeInfo.location.longitude,
+              prevPlace.placeInfo.location.latitude,
+            ],
+            [
+              currentPlace.placeInfo.location.longitude,
+              currentPlace.placeInfo.location.latitude,
+            ],
+          ) / TRAVEL_SPEED;
+        if (
+          timeAllowance >= currentPlace.userPlaceInfo.timeSpent + travelTime &&
+          currentPlace.probability >= 0.8
+        ) {
+          possibleDay.push(probs[i][placeIndex]);
+          if (placeIndex === minIndex + 1) minIndex = placeIndex; // Update minIndex so next loop starts slightly earlier
+          placesAdded += 1;
+          timeAllowance -= currentPlace.userPlaceInfo.timeSpent + travelTime;
+          visited[currentPlace.placeInfo.placeId] = true;
+        }
+        prevPlace = currentPlace;
+      }
+      if (possibleDay.length) {
+        output.push(possibleDay);
+        resume.push({
+          timeLeft: timeAllowance,
+          gaussian: i,
+        });
+      }
+    } while (placesAdded !== 0); // Stop when there is no more places being added
+    gaussianIndex.push(minIndex);
+  }
+
+  // Second pass, we accept days that have a lower probability
+  for (let j = 0; j < resume.length; j++) {
+    const gaussian = resume[j].gaussian;
+    let minIndex = gaussianIndex[gaussian];
+    if (minIndex >= probs[gaussian].length) continue; // Go next iteration if minIndex exceeds range
+    let timeAllowance = resume[j].timeLeft;
+    let currentPlace = probs[gaussian][minIndex];
+    let prevPlace = minIndex > 0 ? probs[gaussian][minIndex - 1] : currentPlace;
+    let travelTime;
+
+    for (
+      let placeIndex = minIndex, length = probs[gaussian].length;
+      placeIndex < length;
+      placeIndex++
+    ) {
+      currentPlace = probs[gaussian][placeIndex];
+      if (visited[currentPlace.placeInfo.placeId]) continue;
+      travelTime =
+        distance(
+          [
+            prevPlace.placeInfo.location.longitude,
+            prevPlace.placeInfo.location.latitude,
+          ],
+          [
+            currentPlace.placeInfo.location.longitude,
+            currentPlace.placeInfo.location.latitude,
+          ],
+        ) / TRAVEL_SPEED;
+      if (
+        timeAllowance >= currentPlace.userPlaceInfo.timeSpent + travelTime &&
+        currentPlace.probability >= 0.2
+      ) {
+        output[j].push(probs[gaussian][placeIndex]);
+        if (placeIndex === minIndex + 1) minIndex = placeIndex; // Update minIndex so next loop starts slightly earlier
+        timeAllowance -= currentPlace.userPlaceInfo.timeSpent + travelTime;
+        visited[currentPlace.placeInfo.placeId] = true;
+      }
+      prevPlace = currentPlace;
+    }
+  }
+
+  output.sort((a, b) => b.length - a.length);
+
+  // Get the list of days that are not in the final plan
+  const unvisited = [];
+  const rejected = output.slice(numDays);
+  for (let i = 0, length = probs.length; i < length; i++) {
+    for (let j = 0; j < probs[i].length; j++) {
+      if (!visited[probs[i][j].placeInfo.placeId]) {
+        unvisited.push(probs[i][j]);
+      }
+    }
+  }
+  for (let i = 0, length = rejected.length; i < length; i++) {
+    for (let j = 0; j < rejected[i].length; j++) {
+      unvisited.push(rejected[i][j]);
+    }
+  }
+
+  return { days: output.slice(0, numDays), unvisited: unvisited };
+};
+
+const getDays = (data: {
+  trip: {
+    id: string;
+    userId: string;
+    startTime: string;
+    endTime: string;
+  };
+  days: DayData[];
+  places: PlaceDataEntry[];
+}): {
+  days: PlaceDataEntry[][];
+  unvisited: PlaceDataEntry[];
+} => {
+  const nClusters =
+    data.places.length / 3 > data.days.length
+      ? data.days.length
+      : Math.ceil(data.places.length / 3);
+  // GMM does not work when cluster is 1
+  if (nClusters <= 1) return { days: [data.places], unvisited: [] };
+  const gmm = new GMM(nClusters, 72);
+
+  const placesCoords = data.places.map((place) => [
+    place.placeInfo.location.longitude,
+    place.placeInfo.location.latitude,
+  ]);
+  gmm.cluster(placesCoords);
+
+  const probs = gmm.predictProbs(placesCoords);
+  const dayProbs: (PlaceDataEntry & { probability: number })[][] = Array.from(
+    { length: data.days.length },
+    () => [],
+  );
+  const allPlaces = data.places;
+
+  // Get probability of places grouped by day instead
+  for (let i = 0; i < probs.length; i++) {
+    const place = allPlaces[i];
+    for (let j = 0; j < probs[0].length; j++) {
+      dayProbs[j].push({
+        ...place,
+        probability: probs[i][j],
+      });
+    }
+  }
+  // Sort each day according to probability
+  for (let i = 0; i < dayProbs.length; i++) {
+    dayProbs[i].sort((a, b) => b.probability - a.probability);
+  }
+
+  const startMins = digitStringToMins(data.trip.startTime);
+  const endMins = digitStringToMins(data.trip.endTime);
+  return getCandidateDays(dayProbs, endMins - startMins, data.days.length);
+};
+
+function prepareData(
+  data: {
+    trip: {
+      id: string;
+      userId: string;
+      startTime: string;
+      endTime: string;
+    };
+    inner: {
+      dayId: number | null;
+      dayOrder: string;
+      dayStartTime: string | null;
+      placeId: string | null;
+      note: string | null;
+      timeSpent: number | null;
+      tripOrder: string;
+    };
+    place: InitialQuery["place"];
+  }[],
+) {
+  const firstRow = data[0];
+  const trip = {
+    ...firstRow.trip,
+  };
+  const days: DayData[] = [];
+  const places: PlaceDataEntry[] = [];
+
+  for (let i = 0, length = data.length; i < length; i++) {
+    const rowData = data[i];
+    // Day with no place
+    if (!rowData.place) {
+      days.push({
+        dayId: rowData.inner.dayId!,
+        dayOrder: rowData.inner.dayOrder,
+        dayStartTime: rowData.inner.dayStartTime!,
+      });
+    } else {
+      // Place exists
+      const tempPlaceData = {
+        placeInfo: {
+          placeId: rowData.inner.placeId!,
+          displayName: rowData.place.displayName,
+          primaryTypeDisplayName: rowData.place.primaryTypeDisplayName,
+          typeColor: rowData.place.typeColor,
+          location: rowData.place.location,
+          viewport: rowData.place.viewport,
+          coverImgSmall: rowData.place.coverImgSmall,
+          rating: rowData.place.rating,
+          googleMapsLink: rowData.place.googleMapsLink,
+          openingHours: rowData.place.openingHours,
+        },
+        userPlaceInfo: {
+          note: rowData.inner.note,
+          timeSpent: rowData.inner.timeSpent!,
+          tripOrder: rowData.inner.tripOrder,
+        },
+      };
+      places.push(tempPlaceData);
+      if (rowData.inner.dayId) {
+        if (!days.some((day) => day.dayId === rowData.inner.dayId))
+          days.push({
+            dayId: rowData.inner.dayId,
+            dayOrder: rowData.inner.dayOrder,
+            dayStartTime: rowData.inner.dayStartTime!,
+          });
+      }
+    }
+  }
+
+  return {
+    trip,
+    days,
+    places,
+  };
+}
+
+export async function generateItinerary(
+  tripId: string,
+): Promise<ApiResponse<{ days: DayData[]; places: PlaceData }>> {
+  const session = await authenticate();
+  if (!session) return { message: "Unauthorized", status: "error" };
+
+  const inner = db.$with("inner").as(
+    db
+      .select({
+        tripId:
+          sql<string>`COALESCE(${tripDay.tripId}, ${tripPlace.tripId})`.as(
+            "tripId",
+          ),
+        placeId: tripPlace.placeId,
+        dayId: tripDay.id,
+        note: tripPlace.note,
+        type: tripPlace.type,
+        timeSpent: tripPlace.timeSpent,
+        tripOrder: sql<string>`${tripPlace.order}`.as("tripOrder"),
+        dayOrder: sql<string>`${tripDay.order}`.as("dayOrder"),
+        dayStartTime: tripDay.startTime,
+      })
+      .from(tripDay)
+      .fullJoin(tripPlace, eq(tripPlace.dayId, tripDay.id))
+      .where(
+        and(
+          or(isNull(tripPlace.type), eq(tripPlace.type, "saved")),
+          or(eq(tripDay.tripId, tripId), eq(tripPlace.tripId, tripId)),
+        ),
+      ),
+  );
+  const rawData = await db
+    .with(inner)
+    .select({
+      trip: {
+        id: trip.id,
+        userId: trip.userId,
+        startTime: trip.startTime,
+        endTime: trip.endTime,
+      },
+      inner: {
+        placeId: inner.placeId,
+        dayId: inner.dayId,
+        note: inner.note,
+        timeSpent: inner.timeSpent,
+        tripOrder: inner.tripOrder,
+        dayOrder: inner.dayOrder,
+        dayStartTime: inner.dayStartTime,
+      },
+      place: {
+        id: place.id,
+        name: place.name,
+        types: place.types,
+        displayName: place.displayName,
+        primaryTypeDisplayName: place.primaryTypeDisplayName,
+        typeColor: place.typeColor,
+        phone: place.phone,
+        address: place.address,
+        location: place.location,
+        viewport: place.viewport,
+        coverImg: place.coverImg,
+        coverImgSmall: place.coverImgSmall,
+        rating: place.rating,
+        ratingCount: place.ratingCount,
+        reviews: place.reviews,
+        reviewHighlight: place.reviewHighlight,
+        website: place.website,
+        googleMapsLink: place.googleMapsLink,
+        description: place.description,
+        openingHours: place.openingHours,
+        accessibilityOptions: place.accessibilityOptions,
+        parkingOptions: place.parkingOptions,
+        paymentOptions: place.paymentOptions,
+        amenities: place.amenities,
+        additionalInfo: place.additionalInfo,
+      },
+    })
+    .from(trip)
+    .innerJoin(inner, eq(inner.tripId, trip.id))
+    .leftJoin(place, eq(inner.placeId, place.id))
+    .where(eq(trip.id, tripId))
+    .orderBy(asc(inner.dayOrder));
+  const data = prepareData(rawData);
+  const { days: dayWithPlaces, unvisited } = getDays(data);
+  for (let i = 0; i < dayWithPlaces.length; i++) {
+    dayWithPlaces[i] = await TSP(dayWithPlaces[i]);
+  }
+  // If nClusters is 1, day is not truncated
+  if (dayWithPlaces.length === 1) {
+    let timeAllowance =
+      digitStringToMins(data.trip.endTime) -
+      digitStringToMins(data.trip.startTime);
+    let currentPlace = dayWithPlaces[0][0];
+    let prevPlace = currentPlace;
+    let travelTime;
+    let cutoffIndex = 0;
+    for (
+      let placeIndex = 0, length = dayWithPlaces[0].length;
+      placeIndex < length;
+      placeIndex++
+    ) {
+      currentPlace = dayWithPlaces[0][placeIndex];
+      travelTime =
+        distance(
+          [
+            prevPlace.placeInfo.location.longitude,
+            prevPlace.placeInfo.location.latitude,
+          ],
+          [
+            currentPlace.placeInfo.location.longitude,
+            currentPlace.placeInfo.location.latitude,
+          ],
+        ) / TRAVEL_SPEED;
+      if (timeAllowance >= currentPlace.userPlaceInfo.timeSpent + travelTime) {
+        cutoffIndex = placeIndex + 1;
+        timeAllowance -= currentPlace.userPlaceInfo.timeSpent + travelTime;
+      } else {
+        unvisited.push(currentPlace);
+      }
+      prevPlace = currentPlace;
+    }
+    dayWithPlaces[0] = dayWithPlaces[0].slice(0, cutoffIndex);
+  }
+  const placesToReturn: PlaceData = { saved: [] };
+
+  // Update database
+  const updateDayId: SQL[] = [];
+  const updatePlaceOrderSQL: SQL[] = [];
+  const ids: string[] = [];
+  updateDayId.push(sql`(CASE`);
+  updatePlaceOrderSQL.push(sql`(CASE`);
+  for (let i = 0; i < dayWithPlaces.length; i++) {
+    let order = getStartingIndex();
+    placesToReturn[data.days[i].dayId] = [];
+    for (let j = 0; j < dayWithPlaces[i].length; j++) {
+      updateDayId.push(
+        sql`WHEN ${tripPlace.placeId} = ${dayWithPlaces[i][j].placeInfo.placeId} THEN ${data.days[i].dayId}::integer`,
+      );
+      updatePlaceOrderSQL.push(
+        sql`WHEN ${tripPlace.placeId} = ${dayWithPlaces[i][j].placeInfo.placeId} THEN ${order}`,
+      );
+      ids.push(dayWithPlaces[i][j].placeInfo.placeId);
+      dayWithPlaces[i][j].userPlaceInfo.tripOrder = order; // We can mutate directly because this doesn't concern rendering logic
+      placesToReturn[data.days[i].dayId].push(dayWithPlaces[i][j]);
+      order = insertAfter(order);
+    }
+  }
+  let order = getStartingIndex();
+  for (let i = 0; i < unvisited.length; i++) {
+    updateDayId.push(
+      sql`WHEN ${tripPlace.placeId} = ${unvisited[i].placeInfo.placeId} THEN NULL`,
+    );
+    updatePlaceOrderSQL.push(
+      sql`WHEN ${tripPlace.placeId} = ${unvisited[i].placeInfo.placeId} THEN ${order}`,
+    );
+    ids.push(unvisited[i].placeInfo.placeId);
+    unvisited[i].userPlaceInfo.tripOrder = order;
+    placesToReturn.saved.push(unvisited[i]);
+    order = insertAfter(order);
+  }
+  updateDayId.push(sql`END)`);
+  updatePlaceOrderSQL.push(sql`END)`);
+  const finalUpdateDayIdSQL: SQL = sql.join(updateDayId, sql.raw(" "));
+  const finalUpdatePlaceOrderSQL: SQL = sql.join(
+    updatePlaceOrderSQL,
+    sql.raw(" "),
+  );
+
+  try {
+    await Promise.all([
+      db
+        .update(tripPlace)
+        .set({ dayId: finalUpdateDayIdSQL, order: finalUpdatePlaceOrderSQL })
+        .where(
+          and(inArray(tripPlace.placeId, ids), eq(tripPlace.tripId, tripId)),
+        ),
+      db
+        .update(tripDay)
+        .set({ startTime: "auto" })
+        .where(eq(tripDay.tripId, tripId)),
+    ]);
+    return {
+      status: "success",
+      data: {
+        days: data.days.map((day) => {
+          day.dayStartTime = "auto";
+          return day;
+        }),
+        places: placesToReturn,
+      },
+    };
+  } catch (e) {
+    console.error(e);
+    return {
+      status: "error",
+      message: "Unable to generate itinerary!",
+    };
   }
 }

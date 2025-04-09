@@ -22,6 +22,7 @@ import {
   minsTo24HourFormat,
 } from "@/lib/utils";
 import {
+  generateItinerary,
   moveTripPlace,
   setPlaceAsUninterested,
   updateDayStartTime,
@@ -634,6 +635,16 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     [setDays],
   );
 
+  const handleGenerateItinerary = useCallback(async () => {
+    const res = await generateItinerary(tripId);
+    if (res.status === "error") toast.error(res.message);
+    else {
+      toast.success("Itinerary generated successfully!");
+      setDays(res.data.days);
+      setPlaces(res.data.places);
+    }
+  }, [setDays, setPlaces, tripId]);
+
   return (
     <DndContext
       id="Sort-places-dnd-context"
@@ -923,6 +934,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
                   variant="secondary"
                   iconOnly
                   aria-label="Generate itinerary"
+                  onClick={handleGenerateItinerary}
                 >
                   <IconWand />
                 </Button>
