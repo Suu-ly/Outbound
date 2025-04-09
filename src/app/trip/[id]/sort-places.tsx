@@ -650,10 +650,11 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
           strategy: MeasuringStrategy.WhileDragging,
         },
       }}
-      onDragPending={() => {
-        setIsDragging(true);
+      onDragAbort={() => {
+        setIsDragging(false);
       }}
       onDragStart={({ active }) => {
+        setIsDragging(true);
         setActiveId(active);
       }}
       onDragEnd={({ active, over }) => {
