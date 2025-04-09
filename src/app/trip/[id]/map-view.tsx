@@ -27,6 +27,7 @@ import {
   useState,
 } from "react";
 import {
+  GeolocateControl,
   Layer,
   Map,
   Marker,
@@ -34,6 +35,7 @@ import {
   Source,
   useMap,
 } from "react-map-gl";
+import { toast } from "sonner";
 import {
   dayPlacesAtom,
   mapActiveMarkerAtom,
@@ -82,6 +84,28 @@ export default function MapView({
             borderRadius: "2rem",
             overflow: "hidden",
             // backgroundColor: "#fafafa",
+          }}
+        />
+        <GeolocateControl
+          position="top-left"
+          style={{
+            marginTop: "1rem",
+            marginLeft: "1rem",
+            border: "2px solid #e2e8f0",
+            boxShadow:
+              "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+            borderRadius: "2rem",
+            overflow: "hidden",
+            // backgroundColor: "#fafafa",
+          }}
+          onError={(e) => {
+            toast.error(e.message);
+          }}
+          fitBoundsOptions={{
+            maxZoom: 14,
+            duration: 3000,
+            curve: 1,
+            padding: 64,
           }}
         />
         <div className="hidden sm:block">
@@ -313,10 +337,15 @@ const useMapViewManager = () => {
         [maxLon, maxLat],
       ];
       map.fitBounds(bounds, {
-        maxZoom: 12,
+        maxZoom: 15,
         duration: 3000,
         curve: 1,
-        padding: 48,
+        padding: {
+          bottom: 128,
+          top: 72,
+          left: 48,
+          right: 48,
+        },
       });
     } else
       map.flyTo({
