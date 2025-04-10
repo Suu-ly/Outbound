@@ -1,6 +1,7 @@
 "use client";
 
 import TimePicker from "@/components/time-picker";
+import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { cn, digitStringToMins, minsTo24HourFormat } from "@/lib/utils";
 import {
@@ -34,16 +35,17 @@ const SettingsItem = forwardRef<
     <div
       ref={ref}
       {...rest}
-      className={cn(
-        "group flex items-center gap-3 rounded-xl bg-white p-3",
-        className,
-      )}
+      className={cn("group space-y-3 rounded-xl bg-white p-3", className)}
     >
-      <Comp className="flex grow flex-col space-y-0.5" htmlFor={htmlFor}>
+      <Comp
+        className="flex grow items-center justify-between gap-3"
+        htmlFor={htmlFor}
+      >
         <h4 className="text-slate-900">{title}</h4>
-        <p className="text-xs text-slate-500">{description}</p>
+        {children}
       </Comp>
-      {children}
+      <Separator className="-mx-3 w-[calc(100%+1.5rem)] bg-gray-100" />
+      <p className="text-xs text-slate-500">{description}</p>
     </div>
   );
 });
@@ -83,7 +85,8 @@ const DayStartTime = () => {
     >
       <SettingsItem
         title="Default day start time"
-        className="cursor-pointer transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
+        description="Days will start at this time by default."
+        className="cursor-pointer ring-offset-gray-50 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -133,7 +136,8 @@ const DayEndTime = () => {
     >
       <SettingsItem
         title="Default day end time"
-        className="cursor-pointer transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
+        description="Generated itineraries will end around this time."
+        className="cursor-pointer ring-offset-gray-50 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -173,7 +177,7 @@ const RoundUpTravelTime = () => {
   return (
     <SettingsItem
       title="Round up travel time"
-      description="Round up travel time estimates to the nearest 5, 10 or 15 minutes based on the distance travelled. Disable this to use exact travel time estimates"
+      description="Round up travel time estimates to the nearest 5, 10 or 15 minutes based on the distance travelled. Disable this to use exact travel time estimates."
       htmlFor="travel-time-switch"
     >
       <Switch
