@@ -51,7 +51,7 @@ const TravelTimeIndicator = memo(
             ? () => startTimeClick(isInDay)
             : undefined
         }
-        className={`absolute -left-px ${bottom ? "bottom-3" : "top-10"} flex w-11 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-100 bg-white text-sm font-medium ${time.overflow ? "text-rose-600" : "text-slate-700"} ${index === 0 ? "ring-offset-gray-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2" : ""}`}
+        className={`absolute -left-px ${bottom ? "bottom-3" : "top-10"} flex w-11 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-100 bg-white text-sm font-medium ${time.overflow ? "text-rose-600" : "text-slate-700"} ${index === 0 ? "transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400" : ""}`}
       >
         {time.value}
       </Comp>

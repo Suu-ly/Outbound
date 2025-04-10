@@ -85,7 +85,7 @@ const DayFolder = memo(
               <div className="flex items-center gap-1 rounded-lg p-2">
                 <CollapsibleTrigger
                   aria-label="Show or hide places in this day"
-                  className="-m-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full ring-offset-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 data-[state=open]:rotate-90"
+                  className="-m-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full ring-offset-gray-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 data-[state=open]:rotate-90"
                 >
                   <IconChevronRight className="text-slate-700" />
                 </CollapsibleTrigger>

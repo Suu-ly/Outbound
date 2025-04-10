@@ -71,7 +71,7 @@ export const DayFolderSortWrapper = forwardRef<
             size="small"
             aria-label="Drag handle"
             className={cn(
-              `absolute right-1 top-2.5 shrink-0 cursor-grab touch-manipulation active:cursor-grabbing`,
+              `absolute right-0.5 top-2.5 shrink-0 cursor-grab touch-manipulation ring-offset-gray-100 active:cursor-grabbing`,
               isDragOverlay && "cursor-grabbing",
             )}
             {...handleProps}

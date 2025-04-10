@@ -58,7 +58,11 @@ export default function TripHeaderItems({ loggedIn }: { loggedIn: boolean }) {
       <ShareButton
         link={process.env.NEXT_PUBLIC_URL + basePath}
         message="Trip link copied to clipboard!"
-        className={!isDiscover ? "hidden sm:inline-flex" : undefined}
+        className={
+          !isDiscover
+            ? "hidden ring-offset-white sm:inline-flex"
+            : "ring-offset-white"
+        }
         onAction={tripDetails.private ? openDialog : undefined}
       />
       {isAdmin && (
@@ -69,7 +73,11 @@ export default function TripHeaderItems({ loggedIn }: { loggedIn: boolean }) {
             variant="ghost"
             iconOnly
             aria-label="Settings"
-            className={!isDiscover ? "hidden sm:inline-flex" : undefined}
+            className={
+              !isDiscover
+                ? "hidden ring-offset-white sm:inline-flex"
+                : undefined
+            }
           >
             <IconSettings />
           </ButtonLink>
@@ -81,7 +89,13 @@ export default function TripHeaderItems({ loggedIn }: { loggedIn: boolean }) {
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="small" variant="ghost" iconOnly aria-label="More">
+              <Button
+                size="small"
+                variant="ghost"
+                iconOnly
+                aria-label="More"
+                className="ring-offset-white"
+              >
                 <IconDotsVertical />
               </Button>
             </DropdownMenuTrigger>
@@ -146,6 +160,7 @@ export default function TripHeaderItems({ loggedIn }: { loggedIn: boolean }) {
           }
           size="small"
           prefetch={false}
+          className="ring-offset-white"
         >
           Login
         </ButtonLink>

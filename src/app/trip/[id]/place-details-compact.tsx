@@ -202,7 +202,7 @@ const PlaceDetailsCompact = memo(
           onTouchStart={(e) => {
             if (e.target instanceof HTMLTextAreaElement) e.stopPropagation();
           }}
-          className="overflow-clip rounded-xl bg-white p-2 ring-offset-gray-50 transition has-[[data-trigger=true]:focus-visible]:outline-none has-[[data-trigger=true]:focus-visible]:ring-2 has-[[data-trigger=true]:focus-visible]:ring-slate-400 has-[[data-trigger=true]:focus-visible]:ring-offset-2"
+          className="overflow-clip rounded-xl bg-white p-2 ring-offset-gray-100 transition has-[[data-trigger=true]:focus-visible]:outline-none has-[[data-trigger=true]:focus-visible]:ring-2 has-[[data-trigger=true]:focus-visible]:ring-slate-400 has-[[data-trigger=true]:focus-visible]:ring-offset-2"
         >
           <div className="flex items-start">
             <div className="relative mr-2 max-h-full w-20 shrink-0 self-stretch overflow-hidden rounded-lg bg-slate-300 xl:mr-3 xl:w-36">
@@ -261,7 +261,7 @@ const PlaceDetailsCompact = memo(
                         variant="ghost"
                         iconOnly
                         aria-label="More"
-                        className="shrink-0"
+                        className="shrink-0 ring-offset-white"
                       >
                         <IconDotsVertical />
                       </Button>

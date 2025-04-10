@@ -14,7 +14,7 @@ export default function UserAvatar() {
   return (
     <Link
       href="/account"
-      className="rounded-full ring-slate-400 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+      className="rounded-full ring-slate-400 ring-offset-white transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
     >
       <Avatar>
         <AvatarImage src={session.user.image ?? undefined} />

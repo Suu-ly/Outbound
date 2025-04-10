@@ -101,7 +101,7 @@ const PlaceDetailsSkipped = memo(
                   )}
                 </CollapsibleTrigger>
                 <ShareButton
-                  className="hidden shrink-0 xl:inline-flex"
+                  className="hidden shrink-0 ring-offset-white xl:inline-flex"
                   link={data.googleMapsLink}
                   message="Google maps link copied to clipboard!"
                 />

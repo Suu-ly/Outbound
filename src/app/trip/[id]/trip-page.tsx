@@ -176,7 +176,7 @@ const TripCalendar = ({ tripId }: { tripId: string }) => {
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          className={"mb-1 rounded-lg py-2 pr-3 has-[svg]:pl-2 [&_svg]:size-6"}
+          className="mb-1 rounded-lg py-2 pr-3 ring-offset-white has-[svg]:pl-2 [&_svg]:size-6"
         >
           <IconCalendarWeek />
           <div className="text-slate-700">
@@ -333,7 +333,9 @@ export default function TripPage({ tripId }: { tripId: string }) {
           {isAdmin && (
             <Button
               variant="ghost"
-              className={"mx-auto mb-4 flex rounded-lg px-3 py-2"}
+              className={
+                "mx-auto mb-4 flex rounded-lg px-3 py-2 ring-offset-white"
+              }
               onClick={() =>
                 setChangeTripNameDialogOpen({
                   currentName: tripData.name,
