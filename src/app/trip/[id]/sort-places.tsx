@@ -918,10 +918,10 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               {places.saved.map((place, index) => (
                 <div
                   key={place.placeInfo.placeId}
-                  className={"relative ml-5 border-l-2 border-gray-100 pl-6"}
+                  className={"relative ml-5 border-l-2 border-gray-50 pl-6"}
                 >
                   <div
-                    className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-100 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
+                    className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
                     aria-label={`Saved place ${index + 1}`}
                   >
                     {index + 1}
