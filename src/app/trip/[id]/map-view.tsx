@@ -89,7 +89,7 @@ export default function MapView({
         <GeolocateControl
           position="top-left"
           style={{
-            marginTop: "1rem",
+            marginTop: "0.5rem",
             marginLeft: "1rem",
             border: "2px solid #e2e8f0",
             boxShadow:
@@ -342,7 +342,7 @@ const useMapViewManager = () => {
         curve: 1,
         padding: {
           bottom: 128,
-          top: 72,
+          top: 96,
           left: 48,
           right: 48,
         },
