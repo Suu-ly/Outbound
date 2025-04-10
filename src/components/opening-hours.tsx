@@ -56,7 +56,7 @@ export default function OpeningHours({
           collapsible={collapsible}
           disabled={!collapsible}
           className={cn(
-            "gap-3 ring-offset-zinc-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:pointer-events-none",
+            "gap-3 ring-offset-gray-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:pointer-events-none",
             className,
           )}
         >

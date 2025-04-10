@@ -319,7 +319,7 @@ export default memo(
           className={cn(
             "relative size-full overflow-x-hidden overscroll-y-none transition-colors",
             status === "none"
-              ? "bg-zinc-50"
+              ? "bg-gray-50"
               : status === "reject"
                 ? "bg-rose-500"
                 : "bg-emerald-500",

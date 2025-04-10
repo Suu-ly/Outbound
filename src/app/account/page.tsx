@@ -55,7 +55,7 @@ export default async function AccountPage() {
             <AvatarEdit user={session.user} key={session.user.image}>
               <button
                 aria-label="Edit user avatar"
-                className="absolute z-10 flex size-full items-center justify-center bg-slate-950/70 text-slate-50 opacity-0 ring-offset-zinc-50 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100"
+                className="absolute z-10 flex size-full items-center justify-center bg-slate-950/70 text-slate-50 opacity-0 ring-offset-gray-50 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100"
               >
                 <IconEdit className="size-5" />
               </button>
@@ -78,7 +78,7 @@ export default async function AccountPage() {
           </h3>
           <div className="grow space-y-2 text-slate-700">
             <EditNameDialog currentName={session.user.name}>
-              <button className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50">
+              <button className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50">
                 <p className="w-20 shrink-0 text-sm font-medium text-slate-900">
                   Name
                 </p>
@@ -93,7 +93,7 @@ export default async function AccountPage() {
               <span className="truncate">{session.user.email}</span>
             </div>
             <EditPasswordDialog>
-              <button className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50">
+              <button className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50">
                 <p className="w-20 shrink-0 text-sm font-medium text-slate-900">
                   Password
                 </p>

@@ -446,7 +446,7 @@ const CarouselIndicatorButton = React.forwardRef<
     <motion.button
       ref={ref}
       className={cn(
-        "size-1.5 rounded-full bg-slate-900 ring-offset-zinc-50 transition duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-400",
+        "size-1.5 rounded-full bg-slate-900 ring-offset-gray-50 transition duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-400",
         className,
       )}
       aria-label={`Image ${index + 1}`}

@@ -58,7 +58,7 @@ const PlaceDetailsSkipped = memo(
       return (
         <Collapsible
           ref={ref}
-          className="overflow-clip rounded-xl bg-white p-2 ring-offset-zinc-50 transition has-[[data-trigger=true]:focus-visible]:outline-none has-[[data-trigger=true]:focus-visible]:ring-2 has-[[data-trigger=true]:focus-visible]:ring-slate-400 has-[[data-trigger=true]:focus-visible]:ring-offset-2"
+          className="overflow-clip rounded-xl bg-white p-2 ring-offset-gray-50 transition has-[[data-trigger=true]:focus-visible]:outline-none has-[[data-trigger=true]:focus-visible]:ring-2 has-[[data-trigger=true]:focus-visible]:ring-slate-400 has-[[data-trigger=true]:focus-visible]:ring-offset-2"
         >
           <div className="flex items-start">
             <div className="relative mr-2 max-h-full w-20 shrink-0 self-stretch overflow-hidden rounded-lg bg-slate-300 xl:mr-3 xl:w-36">

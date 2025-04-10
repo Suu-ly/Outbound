@@ -149,7 +149,7 @@ const PlaceDetails = memo(
               <Link
                 href={data.website}
                 target="_blank"
-                className="ring-offset-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+                className="ring-offset-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
               >
                 <IconWorld className="shrink-0" />
                 {data.website}

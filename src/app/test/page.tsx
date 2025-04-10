@@ -39,7 +39,7 @@ export default function Page() {
           <AvatarFallback>NA</AvatarFallback>
         </Avatar>
       </Header>
-      <main className="flex w-full grow flex-col items-center justify-center gap-4 bg-zinc-50 py-8">
+      <main className="flex w-full grow flex-col items-center justify-center gap-4 bg-gray-50 py-8">
         <div className="flex items-baseline gap-2">
           <Image src="/outbound.svg" width={24} height={24} alt="outbound" />
           <h1 className="font-display text-4xl font-semibold text-brand-900">

@@ -34,7 +34,7 @@ export default function RootLayout({
       lang="en"
       className={`${generalSans.variable} ${clashDisplay.variable} antialiased`}
     >
-      <body className="bg-zinc-50">
+      <body className="bg-gray-50">
         <Providers>
           {children}
           <Toaster />

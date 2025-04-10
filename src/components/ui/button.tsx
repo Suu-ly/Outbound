@@ -4,12 +4,12 @@ import { forwardRef } from "react";
 import Spinner from "./spinner";
 
 const buttonVariants = cva(
-  "relative inline-flex items-center justify-center group gap-2 whitespace-nowrap rounded-full font-medium ring-offset-zinc-50 transition active:ring-2 active:ring-offset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:text-slate-400 disabled:pointer-events-none disabled:opacity-70 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0",
+  "relative inline-flex items-center justify-center group gap-2 whitespace-nowrap rounded-full font-medium ring-offset-gray-50 transition active:ring-2 active:ring-offset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:text-slate-400 disabled:pointer-events-none disabled:opacity-70 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-brand-600 text-zinc-50 border-2 border-slate-900 active:ring-slate-300 disabled:bg-slate-200 disabled:border-slate-400",
+          "bg-brand-600 text-gray-50 border-2 border-slate-900 active:ring-slate-300 disabled:bg-slate-200 disabled:border-slate-400",
         outline:
           "border-2 border-slate-200 text-slate-700 active:ring-slate-200 hover:bg-slate-100 hover:text-slate-900",
         secondary:
@@ -89,7 +89,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
               role="presentation"
               className={cn(
                 buttonVariants({ variant, size, iconOnly, className }),
-                `clip-100 group-hover:clip-0 pointer-events-none absolute inset-0 m-0 size-auto border-0 ${primaryBgColor} text-zinc-100 transition-all duration-300 ease-snap hover:text-zinc-100`,
+                `clip-100 group-hover:clip-0 pointer-events-none absolute inset-0 m-0 size-auto border-0 ${primaryBgColor} text-gray-100 transition-all duration-300 ease-snap hover:text-gray-100`,
               )}
             >
               {children}

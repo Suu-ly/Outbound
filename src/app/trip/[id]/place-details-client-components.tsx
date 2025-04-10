@@ -162,7 +162,7 @@ const Review = ({ review }: { review: PlacesReview }) => {
         </p>
         {isOverflowing && (
           <button
-            className="-m-2 rounded-full p-2 text-xs font-medium text-brand-600 ring-offset-zinc-50 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+            className="-m-2 rounded-full p-2 text-xs font-medium text-brand-600 ring-offset-gray-50 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
             aria-expanded={expanded}
             aria-controls={review.name}
             onClick={handleOnClick}

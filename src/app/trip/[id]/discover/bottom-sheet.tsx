@@ -184,7 +184,7 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
         dragStartPos.current = e.clientY;
       }}
       className={cn(
-        "absolute bottom-16 z-10 flex h-[calc(100%+24px-64px)] w-full touch-none select-none flex-col rounded-t-2xl bg-zinc-50 pt-4",
+        "absolute bottom-16 z-10 flex h-[calc(100%+24px-64px)] w-full touch-none select-none flex-col rounded-t-2xl bg-gray-50 pt-4",
         className,
       )}
       {...rest}
@@ -193,7 +193,7 @@ const BottomSheet = ({ children, className, ...rest }: BottomSheetProps) => {
         className="w-full touch-none"
         onPointerDown={(e) => drawerControls.start(e)}
       >
-        <div className="mx-auto h-2 w-10 cursor-grab rounded-full bg-zinc-200"></div>
+        <div className="mx-auto h-2 w-10 cursor-grab rounded-full bg-gray-200"></div>
       </div>
       <div className="relative h-full">{children}</div>
     </motion.div>

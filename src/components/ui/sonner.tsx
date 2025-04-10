@@ -25,7 +25,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           toast:
             "border-slate-200 text-slate-700 bg-white shadow-lg rounded-lg p-4 group border-2",
           actionButton:
-            "bg-slate-700 text-zinc-50 hover:bg-slate-700/90 font-sans text-xs",
+            "bg-slate-700 text-gray-50 hover:bg-slate-700/90 font-sans text-xs",
           cancelButton: "hover:bg-slate-100 text-slate-700 font-sans text-xs",
           error: "!bg-rose-50 !border-rose-200 !text-red-700",
           success: "!bg-emerald-50 !border-emerald-200 !text-green-700",

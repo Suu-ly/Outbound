@@ -83,7 +83,7 @@ const DayStartTime = () => {
     >
       <SettingsItem
         title="Default day start time"
-        className="cursor-pointer transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50"
+        className="cursor-pointer transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -133,7 +133,7 @@ const DayEndTime = () => {
     >
       <SettingsItem
         title="Default day end time"
-        className="cursor-pointer transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-50"
+        className="cursor-pointer transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-50"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {

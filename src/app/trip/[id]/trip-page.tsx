@@ -257,10 +257,10 @@ const NonAdminView = () => {
       {places.saved.map((place, index) => (
         <div
           key={place.placeInfo.placeId}
-          className={"relative ml-5 border-l-2 border-zinc-50 pl-6"}
+          className={"relative ml-5 border-l-2 border-gray-50 pl-6"}
         >
           <div
-            className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 bg-amber-300 text-sm font-medium text-amber-900`}
+            className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-50 bg-amber-300 text-sm font-medium text-amber-900`}
             aria-label={`Saved place ${index + 1}`}
           >
             {index + 1}
@@ -281,7 +281,7 @@ const NonAdminView = () => {
                 className="relative ml-5 border-l-2 border-slate-700 pb-2 pl-6 last:border-transparent last:pb-0"
               >
                 <div
-                  className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-zinc-50 text-sm font-medium ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`}
+                  className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-50 text-sm font-medium ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`}
                   aria-label={`Saved place on day ${dayIndex + 1} ${index + 1}`}
                 >
                   {index + 1}
