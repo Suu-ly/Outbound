@@ -28,6 +28,7 @@ import {
   ApiResponse,
   DayData,
   InitialQuery,
+  LngLat,
   PlaceData,
   PlaceDataEntry,
 } from "./types";
@@ -850,9 +851,69 @@ export async function updatePassword(
 //                  Generate itinerary functions
 // -------------------------------------------------------------------------
 
+type MapboxResponse =
+  | {
+      message: "Not Found";
+    }
+  | {
+      message: "Not Authorized - Invalid Token";
+    }
+  | {
+      message: "Not Authorized - Invalid Token";
+      error_detail: "No valid token prefix found in access_token parameter";
+    }
+  | { message: "Forbidden" }
+  | { message: string; code: "InvalidInput" }
+  | {
+      code: "NoSegment";
+      message: string;
+      routes: [];
+    }
+  | { code: "NoRoute"; message: string; routes: [] }
+  | {
+      code: "Ok";
+      durations: number[][];
+      destinations: {
+        name: string;
+        location: LngLat;
+        distance: number;
+      }[];
+
+      sources: {
+        name: string;
+        location: LngLat;
+        distance: number;
+      }[];
+    };
+
 // Generate Haversine distance matrix of the points in km
 const generateDistanceMatrix = async (data: PlaceDataEntry[]) => {
   const length = data.length;
+  if (length <= 25) {
+    const matrix = await fetch(
+      `https://api.mapbox.com/directions-matrix/v1/mapbox/driving/${data.map((placeEntry) => `${placeEntry.placeInfo.location.longitude},${placeEntry.placeInfo.location.latitude}`).join(";")}?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          referer: (await headers()).get("referer") || "",
+        },
+      },
+    )
+      .then((response) => response.json())
+      .then((data) => data as MapboxResponse);
+
+    if ("code" in matrix && matrix.code === "Ok") {
+      const distanceMatrix = matrix.durations; // We use duration instead of distance as we want to minimise travel time
+      // Value will be null if there are no routes
+      for (let i = 0; i < distanceMatrix.length; i++) {
+        for (let j = 0; j < distanceMatrix[i].length; j++) {
+          if (distanceMatrix[i][j] === null) distanceMatrix[i][j] = Infinity;
+        }
+      }
+      return distanceMatrix;
+    }
+  }
   const distanceMatrix = Array.from(
     { length: length },
     () => new Array(length),
@@ -939,23 +1000,23 @@ async function TSP(data: PlaceDataEntry[]) {
   for (let i = 1; i < data.length; i++) {
     let indexInRemaining = 0;
     let indexInPath = 0;
-    let maxDistance = 20000;
+    let minDistance = Infinity;
     let maximalDistanceToTour = -1;
 
     for (let j = i; j < data.length; j++) {
-      maxDistance = 20000;
+      minDistance = Infinity;
 
       for (let k = 0; k < tour.length; k++) {
         const currentDistance = distances[tour[k]][remaining[j]];
         // find minimal distance from j to a point in the subtour
-        if (currentDistance < maxDistance) {
-          maxDistance = currentDistance;
+        if (currentDistance < minDistance) {
+          minDistance = currentDistance;
         }
       }
       // for farthest insertion store the point whose minimal distance to the tour is maximal
-      if (maxDistance > maximalDistanceToTour) {
-        if (maxDistance > maximalDistanceToTour) {
-          maximalDistanceToTour = maxDistance;
+      if (minDistance > maximalDistanceToTour) {
+        if (minDistance > maximalDistanceToTour) {
+          maximalDistanceToTour = minDistance;
           indexInRemaining = j;
         }
       }
@@ -964,7 +1025,7 @@ async function TSP(data: PlaceDataEntry[]) {
     remaining = swap(remaining, indexInRemaining, i);
 
     // look for the edge in the subtour where insertion would be least costly
-    let smallestDetour = 20000;
+    let smallestDetour = Infinity;
     for (let k = 0; k < tour.length - 1; k++) {
       const currentDetour = detour(
         tour[k],
