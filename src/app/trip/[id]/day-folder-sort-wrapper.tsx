@@ -60,9 +60,8 @@ export const DayFolderSortWrapper = forwardRef<
       >
         <div
           className={cn(
-            "relative rounded-xl ring-0 ring-brand-400 ring-offset-0 ring-offset-gray-50 transition",
-
-            hover && "ring-2 ring-offset-8",
+            "relative transition-opacity",
+            hover && "[&>div]:bg-gray-200 [&>div]:ring-2",
             isDragging && "opacity-50",
           )}
         >
@@ -72,7 +71,7 @@ export const DayFolderSortWrapper = forwardRef<
             size="small"
             aria-label="Drag handle"
             className={cn(
-              `absolute right-1 top-1.5 shrink-0 cursor-grab touch-manipulation active:cursor-grabbing`,
+              `absolute right-1 top-2.5 shrink-0 cursor-grab touch-manipulation active:cursor-grabbing`,
               isDragOverlay && "cursor-grabbing",
             )}
             {...handleProps}

@@ -78,11 +78,11 @@ const DayFolder = memo(
           ref={ref}
           open={isOpen !== undefined ? isOpen : open}
           onOpenChange={!!onOpenChange ? onOpenChange : setOpen}
-          className="-mx-4"
+          className="-mx-2 rounded-2xl bg-gray-100 px-2 py-1 ring-brand-400 transition"
         >
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <div className="mx-4 flex items-center gap-1 rounded-lg bg-white p-2 pr-1">
+              <div className="flex items-center gap-1 rounded-lg p-2">
                 <CollapsibleTrigger
                   aria-label="Show or hide places in this day"
                   className="-m-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full ring-offset-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 data-[state=open]:rotate-90"
@@ -93,7 +93,10 @@ const DayFolder = memo(
                   <span>
                     <DateHydration date={date} />
                   </span>
-                  <Separator orientation="vertical" className="h-auto" />
+                  <Separator
+                    orientation="vertical"
+                    className="h-auto bg-gray-300"
+                  />
                   <span>
                     <DateHydration date={date} weekday />
                   </span>
@@ -120,7 +123,7 @@ const DayFolder = memo(
           </ContextMenu>
           <CollapsibleContent
             className={
-              "overflow-hidden data-[state=closed]:animate-minimise data-[state=open]:animate-expand"
+              "-mx-1 overflow-hidden px-1 pb-1 data-[state=closed]:animate-minimise data-[state=open]:animate-expand" // Negative margins so textfield active ring is not clipped
             }
             style={
               {
@@ -129,7 +132,7 @@ const DayFolder = memo(
               } as CSSProperties
             }
           >
-            <div className="my-4 px-4">
+            <div className="mt-4">
               {children}
               {isAdmin &&
                 dayId !== undefined &&
