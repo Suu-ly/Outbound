@@ -3,6 +3,7 @@
 import TabDisable from "@/components/tab-disable";
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
+import Spinner from "@/components/ui/spinner";
 import { useMediaQuery } from "@/lib/use-media-query";
 import {
   defaultTripPlaceUserInfo,
@@ -11,7 +12,7 @@ import {
 } from "@/lib/utils";
 import { setPlaceAsInterested, setPlaceAsUninterested } from "@/server/actions";
 import { TripPlaceDetails } from "@/server/types";
-import { IconHeart, IconX } from "@tabler/icons-react";
+import { IconHeart, IconWorldX, IconX } from "@tabler/icons-react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   HTMLMotionProps,
@@ -33,16 +34,36 @@ import {
   activePlaceIndexAtom,
   discoverPlacesAtom,
   drawerDragProgressAtom,
+  drawerMinimisedAtom,
   mapUndecidedActiveMarkerAtom,
   savedPlacesAmountAtom,
   tripPlacesAtom,
 } from "../../atoms";
 import BottomSheet from "./bottom-sheet";
+import useDiscoverManager from "./discover-manager";
 import Card from "./swipe-card";
 
 type MagnetProps = HTMLMotionProps<"div"> & {
   x: MotionValue;
   y: MotionValue;
+};
+
+const LoadingPlaces = () => {
+  return (
+    <div className="flex size-full flex-col items-center justify-center gap-6 text-center text-slate-700">
+      <Spinner className="size-10" />
+      Please wait while we find some interesting attractions for you!
+    </div>
+  );
+};
+
+const ExhaustedPlaces = () => {
+  return (
+    <div className="flex size-full flex-col items-center justify-center gap-4 text-center text-slate-700">
+      <IconWorldX className="size-10 rotate-6 text-slate-500" />
+      There are no more places to show!
+    </div>
+  );
 };
 
 const Magnet = forwardRef<HTMLDivElement, MagnetProps>(
@@ -67,13 +88,14 @@ export default function SwipeManager({ tripId }: { tripId: string }) {
     triggerAccept: () => void;
     triggerReject: () => void;
   }>(null);
-
+  const [isFetching, isExhuasted] = useDiscoverManager(tripId);
   const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
   const setTripPlaces = useSetAtom(tripPlacesAtom);
   const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
 
   const drawerProgress = useAtomValue(drawerDragProgressAtom);
   const buttonsY = useTransform(() => 100 - drawerProgress?.get() * 100);
+  const minimised = useAtomValue(drawerMinimisedAtom);
 
   const [activePlaceIndex, setActivePlaceIndex] = useAtom(activePlaceIndexAtom);
   const setUndecidedActiveMapMarker = useSetAtom(mapUndecidedActiveMarkerAtom);
@@ -202,7 +224,9 @@ export default function SwipeManager({ tripId }: { tripId: string }) {
             />
           );
         })}
-        <div className="fixed bottom-0 left-0 z-50 flex w-full items-center justify-center gap-6 p-4 sm:w-1/2 xl:w-1/3">
+        <div
+          className={`fixed bottom-0 left-0 z-50 flex w-full items-center justify-center gap-6 p-4 transition-transform sm:w-1/2 xl:w-1/3 ${discoverLocations.length === 0 ? "translate-y-full" : ""}`}
+        >
           <Button
             className="border-red-400 bg-white text-rose-500 shadow-md active:ring-red-400"
             primaryBgColor="bg-rose-700"
@@ -232,6 +256,8 @@ export default function SwipeManager({ tripId }: { tripId: string }) {
             <ButtonLink href={path.substring(0, 18)}>Plan Trip</ButtonLink>
           </div>
         </Magnet>
+        {isFetching && <LoadingPlaces />}
+        {isExhuasted && <ExhaustedPlaces />}
       </main>
     );
 
@@ -256,32 +282,38 @@ export default function SwipeManager({ tripId }: { tripId: string }) {
             />
           );
         })}
+        {isFetching && <LoadingPlaces />}
+        {isExhuasted && <ExhaustedPlaces />}
       </BottomSheet>
-      <TabDisable>
+      <TabDisable active={!minimised}>
         <motion.div
-          className="pointer-events-none fixed bottom-16 left-0 z-50 flex w-full items-center justify-center gap-6 p-4 sm:w-1/2 xl:w-1/3"
+          className="pointer-events-none fixed inset-x-0 bottom-16 z-50"
           style={{ y: buttonsY }}
         >
-          <Button
-            className="pointer-events-auto border-red-400 bg-white text-rose-500 shadow-md active:ring-red-400"
-            primaryBgColor="bg-rose-700"
-            iconOnly
-            onClick={handleRejectClick}
-            size="large"
-            aria-label="Not interested"
+          <div
+            className={`flex w-full items-center justify-center gap-6 p-4 transition-transform sm:w-1/2 xl:w-1/3 ${discoverLocations.length === 0 ? "translate-y-full" : ""}`}
           >
-            <IconX />
-          </Button>
-          <Button
-            className="pointer-events-auto border-green-400 bg-white text-emerald-500 shadow-md active:ring-green-400"
-            primaryBgColor="bg-emerald-700"
-            iconOnly
-            onClick={handleAcceptClick}
-            size="large"
-            aria-label="Interested"
-          >
-            <IconHeart />
-          </Button>
+            <Button
+              className="pointer-events-auto border-red-400 bg-white text-rose-500 shadow-md active:ring-red-400"
+              primaryBgColor="bg-rose-700"
+              iconOnly
+              onClick={handleRejectClick}
+              size="large"
+              aria-label="Not interested"
+            >
+              <IconX />
+            </Button>
+            <Button
+              className="pointer-events-auto border-green-400 bg-white text-emerald-500 shadow-md active:ring-green-400"
+              primaryBgColor="bg-emerald-700"
+              iconOnly
+              onClick={handleAcceptClick}
+              size="large"
+              aria-label="Interested"
+            >
+              <IconHeart />
+            </Button>
+          </div>
         </motion.div>
       </TabDisable>
       <div className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-between gap-3 border-t-2 border-slate-200 bg-white px-4 py-2">

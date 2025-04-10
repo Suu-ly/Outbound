@@ -6,7 +6,6 @@ import { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { MapLegendPanel } from "../map-view";
-import DiscoverManager from "./discover-manager";
 import MissingImageManager from "./missing-image-manager";
 import SwipeManager from "./swipe-manager";
 
@@ -58,7 +57,6 @@ export default async function TripSwipePage({
       <div className="sm:hidden">
         <MapLegendPanel />
       </div>
-      <DiscoverManager tripId={tripId} />
       <MissingImageManager />
       <SwipeManager tripId={tripId} />
     </>

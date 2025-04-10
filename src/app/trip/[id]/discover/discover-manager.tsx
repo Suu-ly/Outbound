@@ -19,10 +19,11 @@ type QueryValue = {
   currentSearchIndex: number;
   nextPageToken: string[] | null;
 };
-export default function DiscoverManager({ tripId }: { tripId: string }) {
+export default function useDiscoverManager(tripId: string): [boolean, boolean] {
   const [tripWindows, setTripWindows] = useAtom(tripWindowsAtom);
   const [discoverLocations, setDiscoverLocations] = useAtom(discoverPlacesAtom);
   const activePlaceIndex = useAtomValue(activePlaceIndexAtom);
+  const [exhausted, setExhausted] = useState(false);
 
   const [queryValue, setQueryValue] = useState<QueryValue>({
     query: "",
@@ -142,14 +143,18 @@ export default function DiscoverManager({ tripId }: { tripId: string }) {
           queryUrl.append("bounds", searchBounds[i][j].toString());
         }
       }
-      setQueryValue({
-        query: queryUrl.toString(),
-        currentSearchIndex: tripWindows.currentSearchIndex,
-        nextPageToken: tripWindows.nextPageToken,
-      });
+      if (queryValue.query !== queryUrl.toString()) {
+        setQueryValue({
+          query: queryUrl.toString(),
+          currentSearchIndex: tripWindows.currentSearchIndex,
+          nextPageToken: tripWindows.nextPageToken,
+        });
+      } else {
+        // If query has not changed, means nothing else to search for
+        setExhausted(true);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePlaceIndex, discoverLocations.length, isFetching]);
-
-  return null;
+  return [isFetching, exhausted];
 }

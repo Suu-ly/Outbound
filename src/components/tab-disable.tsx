@@ -1,29 +1,21 @@
-import { composeRefs } from "@radix-ui/react-compose-refs";
-import { useAtomValue } from "jotai";
-import {
-  ComponentProps,
-  forwardRef,
-  ReactNode,
-  useEffect,
-  useRef,
-} from "react";
-import { drawerMinimisedAtom } from "../app/trip/atoms";
+"use client";
 
-const TabDisable = forwardRef<
-  HTMLDivElement,
-  {
-    children: ReactNode;
-    active?: boolean;
-  } & ComponentProps<"div">
->(({ children, className, active = true, ...rest }, ref) => {
+import { ComponentProps, ReactNode, useEffect, useRef } from "react";
+
+const TabDisable = ({
+  children,
+  className,
+  active = true,
+  ...rest
+}: {
+  children: ReactNode;
+  active?: boolean;
+} & ComponentProps<"div">) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const minimised = useAtomValue(drawerMinimisedAtom);
-
   useEffect(() => {
-    if (active && !minimised) return;
+    if (active) return;
     if (!containerRef.current) return;
-
     // List of focusable elements
     const focusableSelector = [
       "button",
@@ -31,33 +23,50 @@ const TabDisable = forwardRef<
       "input",
       "select",
       "textarea",
+      '[tabindex="0"]',
     ].join(", ");
 
     const focusableElements =
       containerRef.current.querySelectorAll(focusableSelector);
-    const affectedElements: Element[] = [];
+    const affectedElements: { element: Element; original: string | null }[] =
+      [];
 
     for (let i = 0; i < focusableElements.length; i++) {
       if (focusableElements[i].getAttribute("tabindex") !== "-1") {
+        affectedElements.push({
+          element: focusableElements[i],
+          original: focusableElements[i].getAttribute("tabindex"),
+        });
         focusableElements[i].setAttribute("tabindex", "-1");
-        affectedElements.push(focusableElements[i]);
       }
     }
 
     // Cleanup: Restore original tabIndex values
     return () => {
       for (let i = 0; i < affectedElements.length; i++) {
-        affectedElements[i].removeAttribute("tabindex");
+        if (affectedElements[i].original) {
+          affectedElements[i].element.setAttribute(
+            "tabindex",
+            affectedElements[i].original!,
+          );
+        } else {
+          affectedElements[i].element.removeAttribute("tabindex");
+        }
       }
     };
-  }, [active, minimised]);
+  }, [active]);
 
   return (
-    <div className={className} ref={composeRefs(containerRef, ref)} {...rest}>
+    <div
+      className={className}
+      ref={containerRef}
+      {...rest}
+      inert={!active ? true : undefined}
+    >
       {children}
     </div>
   );
-});
+};
 
 TabDisable.displayName = "TabDisable";
 

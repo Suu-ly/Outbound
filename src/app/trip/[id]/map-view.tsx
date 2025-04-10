@@ -173,6 +173,7 @@ const PlaceMarker = ({
             href={elementId ? `#${elementId}` : "#"}
             aria-label={name + " map marker"}
             replace
+            tabIndex={-1}
             className={`flex size-6 items-center justify-center rounded-full border-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${colours} ${activePlace === placeId ? "scale-150 shadow-md" : ""}`}
           >
             <span

@@ -354,7 +354,7 @@ export default memo(
             )}
           ></div>
           <div className="pb-20 pt-2 sm:pb-20">
-            <TabDisable active={active}>
+            <TabDisable active={active && !minimised}>
               <motion.div
                 style={
                   mobile
