@@ -883,81 +883,81 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       }}
       onDragCancel={onDragCancel}
     >
-      <div className="flex flex-col gap-6">
-        <SortableContext
-          items={[SAVED_ID, ...days.map((day) => day.dayId)]}
-          strategy={verticalListSortingStrategy}
+      <SortableContext
+        items={[SAVED_ID, ...days.map((day) => day.dayId)]}
+        strategy={verticalListSortingStrategy}
+      >
+        <div className="flex justify-between gap-3">
+          <h3 className="font-display text-2xl font-medium">Saved Places</h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <ButtonLink
+                href={`/trip/${tripId}/discover`}
+                size="small"
+                variant="secondary"
+                iconOnly
+                aria-label="Discover places"
+              >
+                <IconMapPinSearch />
+              </ButtonLink>
+            </TooltipTrigger>
+            <TooltipContent>Discover places</TooltipContent>
+          </Tooltip>
+        </div>
+        <DroppableContainer
+          id={SAVED_ID}
+          disabled={isSortingContainer}
+          items={places.saved.map((place) => place.placeInfo.placeId!)}
+          day={false}
         >
-          <div className="flex justify-between gap-3">
-            <h3 className="font-display text-2xl font-medium">Saved Places</h3>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <ButtonLink
-                  href={`/trip/${tripId}/discover`}
-                  size="small"
-                  variant="secondary"
-                  iconOnly
-                  aria-label="Discover places"
-                >
-                  <IconMapPinSearch />
-                </ButtonLink>
-              </TooltipTrigger>
-              <TooltipContent>Discover places</TooltipContent>
-            </Tooltip>
-          </div>
-          <DroppableContainer
-            id={SAVED_ID}
-            disabled={isSortingContainer}
+          <SortableContext
             items={places.saved.map((place) => place.placeInfo.placeId!)}
-            day={false}
+            strategy={verticalListSortingStrategy}
           >
-            <SortableContext
-              items={places.saved.map((place) => place.placeInfo.placeId!)}
-              strategy={verticalListSortingStrategy}
-            >
-              {places.saved.map((place, index) => (
+            {places.saved.map((place, index) => (
+              <div
+                key={place.placeInfo.placeId}
+                className={"relative ml-5 border-l-2 border-gray-50 pl-6"}
+              >
                 <div
-                  key={place.placeInfo.placeId}
-                  className={"relative ml-5 border-l-2 border-gray-50 pl-6"}
+                  className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
+                  aria-label={`Saved place ${index + 1}`}
                 >
-                  <div
-                    className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
-                    aria-label={`Saved place ${index + 1}`}
-                  >
-                    {index + 1}
-                  </div>
-                  <SortableItem
-                    data={place}
-                    disabled={isSortingContainer}
-                    id={place.placeInfo.placeId!}
-                    elementId={getElementId("saved", index)}
-                    onRemove={onRemove}
-                    handleMove={handleMove}
-                    handleNoteChange={handleNoteChange}
-                    handleDurationChange={handleDurationChange}
-                  />
+                  {index + 1}
                 </div>
-              ))}
-            </SortableContext>
-          </DroppableContainer>
-          <div className="flex justify-between gap-3">
-            <h3 className="font-display text-2xl font-medium">Itinerary</h3>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="small"
-                  variant="secondary"
-                  iconOnly
-                  aria-label="Generate itinerary"
-                  disabled={isGenerating}
-                  onClick={handleGenerateItinerary}
-                >
-                  {isGenerating ? <Spinner /> : <IconWand />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Generate itinerary</TooltipContent>
-            </Tooltip>
-          </div>
+                <SortableItem
+                  data={place}
+                  disabled={isSortingContainer}
+                  id={place.placeInfo.placeId!}
+                  elementId={getElementId("saved", index)}
+                  onRemove={onRemove}
+                  handleMove={handleMove}
+                  handleNoteChange={handleNoteChange}
+                  handleDurationChange={handleDurationChange}
+                />
+              </div>
+            ))}
+          </SortableContext>
+        </DroppableContainer>
+        <div className="mt-4 flex justify-between gap-3">
+          <h3 className="font-display text-2xl font-medium">Itinerary</h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="small"
+                variant="secondary"
+                iconOnly
+                aria-label="Generate itinerary"
+                disabled={isGenerating}
+                onClick={handleGenerateItinerary}
+              >
+                {isGenerating ? <Spinner /> : <IconWand />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Generate itinerary</TooltipContent>
+          </Tooltip>
+        </div>
+        <div className="flex flex-col gap-6">
           {days.map((day, dayIndex) => (
             <DroppableContainer
               day
@@ -1034,8 +1034,8 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
               ))}
             </DroppableContainer>
           ))}
-        </SortableContext>
-      </div>
+        </div>
+      </SortableContext>
       <Portal>
         <DragOverlay dropAnimation={dropAnimation} zIndex={50}>
           {activeId ? (
