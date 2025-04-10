@@ -97,6 +97,7 @@ const SelectContent = React.forwardRef<
       position = "popper",
       align = "center",
       sideOffset = 4,
+      collisionPadding = 8,
       ...props
     },
     ref,
@@ -113,6 +114,7 @@ const SelectContent = React.forwardRef<
         position={position}
         align={align}
         sideOffset={sideOffset}
+        collisionPadding={collisionPadding}
         {...props}
       >
         <SelectScrollUpButton />
