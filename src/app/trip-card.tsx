@@ -36,15 +36,15 @@ export default function TripCard({
   const setDeleteTripDialogOpen = useSetAtom(deleteTripDialogOpenAtom);
 
   return (
-    <div className="group relative space-y-2 rounded-2xl border-2 border-slate-200 bg-white p-3 ring-0 ring-slate-200 transition hover:ring-2 has-[a:active]:ring-slate-400">
-      <div className="relative aspect-[5/4] overflow-hidden rounded-lg">
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl ring-0 ring-slate-200 transition hover:ring-2 has-[a:active]:ring-slate-400">
+      <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={trip.coverImgSmall}
           alt={trip.name}
           className="absolute size-full object-cover transition-transform duration-500 group-hover:scale-[102%]"
         />
       </div>
-      <div className="flex gap-1">
+      <div className="flex grow gap-1 bg-white p-3 pt-2">
         <div className="flex grow flex-col">
           <Link href={`/trip/${trip.tripId}`}>
             <span className="absolute inset-0" role="presentation"></span>

@@ -110,7 +110,6 @@ const EditTripNameDialog = ({
               else setError("");
             }}
             disabled={isLoading}
-            autoFocus
           />
           <span className="mt-2 block text-center text-sm font-medium text-red-500">
             {error}

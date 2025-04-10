@@ -329,7 +329,7 @@ export default function TripPage({ tripId }: { tripId: string }) {
   return (
     <ViewMapToggle>
       <div className="relative aspect-square w-full">
-        <div className="absolute inset-x-4 bottom-4 z-10 rounded-2xl border-2 border-slate-200 bg-white p-4 text-center shadow-md">
+        <div className="absolute inset-x-4 bottom-4 z-10 rounded-2xl bg-white p-4 text-center shadow-md">
           {isAdmin && (
             <Button
               variant="ghost"
