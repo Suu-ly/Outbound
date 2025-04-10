@@ -484,6 +484,7 @@ export const MapLegendPanel = () => {
           iconOnly
           aria-label="Close map legend panel"
           onClick={() => setExpanded(false)}
+          className="ring-offset-white"
           ref={expanded ? buttonRef : undefined}
         >
           <IconX />
