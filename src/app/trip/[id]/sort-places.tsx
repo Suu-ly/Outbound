@@ -392,7 +392,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     Record<keyof typeof places, string[]>
   >({});
   const [isGenerating, startGeneration] = useTransition();
-
+  const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<Active | null>(null);
   const isSortingContainer = activeId?.data.current?.type === "container";
   const setIsDragging = useSetAtom(isDraggingAtom);
@@ -639,6 +639,15 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   );
 
   const handleGenerateItinerary = useCallback(async () => {
+    if (
+      !regenerateDialogOpen &&
+      Object.entries(places).some(
+        ([key, places]) => key !== "saved" && places.length,
+      )
+    ) {
+      setRegenerateDialogOpen(true);
+      return;
+    }
     startGeneration(async () => {
       const res = await generateItinerary(tripId);
       if (res.status === "error") toast.error(res.message);
@@ -646,9 +655,10 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         toast.success("Itinerary generated successfully!");
         setDays(res.data.days);
         setPlaces(res.data.places);
+        setRegenerateDialogOpen(false);
       }
     });
-  }, [setDays, setPlaces, tripId]);
+  }, [setDays, setPlaces, tripId, places, regenerateDialogOpen]);
 
   return (
     <DndContext
@@ -1058,6 +1068,16 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
             );
           else setToBeRemoved(undefined);
         }}
+        destructive
+      />
+      <DrawerDialog
+        open={regenerateDialogOpen}
+        loading={isGenerating}
+        onOpenChange={setRegenerateDialogOpen}
+        header="Regenerate Itinerary?"
+        description="This action will override your existing itinerary and all days will be reset to the trip's default day start time."
+        mainActionLabel="Regenerate"
+        onMainAction={handleGenerateItinerary}
         destructive
       />
       <TimePicker
