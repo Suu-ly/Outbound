@@ -1554,6 +1554,11 @@ export async function generateItinerary(
     updatePlaceOrderSQL,
     sql.raw(" "),
   );
+  // Make sure placesToReturn contains an empty array for empty days
+  for (let i = 0; i < data.days.length; i++) {
+    if (!placesToReturn[data.days[i].dayId])
+      placesToReturn[data.days[i].dayId] = [];
+  }
 
   try {
     await Promise.all([
