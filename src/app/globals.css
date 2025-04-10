@@ -18,6 +18,17 @@
   :root {
     --radius: 0.5rem;
   }
+  * {
+    scrollbar-color: #9ca3af #f9fafb;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #f9fafb;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #9ca3af;
+  }
 }
 
 @layer utilities {
