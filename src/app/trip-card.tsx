@@ -46,7 +46,7 @@ export default function TripCard({
       </div>
       <div className="flex grow gap-1 bg-white p-3 pt-2">
         <div className="flex grow flex-col">
-          <Link href={`/trip/${trip.tripId}`}>
+          <Link href={`/trip/${trip.tripId}`} prefetch={false}>
             <span className="absolute inset-0" role="presentation"></span>
             <h4 className="line-clamp-2 grow font-display text-2xl font-medium text-slate-900">
               {trip.name}
