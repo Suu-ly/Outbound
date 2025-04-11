@@ -317,7 +317,7 @@ const PlaceDetailsCompact = memo(
                                 <DateHydration date={moveDate} />
                                 <Separator
                                   orientation="vertical"
-                                  className="h-auto self-stretch"
+                                  className="h-4"
                                 />
                                 <DateHydration date={moveDate} weekday />
                               </DropdownMenuItem>

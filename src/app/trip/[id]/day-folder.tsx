@@ -89,13 +89,13 @@ const DayFolder = memo(
                 >
                   <IconChevronRight className="text-slate-700" />
                 </CollapsibleTrigger>
-                <div className="flex w-full gap-4 font-display text-lg font-medium text-slate-900">
+                <div className="flex w-full items-center gap-4 font-display text-lg font-medium text-slate-900">
                   <span>
                     <DateHydration date={date} />
                   </span>
                   <Separator
                     orientation="vertical"
-                    className="h-auto bg-gray-300"
+                    className="h-4 bg-gray-300"
                   />
                   <span>
                     <DateHydration date={date} weekday />
