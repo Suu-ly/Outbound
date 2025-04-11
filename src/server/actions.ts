@@ -7,7 +7,7 @@ import { differenceInCalendarDays } from "date-fns";
 import { and, asc, eq, inArray, isNull, or, SQL, sql } from "drizzle-orm";
 import { customAlphabet, nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { type DateRange } from "react-day-picker";
 import { auth } from "./auth";
@@ -36,6 +36,10 @@ import {
 const ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const ID_LENGTH = 12;
 const MAX_RETRIES = 20;
+
+async function refresh() {
+  (await cookies()).set("revalidate", Date.now().toString());
+}
 
 async function authenticate() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -156,6 +160,7 @@ export async function setPlaceAsUninterested(
           eq(trip.userId, session.user.id),
         ),
       );
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -195,6 +200,7 @@ export async function setPlaceAsInterested(
           eq(trip.userId, session.user.id),
         ),
       );
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -231,6 +237,7 @@ export async function updateTripPlaceOrder(
           eq(trip.userId, session.user.id),
         ),
       );
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -278,6 +285,7 @@ export async function moveTripPlace(
           eq(trip.userId, session.user.id),
         ),
       );
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -312,6 +320,7 @@ export async function updateTripPlaceNote(
           eq(trip.userId, session.user.id),
         ),
       );
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -346,6 +355,7 @@ export async function updateTripDayOrder(
           eq(trip.userId, session.user.id),
         ),
       );
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -394,7 +404,7 @@ export async function addTripDays(
       }
       return 0;
     });
-
+    await refresh();
     return {
       status: "success",
       data: result,
@@ -458,6 +468,7 @@ export async function deleteTripDays(
         `);
       await tx.delete(tripDay).where(inArray(tripDay.id, deleteDays));
     });
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -483,6 +494,7 @@ export async function updateTripDates(
       .update(trip)
       .set({ startDate: startDate, endDate: endDate })
       .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -518,6 +530,7 @@ export async function updatePreferredTravelMode(
           eq(trip.userId, session.user.id),
         ),
       );
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -553,6 +566,7 @@ export async function updateTripTimeSpent(
           eq(trip.userId, session.user.id),
         ),
       );
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -585,6 +599,7 @@ export async function updateDayStartTime(
           eq(trip.userId, session.user.id),
         ),
       );
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -610,6 +625,7 @@ export async function updateTripStartTime(
         startTime: newTime,
       })
       .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -634,6 +650,7 @@ export async function updateTripEndTime(
         endTime: newTime,
       })
       .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -658,6 +675,7 @@ export async function updateTripRoundUpTime(
         roundUpTime: roundUpTime,
       })
       .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -682,7 +700,7 @@ export async function updateTripPrivacy(
         private: privacy,
       })
       .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
-    revalidatePath("/");
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -707,7 +725,7 @@ export async function updateTripName(
         name: newName,
       })
       .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
-    revalidatePath("/");
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -727,6 +745,7 @@ export async function deleteTrip(tripId: string): Promise<ApiResponse<true>> {
     await db
       .delete(trip)
       .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
+    await refresh();
     return {
       status: "success",
       data: true,
@@ -1573,6 +1592,7 @@ export async function generateItinerary(
         .set({ startTime: "auto" })
         .where(eq(tripDay.tripId, tripId)),
     ]);
+    await refresh();
     return {
       status: "success",
       data: {
