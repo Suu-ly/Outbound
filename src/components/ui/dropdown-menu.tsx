@@ -31,14 +31,14 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      "flex cursor-default select-none items-center gap-2 rounded px-2 py-1.5 text-sm outline-none focus:bg-slate-100 focus:text-slate-900 data-[state=open]:bg-slate-100 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:focus:text-slate-700",
+      "flex cursor-default select-none items-center gap-2 rounded px-2 py-1.5 text-sm text-slate-700 outline-none focus:bg-slate-100 focus:text-slate-900 data-[state=open]:bg-slate-100 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:text-slate-600 [&_svg]:focus:text-slate-700",
       inset && "pl-8",
       className,
     )}
     {...props}
   >
     {children}
-    <IconChevronRight className="ml-auto" />
+    <IconChevronRight className="ml-auto !size-4" />
   </DropdownMenuPrimitive.SubTrigger>
 ));
 DropdownMenuSubTrigger.displayName =
@@ -90,7 +90,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center gap-2 rounded p-1.5 text-sm outline-none transition-colors focus:bg-slate-100 focus:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-70 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:text-slate-600 [&_svg]:focus:text-slate-700",
+      "relative flex cursor-default select-none items-center gap-2 rounded p-1.5 text-sm text-slate-700 outline-none transition-colors focus:bg-slate-100 focus:text-slate-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-70 [&_svg]:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:text-slate-600 [&_svg]:focus:text-slate-700",
       inset && "pl-8",
       className,
     )}
