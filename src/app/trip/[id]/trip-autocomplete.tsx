@@ -171,8 +171,8 @@ export default function TripAutocomplete({
         listItems: places.saved,
         listElement: (data, originalIndex) => (
           <div className="flex items-center gap-3">
-            <div className="flex size-6 items-center justify-center rounded-full border border-amber-300 text-xs text-amber-600">
-              {originalIndex}
+            <div className="flex size-6 items-center justify-center rounded-full bg-amber-300 text-xs font-medium leading-6 text-amber-900">
+              {originalIndex + 1}
             </div>
             <div>
               <div
