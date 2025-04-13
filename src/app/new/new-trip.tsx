@@ -52,7 +52,7 @@ export default function NewTrip() {
     return data.data;
   };
 
-  const { data: autocomplete } = useQuery({
+  const { isFetching: autocompleteFetching, data: autocomplete } = useQuery({
     queryKey: ["autocomplete", debouncedValue],
     queryFn: () => getAutocompleteData(debouncedValue),
     placeholderData: keepPreviousData,
@@ -147,6 +147,7 @@ export default function NewTrip() {
     <>
       <div className="w-full space-y-2">
         <AutoComplete
+          isLoading={autocompleteFetching}
           async={{
             listItems: autocomplete,
             listElement: (data) => (

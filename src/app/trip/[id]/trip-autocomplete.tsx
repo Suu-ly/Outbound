@@ -68,8 +68,8 @@ export default function TripAutocomplete({
     return data.data;
   };
 
-  const { data: autocomplete } = useQuery({
-    queryKey: ["autocomplete", debouncedValue],
+  const { data: autocomplete, isFetching } = useQuery({
+    queryKey: ["autocomplete_trip", tripId, debouncedValue],
     queryFn: () => getAutocompleteData(debouncedValue),
     placeholderData: keepPreviousData,
     enabled: debouncedValue !== "",
@@ -192,6 +192,7 @@ export default function TripAutocomplete({
         },
         header: "From saved places",
       }}
+      isLoading={isFetching}
       async={{
         listItems: autocomplete,
         listElement: (data) => (
