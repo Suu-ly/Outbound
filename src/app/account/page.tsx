@@ -39,7 +39,6 @@ export default async function AccountPage() {
       <Header>
         <Link
           href="/account"
-          prefetch={false}
           className="rounded-full ring-slate-400 ring-offset-white transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
           <Avatar>
