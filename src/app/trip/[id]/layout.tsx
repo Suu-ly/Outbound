@@ -188,7 +188,6 @@ export default async function TripLayout({
     auth.api.getSession({
       headers: header,
       query: {
-        // @ts-expect-error there's some kinda bug with better-auth
         disableRefresh: true,
       },
     }),

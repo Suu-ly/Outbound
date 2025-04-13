@@ -23,7 +23,6 @@ export default async function Home({
     .getSession({
       headers: await headers(),
       query: {
-        // @ts-expect-error there's some kinda bug with better-auth
         disableRefresh: true,
       },
     })

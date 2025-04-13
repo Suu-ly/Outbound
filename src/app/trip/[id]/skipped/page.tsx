@@ -25,7 +25,6 @@ export default async function SkippedPlacePage({
     auth.api.getSession({
       headers: header,
       query: {
-        // @ts-expect-error there's some kinda bug with better-auth
         disableRefresh: true,
       },
     }),

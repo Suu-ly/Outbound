@@ -22,10 +22,6 @@ export const auth = betterAuth({
     schema,
   }),
   session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 300, // Cache duration in seconds
-    },
     freshAge: 0,
   },
   user: {

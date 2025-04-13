@@ -20,9 +20,7 @@ export default async function AccountPage() {
     .getSession({
       headers: await headers(),
       query: {
-        // @ts-expect-error there's some kinda bug with better-auth
         disableRefresh: true,
-        disableCookieCache: true, // Disable cache as we are changing session stuff here
       },
     })
     .catch((e) => {

@@ -57,11 +57,7 @@ function getQueryClient() {
 const CookieRefresh = () => {
   useEffect(() => {
     const loadSession = async () => {
-      await authClient.getSession({
-        query: {
-          disableCookieCache: true,
-        },
-      });
+      await authClient.getSession();
     };
     loadSession();
   }, []);
