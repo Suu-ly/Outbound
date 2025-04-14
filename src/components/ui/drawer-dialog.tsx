@@ -101,7 +101,7 @@ export default function DrawerDialog({
   return (
     <Drawer
       open={open !== undefined ? open : internalOpen}
-      onOpenChange={open !== undefined ? onOpenChange : setInternalOpen}
+      onOpenChange={onOpenChange ? onOpenChange : setInternalOpen}
     >
       {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
       <DrawerContent
@@ -115,16 +115,14 @@ export default function DrawerDialog({
           </DrawerDescription>
           {content && <div>{content}</div>}
           <DrawerFooter>
-            <DrawerClose asChild>
-              <Button
-                className={cn(destructive && "border-rose-900 bg-rose-600")}
-                primaryBgColor={destructive ? "bg-rose-900" : undefined}
-                onClick={() => onMainAction(close)}
-                loading={loading}
-              >
-                {mainActionLabel}
-              </Button>
-            </DrawerClose>
+            <Button
+              className={cn(destructive && "border-rose-900 bg-rose-600")}
+              primaryBgColor={destructive ? "bg-rose-900" : undefined}
+              onClick={() => onMainAction(close)}
+              loading={loading}
+            >
+              {mainActionLabel}
+            </Button>
             {canCancel && (
               <DrawerClose asChild>
                 <Button variant="ghost" disabled={loading}>
