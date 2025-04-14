@@ -354,7 +354,7 @@ export default async function Home({
           </Avatar>
         </Link>
       </Header>
-      <main className="px-4 py-8">
+      <main className="grow px-4 py-8">
         <div className="mx-auto flex w-full max-w-sm grow flex-col gap-8 bg-gray-50 sm:max-w-7xl">
           <div className="flex flex-col items-center justify-center gap-8 sm:flex-row">
             <h1 className="grow font-display text-4xl font-semibold text-slate-900">
@@ -365,14 +365,18 @@ export default async function Home({
               New Trip
             </ButtonLink>
           </div>
-          <div className="space-y-4">
-            <TripOverviewSortSelect />
+          <TripOverviewSortSelect />
+          {trips.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
               {trips.map((trip) => (
                 <TripCard trip={trip} key={trip.tripId} />
               ))}
             </div>
-          </div>
+          ) : (
+            <div className="w-full py-12 text-center text-slate-600">
+              You don&apos;t have any trips yet. Get started!
+            </div>
+          )}
         </div>
       </main>
       <Footer />
