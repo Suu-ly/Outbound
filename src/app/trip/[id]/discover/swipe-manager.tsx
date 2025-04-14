@@ -50,7 +50,7 @@ type MagnetProps = HTMLMotionProps<"div"> & {
 
 const LoadingPlaces = () => {
   return (
-    <div className="flex size-full flex-col items-center justify-center gap-6 text-center text-slate-700">
+    <div className="flex size-full flex-col items-center justify-center gap-6 p-4 text-center text-slate-700">
       <Spinner className="size-10" />
       Please wait while we find some interesting attractions for you!
     </div>
@@ -59,7 +59,7 @@ const LoadingPlaces = () => {
 
 const ExhaustedPlaces = () => {
   return (
-    <div className="flex size-full flex-col items-center justify-center gap-4 text-center text-slate-700">
+    <div className="flex size-full flex-col items-center justify-center gap-4 p-4 text-center text-slate-700">
       <IconWorldX className="size-10 rotate-6 text-slate-500" />
       There are no more places to show!
     </div>
