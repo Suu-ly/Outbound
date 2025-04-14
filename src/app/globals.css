@@ -33,9 +33,9 @@
 
 @layer utilities {
   .clip-0 {
-    clip-path: inset(-1px -1px -1px -1px);
+    clip-path: inset(0px 0px 0px 0px);
   }
   .clip-100 {
-    clip-path: inset(100% -1px -1px -1px);
+    clip-path: inset(100% 0px 0px 0px);
   }
 }

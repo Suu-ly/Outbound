@@ -27,7 +27,7 @@ const ButtonLink = React.forwardRef<HTMLAnchorElement, ButtonLinkProps>(
             role="presentation"
             className={cn(
               buttonVariants({ variant, size, iconOnly, className }),
-              "clip-100 group-hover:clip-0 pointer-events-none absolute inset-0 m-0 size-auto border-0 bg-slate-900 text-gray-100 transition-all duration-200 hover:text-gray-100",
+              "clip-100 group-hover:clip-0 pointer-events-none absolute -inset-px m-0 size-auto border-0 bg-slate-900 text-gray-100 transition-all duration-300 ease-snap hover:text-gray-100",
             )}
           >
             {children}
