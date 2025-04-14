@@ -105,7 +105,7 @@ const LoginForm = () => {
                   <FormLabel>Password</FormLabel>
                   <Link
                     href="/forget-password"
-                    className="font-medium hover:underline"
+                    className="rounded-full font-medium ring-slate-400 ring-offset-2 ring-offset-white transition hover:underline focus-visible:outline-none focus-visible:ring-2"
                   >
                     Forgot Password?
                   </Link>
@@ -141,7 +141,7 @@ const LoginForm = () => {
         <br />
         <Link
           href={`/register${redirect ? "?" + new URLSearchParams([["redirect", redirect]]).toString() : ""}`}
-          className="whitespace-nowrap font-medium text-brand-600 hover:underline"
+          className="whitespace-nowrap rounded-full font-medium text-brand-600 ring-slate-400 ring-offset-2 ring-offset-white transition hover:underline focus-visible:outline-none focus-visible:ring-2"
         >
           Sign Up
         </Link>

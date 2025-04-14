@@ -10,7 +10,10 @@ type AuthLayoutProps = {
 const AuthLayout = ({ header, subtitle, children }: AuthLayoutProps) => {
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center gap-12 bg-gray-50 p-4">
-      <Link href="/" className="flex items-baseline gap-2">
+      <Link
+        href="/"
+        className="flex items-baseline gap-2 rounded-full ring-slate-400 ring-offset-2 ring-offset-gray-50 transition focus-visible:outline-none focus-visible:ring-2"
+      >
         <Image src="/outbound.svg" width={24} height={24} alt="outbound" />
         <h1 className="font-display text-4xl font-semibold text-brand-900">
           Outbound

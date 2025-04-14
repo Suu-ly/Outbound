@@ -36,7 +36,7 @@ export default function TripCard({
   const setDeleteTripDialogOpen = useSetAtom(deleteTripDialogOpenAtom);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl ring-0 ring-slate-200 transition hover:ring-2 has-[a:active]:ring-slate-400">
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl ring-0 ring-slate-200 ring-offset-gray-50 transition hover:ring-2 has-[a:focus-visible]:ring-2 has-[a:active]:ring-slate-400 has-[a:focus-visible]:ring-slate-400 has-[a:focus-visible]:ring-offset-2">
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={trip.coverImgSmall}
@@ -46,7 +46,11 @@ export default function TripCard({
       </div>
       <div className="flex grow gap-1 bg-white p-3 pt-2">
         <div className="flex grow flex-col">
-          <Link href={`/trip/${trip.tripId}`} prefetch={false}>
+          <Link
+            href={`/trip/${trip.tripId}`}
+            prefetch={false}
+            className="focus-visible:outline-none"
+          >
             <span className="absolute inset-0" role="presentation"></span>
             <h4 className="line-clamp-2 grow font-display text-2xl font-medium text-slate-900">
               {trip.name}
@@ -65,6 +69,7 @@ export default function TripCard({
               variant="ghost"
               iconOnly
               aria-label="More options"
+              className="ring-offset-white"
             >
               <IconDotsVertical />
             </Button>

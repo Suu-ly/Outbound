@@ -101,7 +101,7 @@ const ForgetPasswordForm = () => {
       <div className="text-center">
         <Link
           href="/login"
-          className="whitespace-nowrap font-medium text-brand-600 hover:underline"
+          className="whitespace-nowrap rounded-full font-medium text-brand-600 ring-slate-400 ring-offset-2 ring-offset-white transition hover:underline focus-visible:outline-none focus-visible:ring-2"
         >
           Go Back
         </Link>
