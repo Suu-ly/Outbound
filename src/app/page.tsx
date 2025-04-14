@@ -5,11 +5,22 @@ import ButtonLink from "@/components/ui/button-link";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db";
 import { location, trip, tripPlace } from "@/server/db/schema";
-import { IconPlus } from "@tabler/icons-react";
+import {
+  IconClick,
+  IconHandStop,
+  IconMapPinBolt,
+  IconNote,
+  IconPlus,
+  IconReport,
+  IconRoute2,
+  IconStopwatch,
+  IconUsersGroup,
+} from "@tabler/icons-react";
 import { and, count, desc, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
+import { ReactNode } from "react";
 import Friends from "../../public/Friends.png";
 import Generate from "../../public/Generate.png";
 import Splash from "../../public/Home.png";
@@ -19,6 +30,60 @@ import Swipe from "../../public/Swipe.png";
 import TripCard from "./trip-card";
 import TripOverviewSortSelect from "./trip-overview-sort-select";
 import { TripDialogs } from "./trip/[id]/trip-dialogs";
+
+const HomeFeature = ({
+  header,
+  description,
+  firstPoint,
+  secondPoint,
+  firstIcon,
+  secondIcon,
+  pointColor,
+  iconColor,
+  image,
+  reverse = false,
+}: {
+  header: string;
+  description: string;
+  firstPoint: string;
+  secondPoint: string;
+  firstIcon: ReactNode;
+  secondIcon: ReactNode;
+  pointColor: string;
+  iconColor: string;
+  image: ReactNode;
+  reverse?: boolean;
+}) => {
+  return (
+    <div className="grid grid-cols-1 items-center gap-6 sm:grid-cols-2 sm:gap-20">
+      <div className={`space-y-4 lg:space-y-8 ${reverse ? "sm:order-2" : ""}`}>
+        <h3 className="font-display text-4xl font-medium text-slate-900 lg:text-5xl">
+          {header}
+        </h3>
+        <p className="text-slate-700 lg:text-xl">{description}</p>
+        <ul className="space-y-2 lg:space-y-4 lg:text-xl">
+          <li className={`flex items-center gap-3 ${pointColor}`}>
+            <span
+              className={`shrink-0 [&_svg]:size-5 lg:[&_svg]:size-auto ${iconColor}`}
+            >
+              {firstIcon}
+            </span>
+            {firstPoint}
+          </li>
+          <li className={`flex items-center gap-3 ${pointColor}`}>
+            <span
+              className={`shrink-0 [&_svg]:size-5 lg:[&_svg]:size-auto ${iconColor}`}
+            >
+              {secondIcon}
+            </span>
+            {secondPoint}
+          </li>
+        </ul>
+      </div>
+      {image}
+    </div>
+  );
+};
 
 export default async function Home({
   searchParams,
@@ -50,9 +115,9 @@ export default async function Home({
           </ButtonLink>
         </Header>
         <main className="grow overflow-x-hidden px-4">
-          <div className="mx-auto flex w-full flex-col gap-16 bg-gray-50 pt-12 sm:max-w-5xl sm:gap-24 lg:gap-48">
-            <div className="grid grid-cols-1 items-center gap-20 sm:grid-cols-2">
-              <div className="flex flex-col items-start gap-6 lg:gap-8">
+          <div className="mx-auto flex w-full max-w-sm flex-col gap-16 bg-gray-50 pt-12 sm:max-w-5xl sm:gap-24 lg:gap-48">
+            <div className="grid grid-cols-1 items-center gap-16 sm:grid-cols-2 lg:grid-cols-5 xl:gap-20">
+              <div className="flex flex-col items-start gap-6 lg:col-span-3 lg:gap-8">
                 <h1 className="font-display text-6xl font-semibold text-slate-900 lg:text-7xl">
                   Trip planning should be easy.
                 </h1>
@@ -69,7 +134,7 @@ export default async function Home({
                   Start Planning
                 </ButtonLink>
               </div>
-              <div className="relative aspect-[3/2] min-h-96 w-[48rem] max-w-none overflow-hidden rounded-2xl border-2 border-slate-200 shadow-xl sm:min-h-[512px] sm:w-[57rem] lg:min-h-[768px] lg:w-auto lg:rounded-3xl">
+              <div className="relative aspect-[3/2] min-h-96 w-[48rem] overflow-hidden rounded-2xl border-2 border-slate-200 shadow-xl sm:min-h-[512px] sm:w-[57rem] lg:col-span-2 lg:min-h-[768px] lg:w-auto lg:rounded-3xl">
                 <Image
                   src={Splash.src}
                   alt="Screenshot of Outbound"
@@ -109,117 +174,127 @@ export default async function Home({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 items-center gap-6 sm:grid-cols-2 sm:gap-20">
-              <div className="space-y-4">
-                <h3 className="font-display text-4xl font-medium text-slate-900 lg:text-5xl">
-                  Drag, Drop, and Personalise!
-                </h3>
-                <p className="text-slate-700 lg:text-xl">
-                  Build your perfect trip with our easy drag-and-drop itinerary
+            <HomeFeature
+              header="Drag, Drop, and Personalise!"
+              description="Build your perfect trip with our easy drag-and-drop itinerary
                   planner. Organise your saved places, add personal notes, and
-                  adjust your schedule in seconds.
-                </p>
-              </div>
-              <div className="relative -mx-24 overflow-hidden px-24 sm:rotate-1">
-                <div className="relative aspect-[3/4]">
-                  <Image
-                    src={Itinerary.src}
-                    alt="Outbound itinerary feature screenshot"
-                    fill
-                    sizes="(max-width: 767px) 100vw, 512px"
-                    quality={92}
-                    className="rounded-2xl border-2 border-slate-200 object-cover shadow-2xl lg:rounded-3xl"
-                    placeholder="blur"
-                    blurDataURL={Itinerary.blurDataURL}
-                  />
+                  adjust your schedule in seconds."
+              firstIcon={<IconHandStop />}
+              secondIcon={<IconNote />}
+              firstPoint="Simple drag-and-drop editing"
+              secondPoint="Add notes for plans, tips, or reminders"
+              iconColor="text-orange-500"
+              pointColor="text-orange-600"
+              image={
+                <div className="relative -mx-16 overflow-hidden px-16 sm:rotate-1">
+                  <div className="relative aspect-[3/4]">
+                    <Image
+                      src={Itinerary.src}
+                      alt="Outbound itinerary planner screenshot"
+                      fill
+                      sizes="(max-width: 639px) 384px, (max-width: 1023px) 50vw, 512px"
+                      quality={92}
+                      className="rounded-2xl border-2 border-slate-200 object-cover shadow-2xl lg:rounded-3xl"
+                      placeholder="blur"
+                      blurDataURL={Itinerary.blurDataURL}
+                    />
+                  </div>
+                  <div
+                    className="absolute inset-x-0 -bottom-1 h-24 bg-gradient-to-t from-gray-50 from-10% to-transparent sm:h-32"
+                    role="presentation"
+                    aria-hidden="true"
+                  ></div>
                 </div>
-                <div
-                  className="absolute inset-x-0 -bottom-1 h-24 bg-gradient-to-t from-gray-50 from-10% to-transparent sm:h-32"
-                  role="presentation"
-                  aria-hidden="true"
-                ></div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 items-center gap-6 sm:grid-cols-2 sm:gap-20">
-              <div className="space-y-4 sm:order-2">
-                <h3 className="font-display text-4xl font-medium text-slate-900 lg:text-5xl">
-                  No More Guesswork!
-                </h3>
-                <p className="text-slate-700 lg:text-xl">
-                  Make scheduling easy! Our planner calculates travel times
+              }
+            />
+            <HomeFeature
+              header="No More Guesswork!"
+              description="Make scheduling easy! Our planner calculates travel times
                   between locations and shows your expected arrival time at each
-                  spot.
-                </p>
-              </div>
-              <div className="relative -mx-24 overflow-hidden px-24 sm:-rotate-1">
-                <div className="relative aspect-[3/4]">
+                  spot."
+              firstIcon={<IconRoute2 />}
+              secondIcon={<IconReport />}
+              firstPoint="Accurate travel time estimates"
+              secondPoint="Auto-adjusted arrival times"
+              pointColor="text-lime-600"
+              iconColor="text-lime-500"
+              image={
+                <div className="relative -mx-16 overflow-hidden px-16 sm:-rotate-1">
+                  <div className="relative aspect-[3/4]">
+                    <Image
+                      src={Schedule.src}
+                      alt="Outbound schedule feature screenshot"
+                      fill
+                      sizes="(max-width: 639px) 384px, (max-width: 1023px) 50vw, 512px"
+                      quality={92}
+                      className="rounded-2xl border-2 border-slate-200 object-cover shadow-2xl lg:rounded-3xl"
+                      placeholder="blur"
+                      blurDataURL={Schedule.blurDataURL}
+                    />
+                  </div>
+                  <div
+                    className="absolute inset-x-0 -bottom-1 h-24 bg-gradient-to-t from-gray-50 from-10% to-transparent sm:h-32"
+                    role="presentation"
+                    aria-hidden="true"
+                  ></div>
+                </div>
+              }
+              reverse
+            />
+            <HomeFeature
+              header="Your Trip, Made in Seconds!"
+              description="Short on time? Let us arrange your itinerary for you!
+                  We'll organize your saved spots into a day-by-day
+                  itinerary optimized for the best route and timing."
+              firstIcon={<IconMapPinBolt />}
+              secondIcon={<IconStopwatch />}
+              firstPoint="Instantly turns saved places into an itinerary"
+              secondPoint="Optimises order to minimise travel time"
+              iconColor="text-violet-500"
+              pointColor="text-violet-600"
+              image={
+                <div className="relative aspect-square sm:rotate-1">
                   <Image
-                    src={Schedule.src}
-                    alt="Outbound schedule feature screenshot"
+                    src={Generate.src}
+                    alt="Outbound itinerary generation feature screenshot"
                     fill
-                    sizes="(max-width: 767px) 100vw, 512px"
+                    sizes="(max-width: 639px) 384px, (max-width: 1023px) 50vw, 512px"
                     quality={92}
-                    className="rounded-2xl border-2 border-slate-200 object-cover shadow-2xl lg:rounded-3xl"
+                    className="rounded-2xl border-2 border-slate-200 object-cover shadow-md lg:rounded-3xl"
                     placeholder="blur"
-                    blurDataURL={Schedule.blurDataURL}
+                    blurDataURL={Generate.blurDataURL}
                   />
                 </div>
-                <div
-                  className="absolute inset-x-0 -bottom-1 h-24 bg-gradient-to-t from-gray-50 from-10% to-transparent sm:h-32"
-                  role="presentation"
-                  aria-hidden="true"
-                ></div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 items-center gap-6 sm:grid-cols-2 sm:gap-20">
-              <div className="space-y-4">
-                <h3 className="font-display text-4xl font-medium text-slate-900 lg:text-5xl">
-                  Your Trip, Made in Seconds!
-                </h3>
-                <p className="text-slate-700 lg:text-xl">
-                  Short on time? Let us arrange your itinerary for you!
-                  We&apos;ll organize your saved spots into a day-by-day
-                  itinerary optimized for the best route and timing.
-                </p>
-              </div>
-              <div className="relative aspect-square sm:rotate-1">
-                <Image
-                  src={Generate.src}
-                  alt="Outbound Itinerary generation feature screenshot"
-                  fill
-                  sizes="(max-width: 767px) 100vw, 512px"
-                  quality={92}
-                  className="rounded-2xl border-2 border-slate-200 object-cover shadow-md lg:rounded-3xl"
-                  placeholder="blur"
-                  blurDataURL={Generate.blurDataURL}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 items-center gap-6 sm:grid-cols-2 sm:gap-20">
-              <div className="space-y-4 sm:order-2">
-                <h3 className="font-display text-4xl font-medium text-slate-900 lg:text-5xl">
-                  Better With Friends!
-                </h3>
-                <p className="text-slate-700 lg:text-xl">
-                  Trip planned? Share the final itinerary with friends and
-                  family in just one tap! Whether it&apos;s for travel buddies,
+              }
+            />
+            <HomeFeature
+              header="Better With Friends!"
+              description="Trip planned? Share the final itinerary with friends and
+                  family in just one tap! Whether it's for travel buddies,
                   parents keeping tabs, or just some friends, your trip is ready
-                  to be seen.
-                </p>
-              </div>
-              <div className="relative aspect-[6/7] sm:-rotate-1">
-                <Image
-                  src={Friends.src}
-                  alt="Outbound share screenshot"
-                  fill
-                  sizes="(max-width: 767px) 100vw, 512px"
-                  quality={92}
-                  className="rounded-2xl border-2 border-slate-200 object-cover shadow-md lg:rounded-3xl"
-                  placeholder="blur"
-                  blurDataURL={Friends.blurDataURL}
-                />
-              </div>
-            </div>
+                  to be seen."
+              firstIcon={<IconClick />}
+              secondIcon={<IconUsersGroup />}
+              firstPoint="One-click sharing"
+              secondPoint="No login required—viewable by anyone"
+              pointColor="text-brand-600"
+              iconColor="text-brand-500"
+              image={
+                <div className="relative aspect-[6/7] sm:-rotate-1">
+                  <Image
+                    src={Friends.src}
+                    alt="Outbound share screenshot"
+                    fill
+                    sizes="(max-width: 639px) 384px, (max-width: 1023px) 50vw, 512px"
+                    quality={92}
+                    className="rounded-2xl border-2 border-slate-200 object-cover shadow-md lg:rounded-3xl"
+                    placeholder="blur"
+                    blurDataURL={Friends.blurDataURL}
+                  />
+                </div>
+              }
+              reverse
+            />
           </div>
           <div className="relative z-10 -mx-4 mt-16 flex min-h-[512px] w-[calc(100%+2rem)] flex-col items-center justify-center gap-8 overflow-hidden bg-brand-900 bg-gradient-to-tr from-sky-950 via-brand-900 via-30% to-brand-800 p-4 text-center before:absolute before:inset-0 before:-z-10 before:bg-gradient-to-r before:from-sky-950 before:via-brand-900 before:via-10% before:to-brand-700 before:opacity-0 before:transition-opacity before:duration-1000 hover:before:opacity-100 sm:mx-0 sm:mb-4 sm:mt-24 sm:w-full sm:rounded-2xl lg:mt-48 lg:rounded-3xl xl:min-h-[768px]">
             <h3 className="font-display text-4xl font-semibold text-brand-50 lg:text-5xl">
