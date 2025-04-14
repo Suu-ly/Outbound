@@ -61,7 +61,7 @@ export default async function SkippedPlacePage({
     <ViewMapToggle>
       <div className="space-y-4 p-4 xl:space-y-6">
         <BackButton className="-ml-2" />
-        <h1 className="font-display text-2xl font-semibold xl:text-4xl">
+        <h1 className="font-display text-2xl font-medium text-slate-900 xl:text-3xl xl:font-semibold">
           Skipped Places
         </h1>
         <SkipPlaceSearch

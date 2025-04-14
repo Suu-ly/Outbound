@@ -44,7 +44,7 @@ export default async function TripSwipePage({
   return (
     <main className="size-full space-y-6 p-4 sm:w-1/2 xl:w-1/3">
       <BackButton className="-ml-2" />
-      <h1 className="font-display text-2xl font-medium text-slate-900">
+      <h1 className="font-display text-2xl font-medium text-slate-900 xl:text-3xl xl:font-semibold">
         Trip Settings
       </h1>
       <div className="flex max-w-3xl flex-col gap-3 xl:flex-row">
