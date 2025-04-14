@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/form";
 import { InputOTP, InputOTPSlot } from "@/components/ui/input-otp";
 import { authClient } from "@/lib/auth-client";
+import { serverNavigate } from "@/server/actions";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -27,8 +28,6 @@ const formSchema = z.object({
 export default function VerifyOtp({ email }: { email: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(60);
-
-  const router = useRouter();
   const redirect = useSearchParams().get("redirect");
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -81,8 +80,8 @@ export default function VerifyOtp({ email }: { email: string }) {
         },
         onSuccess: () => {
           toast.success("Email successfully verified!");
-          if (redirect) router.push(redirect);
-          else router.push("/");
+          if (redirect) serverNavigate(redirect);
+          else serverNavigate("/");
         },
       },
     );

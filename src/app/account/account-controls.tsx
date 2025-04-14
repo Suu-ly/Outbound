@@ -6,7 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Spinner from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
-import { updateAvatar, updatePassword, updateUserName } from "@/server/actions";
+import {
+  serverNavigate,
+  updateAvatar,
+  updatePassword,
+  updateUserName,
+} from "@/server/actions";
 import { IconEdit, IconPhoto } from "@tabler/icons-react";
 import { User } from "better-auth";
 import pica from "pica";
@@ -222,14 +227,19 @@ export function EditNameDialog({
 export function DeleteUserDialog({ children }: { children: ReactNode }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>();
 
   const handleDeleteUser = async () => {
     if (!inputRef.current || !inputRef.current.value) return false;
     setIsLoading(true);
     const { error } = await authClient.deleteUser({
-      callbackURL: "/",
       password: inputRef.current.value,
+      fetchOptions: {
+        onSuccess: () => {
+          serverNavigate("/");
+        },
+      },
     });
     if (error) {
       setError(error.message);
@@ -252,10 +262,16 @@ export function DeleteUserDialog({ children }: { children: ReactNode }) {
       content={
         <>
           <Input
-            type="text"
+            type={showPassword ? "text" : "password"}
             ref={inputRef}
             disabled={isLoading}
-            placeholder="Enter your password to delete"
+            placeholder="Enter your password"
+            right={
+              <TogglePasswordButton
+                showPassword={showPassword}
+                setShowPassword={setShowPassword}
+              />
+            }
           />
           <span className="mt-2 block text-sm font-medium text-red-500">
             {error}

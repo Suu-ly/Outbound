@@ -46,6 +46,10 @@ async function authenticate() {
   return session;
 }
 
+export async function serverNavigate(route: string) {
+  redirect(route);
+}
+
 export async function addNewTrip(
   locationId: string,
   locationName: string,
