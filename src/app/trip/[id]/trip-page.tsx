@@ -252,7 +252,7 @@ const NonAdminView = () => {
   const places = useAtomValue(tripPlacesAtom);
   const days = useAtomValue(dayPlacesAtom);
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <h3 className="font-display text-2xl font-medium">Saved Places</h3>
       {places.saved.map((place, index) => (
         <div
@@ -271,52 +271,54 @@ const NonAdminView = () => {
           />
         </div>
       ))}
-      <h3 className="font-display text-2xl font-medium">Itinerary</h3>
-      {days.map((day, dayIndex) => (
-        <DayFolder key={day.dayId} index={dayIndex}>
-          {places[day.dayId].map((place, index) => {
-            return (
-              <div
-                key={place.placeInfo.placeId}
-                className="relative ml-5 border-l-2 border-slate-700 pb-2 pl-6 last:border-transparent last:pb-0"
-              >
+      <h3 className="mt-4 font-display text-2xl font-medium">Itinerary</h3>
+      <div className="flex flex-col gap-6">
+        {days.map((day, dayIndex) => (
+          <DayFolder key={day.dayId} index={dayIndex}>
+            {places[day.dayId].map((place, index) => {
+              return (
                 <div
-                  className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-100 text-sm font-medium ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`}
-                  aria-label={`Saved place on day ${dayIndex + 1} ${index + 1}`}
+                  key={place.placeInfo.placeId}
+                  className="relative ml-5 border-l-2 border-slate-700 pb-2 pl-6 last:border-transparent last:pb-0"
                 >
-                  {index + 1}
-                </div>
-                <TravelTimeIndicator
-                  isInDay={day.dayId}
-                  index={index}
-                  startTime={day.dayStartTime}
-                />
-                <PlaceDetailsCompact
-                  data={place}
-                  isInDay={day.dayId}
-                  elementId={getElementId("day", index, dayIndex)}
-                  dayIndex={dayIndex}
-                />
-                {index < places[day.dayId].length - 1 && ( // Not the last item
-                  <TravelTimeSelect
-                    fromId={place.placeInfo.placeId}
-                    fromCoords={place.placeInfo.location}
-                    toId={places[day.dayId][index + 1].placeInfo.placeId}
-                    toCoords={places[day.dayId][index + 1].placeInfo.location}
-                    isAdmin={false}
+                  <div
+                    className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-100 text-sm font-medium ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`}
+                    aria-label={`Saved place on day ${dayIndex + 1} ${index + 1}`}
+                  >
+                    {index + 1}
+                  </div>
+                  <TravelTimeIndicator
+                    isInDay={day.dayId}
+                    index={index}
+                    startTime={day.dayStartTime}
                   />
-                )}
-              </div>
-            );
-          })}
-          {places[day.dayId].length === 0 && (
-            <span className="inline-block w-full text-center leading-8 text-slate-500">
-              No places planned for this day.
-            </span>
-          )}
-        </DayFolder>
-      ))}
-    </div>
+                  <PlaceDetailsCompact
+                    data={place}
+                    isInDay={day.dayId}
+                    elementId={getElementId("day", index, dayIndex)}
+                    dayIndex={dayIndex}
+                  />
+                  {index < places[day.dayId].length - 1 && ( // Not the last item
+                    <TravelTimeSelect
+                      fromId={place.placeInfo.placeId}
+                      fromCoords={place.placeInfo.location}
+                      toId={places[day.dayId][index + 1].placeInfo.placeId}
+                      toCoords={places[day.dayId][index + 1].placeInfo.location}
+                      isAdmin={false}
+                    />
+                  )}
+                </div>
+              );
+            })}
+            {places[day.dayId].length === 0 && (
+              <span className="inline-block w-full text-center leading-8 text-slate-500">
+                No places planned for this day.
+              </span>
+            )}
+          </DayFolder>
+        ))}
+      </div>
+    </>
   );
 };
 
