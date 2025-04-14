@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const result: Record<string, PlacesPhoto[]> = {};
+  const result: Record<string, PlacesPhoto[] | null> = {};
 
   const redisQueries = placeId.map((id) =>
     redis.get<PlacesPhoto[]>(id + " image"),
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
   });
 
   const queries = placeId.map((id) => {
-    if (id in result) return;
+    if (id in result) return undefined;
     return fetch(`https://places.googleapis.com/v1/places/${id}`, {
       method: "GET",
       headers: googleHeaders,
@@ -78,9 +78,6 @@ export async function GET(request: NextRequest) {
   for (let i = 0, length = imagesCollection.length; i < length; i++) {
     const currentImages = imagesCollection[i];
     if (currentImages) {
-      if ("error" in currentImages.data) {
-        return []; // Just ignore the error and return nothing
-      }
       if ("photos" in currentImages.data) {
         redisSet.push(
           redis.set(currentImages.id + " image", currentImages.data.photos, {
@@ -88,12 +85,17 @@ export async function GET(request: NextRequest) {
           }),
         );
         result[currentImages.id] = currentImages.data.photos;
+      } else {
+        if ("error" in currentImages.data) {
+          console.error(currentImages.data.error);
+        }
+        // No photos
+        result[currentImages.id] = null;
       }
     }
   }
 
   await Promise.all(redisSet);
-
   return Response.json({
     data: result,
     status: "success",

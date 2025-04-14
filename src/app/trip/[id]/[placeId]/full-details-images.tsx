@@ -23,7 +23,9 @@ export default function FullPlaceDetailsImages({
     const query = new URLSearchParams([["placeId", placeId]]);
     const data = await fetch(`/api/places/image/refetch?${query.toString()}`)
       .then((response) => response.json())
-      .then((data) => data as ApiResponse<Record<string, PlacesPhoto[]>>);
+      .then(
+        (data) => data as ApiResponse<Record<string, PlacesPhoto[] | null>>,
+      );
 
     if (data.status === "error") {
       throw new Error(data.message);
@@ -40,10 +42,12 @@ export default function FullPlaceDetailsImages({
     },
   });
 
-  if (!data)
+  if (data === undefined)
     return (
       <Skeleton className="mx-4 h-[400px] rounded-xl bg-white sm:h-[520px]" />
     );
+
+  if (data === null) return null;
 
   return (
     <Carousel orientation="vertical" disabled={true} className="mx-4">
