@@ -83,7 +83,7 @@ export default {
         activate: "activate 0s 500ms linear forwards",
         expand: "expand 0.3s cubic-bezier(0.8, 0, 0.2, 1)",
         minimise: "minimise 0.3s cubic-bezier(0.8, 0, 0.2, 1)",
-        spinner: "spinner 1.5s ease-in-out infinite",
+        spinner: "spinner 1.3s ease-in-out infinite",
         pickup: "pickup 0.3s cubic-bezier(0.45,1.3,0.3,1)",
       },
       transitionTimingFunction: {
