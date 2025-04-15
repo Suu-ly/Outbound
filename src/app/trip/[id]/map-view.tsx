@@ -155,6 +155,7 @@ const PlaceMarker = ({
           ? "border-brand-400 bg-white text-slate-700"
           : "border-slate-400 bg-slate-200 text-slate-500";
 
+  const Comp = elementId ? Link : "div";
   return (
     <Marker
       key={placeId + "marker"}
@@ -169,19 +170,19 @@ const PlaceMarker = ({
     >
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link
-            href={elementId ? `#${elementId}` : "#"}
+          <Comp
+            href={elementId ? `#${elementId}` : undefined!}
             aria-label={name + " map marker"}
-            replace
+            replace={elementId ? true : undefined}
             tabIndex={-1}
-            className={`flex size-6 items-center justify-center rounded-full border-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${colours} ${activePlace === placeId ? "scale-150 shadow-md" : ""}`}
+            className={`flex size-6 items-center justify-center rounded-full border-2 text-sm font-semibold transition duration-300 ease-out animate-in zoom-in-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${colours} ${activePlace === placeId ? "scale-150 shadow-md" : ""}`}
           >
             <span
               className="absolute size-10 rounded-full"
               aria-hidden={true}
             ></span>
             {children}
-          </Link>
+          </Comp>
         </TooltipTrigger>
         <TooltipContent>{name}</TooltipContent>
       </Tooltip>
