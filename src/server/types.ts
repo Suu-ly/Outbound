@@ -272,6 +272,10 @@ export type InitialQuery = {
     viewport: BoundingBox;
     windows: BoundingBox[];
   };
+  user: {
+    name: string;
+    image: string | null;
+  };
   place: Omit<SelectPlace, "country"> | null;
   inner: {
     placeId: string | null;
@@ -296,6 +300,8 @@ export type TripData = {
   id: string;
   name: string;
   userId: string;
+  userName: string;
+  userImage: string | null;
   startDate: Date;
   endDate: Date;
   private: boolean;

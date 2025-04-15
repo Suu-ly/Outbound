@@ -11,6 +11,7 @@ import {
   tripDay,
   tripPlace,
   tripTravelTime,
+  user,
 } from "@/server/db/schema";
 import {
   DayData,
@@ -51,19 +52,9 @@ export async function generateMetadata({
   };
 }
 
-function prepareData(data: InitialQuery[]): InitialQueryPrepared {
-  const firstRow = data[0];
-  const tripData = {
-    ...firstRow.trip,
-    viewport: firstRow.location.viewport,
-    coverImg: firstRow.location.coverImg,
-  };
-  const windowData = {
-    name: firstRow.location.name,
-    windows: firstRow.location.windows,
-    currentSearchIndex: firstRow.trip.currentSearchIndex,
-    nextPageToken: firstRow.trip.nextPageToken,
-  };
+function prepareData(
+  data: Omit<InitialQuery, "trip" | "location" | "user">[],
+): Omit<InitialQueryPrepared, "tripData" | "windowData" | "userData"> {
   const dayData: DayData[] = [];
   const discoverData: TripPlaceDetails[] = [];
   const placeData: PlaceData = { saved: [] };
@@ -132,17 +123,34 @@ function prepareData(data: InitialQuery[]): InitialQueryPrepared {
       }
     }
   }
-
   return {
-    tripData,
-    windowData,
     dayData,
     discoverData,
     placeData,
     travelTimeData,
   };
 }
+const prepareTripAndUser = (
+  data: Pick<InitialQuery, "trip" | "location" | "user">[],
+): Pick<InitialQueryPrepared, "tripData" | "windowData"> => {
+  const firstRow = data[0];
 
+  return {
+    tripData: {
+      ...firstRow.trip,
+      viewport: firstRow.location.viewport,
+      coverImg: firstRow.location.coverImg,
+      userName: firstRow.user.name,
+      userImage: firstRow.user.image,
+    },
+    windowData: {
+      name: firstRow.location.name,
+      windows: firstRow.location.windows,
+      currentSearchIndex: firstRow.trip.currentSearchIndex,
+      nextPageToken: firstRow.trip.nextPageToken,
+    },
+  };
+};
 export default async function TripLayout({
   params,
   children,
@@ -184,7 +192,7 @@ export default async function TripLayout({
       ),
   );
 
-  const [userSession, data] = await Promise.all([
+  const [userSession, tripPlaceData, tripAndUser] = await Promise.all([
     auth.api.getSession({
       headers: header,
       query: {
@@ -194,19 +202,6 @@ export default async function TripLayout({
     db
       .with(inner)
       .select({
-        trip: {
-          id: trip.id,
-          name: trip.name,
-          userId: trip.userId,
-          startDate: trip.startDate,
-          endDate: trip.endDate,
-          private: trip.private,
-          roundUpTime: trip.roundUpTime,
-          currentSearchIndex: trip.currentSearchIndex,
-          nextPageToken: trip.nextPageToken,
-          startTime: trip.startTime,
-          endTime: trip.endTime,
-        },
         travelTime: {
           nextId: inner.nextId,
           drive: travelTime.drive,
@@ -223,12 +218,6 @@ export default async function TripLayout({
           tripOrder: inner.tripOrder,
           dayOrder: inner.dayOrder,
           dayStartTime: inner.dayStartTime,
-        },
-        location: {
-          name: location.name,
-          coverImg: location.coverImg,
-          viewport: location.viewport,
-          windows: location.windows,
         },
         place: {
           id: place.id,
@@ -258,10 +247,8 @@ export default async function TripLayout({
           additionalInfo: place.additionalInfo,
         },
       })
-      .from(trip)
-      .innerJoin(inner, eq(inner.tripId, trip.id))
+      .from(inner)
       .leftJoin(place, eq(inner.placeId, place.id))
-      .innerJoin(location, eq(trip.locationId, location.id))
       .leftJoin(
         travelTime,
         and(
@@ -274,14 +261,44 @@ export default async function TripLayout({
         and(
           eq(tripTravelTime.from, travelTime.from),
           eq(tripTravelTime.to, travelTime.to),
-          eq(tripTravelTime.tripId, trip.id),
+          eq(tripTravelTime.tripId, inner.tripId),
         ),
       )
-      .where(eq(trip.id, id))
       .orderBy(asc(inner.dayOrder), asc(inner.tripOrder)),
+    db
+      .select({
+        trip: {
+          id: trip.id,
+          name: trip.name,
+          userId: trip.userId,
+          startDate: trip.startDate,
+          endDate: trip.endDate,
+          private: trip.private,
+          roundUpTime: trip.roundUpTime,
+          currentSearchIndex: trip.currentSearchIndex,
+          nextPageToken: trip.nextPageToken,
+          startTime: trip.startTime,
+          endTime: trip.endTime,
+        },
+        location: {
+          name: location.name,
+          coverImg: location.coverImg,
+          viewport: location.viewport,
+          windows: location.windows,
+        },
+        user: {
+          name: user.name,
+          image: user.image,
+        },
+      })
+      .from(trip)
+      .innerJoin(location, eq(trip.locationId, location.id))
+      .innerJoin(user, eq(trip.userId, user.id))
+      .where(eq(trip.id, id))
+      .limit(1),
   ]);
 
-  if (data.length === 0)
+  if (tripAndUser.length === 0)
     return (
       <div className="flex min-h-dvh flex-col">
         <Header>
@@ -325,7 +342,10 @@ export default async function TripLayout({
       </div>
     );
 
-  if (data[0].trip.userId !== userSession?.user.id && data[0].trip.private) {
+  if (
+    tripAndUser[0].trip.userId !== userSession?.user.id &&
+    tripAndUser[0].trip.private
+  ) {
     return (
       <div className="flex min-h-dvh flex-col">
         <Header>
@@ -367,17 +387,24 @@ export default async function TripLayout({
     );
   }
 
-  const preparedData = prepareData(data);
+  const preparedData = prepareData(tripPlaceData);
+  const preparedTripAndUser = prepareTripAndUser(tripAndUser);
 
   return (
-    <TripProviders data={preparedData} session={userSession}>
+    <TripProviders
+      data={{
+        ...preparedData,
+        ...preparedTripAndUser,
+      }}
+      session={userSession}
+    >
       <Header fixed>
         <TripHeaderItems loggedIn={!!userSession} />
       </Header>
       <TripPageDialogs />
       <div className="relative mt-14 flex h-[calc(100dvh-56px)] overflow-hidden">
         {children}
-        <MapView initialBounds={preparedData.tripData.viewport} />
+        <MapView initialBounds={preparedTripAndUser.tripData.viewport} />
       </div>
     </TripProviders>
   );

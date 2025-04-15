@@ -1,6 +1,7 @@
 "use client";
 
 import DateHydration from "@/components/date-hydration";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -8,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { markerColorLookup } from "@/lib/color-lookups";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { getElementId, insertAfter } from "@/lib/utils";
@@ -186,7 +188,7 @@ const TripCalendar = ({ tripId }: { tripId: string }) => {
               <span className="text-slate-400">Start</span>
             )}
           </div>
-          -
+          –
           <div className="text-slate-700">
             {date && date.to ? (
               <DateHydration date={date.to} />
@@ -351,26 +353,34 @@ export default function TripPage({ tripId }: { tripId: string }) {
                 </h1>
               </Button>
               <TripCalendar tripId={tripId} />
+              <p>{savedPlacesAmount} Places</p>
             </>
           )}
           {!isAdmin && (
-            <>
-              <h1 className="mb-4 px-3 py-2 font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Avatar>
+                  <AvatarImage src={tripData.userImage ?? undefined} />
+                  <AvatarFallback>
+                    {tripData.userName.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-slate-700">{tripData.userName}</span>
+              </div>
+              <Separator className="-mx-4 mb-3 w-[calc(100%+2rem)]" />
+              <h1 className="line-clamp-2 break-words text-left font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
                 {tripData.name}
               </h1>
-              <div className="mb-1 inline-flex gap-2 font-medium text-slate-700">
-                <IconCalendarWeek />
-                <span>
-                  <DateHydration date={tripData.startDate} />
-                </span>
-                -
-                <span>
+              <div className="flex max-w-fit items-center gap-2 rounded-2xl bg-slate-100 px-3 py-1 text-left text-sm font-medium text-slate-700">
+                <div className="text-left text-sm font-medium text-slate-700">
+                  <DateHydration date={tripData.startDate} /> –{" "}
                   <DateHydration date={tripData.endDate} />
-                </span>
+                </div>
+                <span>·</span>
+                <span>{savedPlacesAmount} Places</span>
               </div>
-            </>
+            </div>
           )}
-          <p>{savedPlacesAmount} Places</p>
         </div>
         <img
           src={tripData.coverImg}

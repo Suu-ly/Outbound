@@ -16,6 +16,8 @@ export const tripDetailsAtom = atom<TripData>({
   id: "",
   name: "",
   userId: "",
+  userName: "",
+  userImage: null,
   startDate: new Date(),
   endDate: new Date(),
   private: true,
