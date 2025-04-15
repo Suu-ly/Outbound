@@ -310,17 +310,15 @@ export default async function TripLayout({
             </ButtonLink>
           )}
         </Header>
-        <main className="mx-auto flex w-full max-w-screen-sm grow flex-col items-center justify-center gap-12 p-4">
-          <div className="text-center">
-            <h1 className="mb-3 font-display text-4xl font-semibold">
-              Trip Not Found!
-            </h1>
-            <h3 className="text-lg text-slate-700">
-              We can&apos;t seem to find the trip that you&apos;re looking for.
-              The trip id may be incorrect or the trip may have been deleted.
-            </h3>
-          </div>
-          <ButtonLink href="/" size="large">
+        <main className="mx-auto flex w-full max-w-screen-sm grow flex-col items-center justify-center gap-4 p-4">
+          <h1 className="mt-4 text-center font-display text-5xl font-semibold text-slate-900 sm:text-7xl">
+            Trip Not Found!
+          </h1>
+          <h3 className="text-center text-lg font-medium text-gray-500 sm:text-xl">
+            We can&apos;t seem to find the trip that you&apos;re looking for.
+            The trip id may be incorrect or the trip may have been deleted.
+          </h3>
+          <ButtonLink href="/" size="large" className="mt-8">
             Back to Home
           </ButtonLink>
         </main>
@@ -353,17 +351,15 @@ export default async function TripLayout({
             </ButtonLink>
           )}
         </Header>
-        <main className="mx-auto flex w-full max-w-screen-sm grow flex-col items-center justify-center gap-12 p-4">
-          <div className="text-center">
-            <h1 className="mb-3 font-display text-4xl font-semibold">
-              No access to trip
-            </h1>
-            <h3 className="text-lg text-slate-700">
-              It seems like this trip has been set to private. The owner of the
-              trip has to set the trip to public before you are able to view it.
-            </h3>
-          </div>
-          <ButtonLink href="/" size="large">
+        <main className="mx-auto flex w-full max-w-screen-sm grow flex-col items-center justify-center gap-4 p-4">
+          <h1 className="mt-4 text-center font-display text-5xl font-semibold text-slate-900 sm:text-7xl">
+            No access to trip
+          </h1>
+          <h3 className="text-center text-lg font-medium text-gray-500 sm:text-xl">
+            It seems like this trip has been set to private. The owner of the
+            trip has to set the trip to public before you are able to view it.
+          </h3>
+          <ButtonLink href="/" size="large" className="mt-8">
             Back to Home
           </ButtonLink>
         </main>

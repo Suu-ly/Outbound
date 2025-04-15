@@ -17,14 +17,12 @@ export default function Loading() {
       <h1 className="mt-4 text-center font-display text-5xl font-semibold text-slate-900 sm:text-7xl">
         Page not found
       </h1>
-      <p className="text-center text-lg font-medium text-gray-500 sm:text-xl/8">
+      <p className="text-center text-lg font-medium text-gray-500 sm:text-xl">
         Sorry, we couldn&apos;t find the page you&apos;re looking for.
       </p>
-      <div className="mt-10 flex items-center justify-center gap-x-6">
-        <ButtonLink href="/" size="large">
-          Go Back Home
-        </ButtonLink>
-      </div>
+      <ButtonLink href="/" size="large" className="mt-8">
+        Go Back Home
+      </ButtonLink>
     </main>
   );
 }
