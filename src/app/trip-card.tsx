@@ -45,14 +45,14 @@ export default function TripCard({
         />
       </div>
       <div className="flex grow gap-1 bg-white p-3 pt-2">
-        <div className="flex grow flex-col">
+        <div className="min-w-0 flex-1 flex-col">
           <Link
             href={`/trip/${trip.tripId}`}
             prefetch={false}
             className="focus-visible:outline-none"
           >
             <span className="absolute inset-0" role="presentation"></span>
-            <h4 className="line-clamp-2 grow font-display text-2xl font-medium text-slate-900">
+            <h4 className="line-clamp-2 w-full break-words font-display text-2xl font-medium text-slate-900">
               {trip.name}
             </h4>
           </Link>
@@ -69,7 +69,7 @@ export default function TripCard({
               variant="ghost"
               iconOnly
               aria-label="More options"
-              className="ring-offset-white"
+              className="shrink-0 ring-offset-white"
             >
               <IconDotsVertical />
             </Button>

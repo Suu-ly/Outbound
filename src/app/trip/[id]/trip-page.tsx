@@ -333,40 +333,42 @@ export default function TripPage({ tripId }: { tripId: string }) {
       <div className="relative aspect-square w-full">
         <div className="absolute inset-x-4 bottom-4 z-10 rounded-2xl bg-white p-4 text-center shadow-md">
           {isAdmin && (
-            <Button
-              variant="ghost"
-              className={
-                "mx-auto mb-4 flex rounded-lg px-3 py-2 ring-offset-white"
-              }
-              onClick={() =>
-                setChangeTripNameDialogOpen({
-                  currentName: tripData.name,
-                  tripId: tripData.id,
-                })
-              }
-            >
-              <h1 className="font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
+            <>
+              <Button
+                variant="ghost"
+                className={
+                  "mx-auto mb-4 flex h-auto max-w-full justify-normal whitespace-normal rounded-lg px-3 py-1 ring-offset-white"
+                }
+                onClick={() =>
+                  setChangeTripNameDialogOpen({
+                    currentName: tripData.name,
+                    tripId: tripData.id,
+                  })
+                }
+              >
+                <h1 className="line-clamp-2 w-full break-all font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
+                  {tripData.name}
+                </h1>
+              </Button>
+              <TripCalendar tripId={tripId} />
+            </>
+          )}
+          {!isAdmin && (
+            <>
+              <h1 className="mb-4 px-3 py-2 font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
                 {tripData.name}
               </h1>
-            </Button>
-          )}
-          {!isAdmin && (
-            <h1 className="mb-4 px-3 py-2 font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
-              {tripData.name}
-            </h1>
-          )}
-          {isAdmin && <TripCalendar tripId={tripId} />}
-          {!isAdmin && (
-            <div className="mb-1 inline-flex gap-2 font-medium text-slate-700">
-              <IconCalendarWeek />
-              <span>
-                <DateHydration date={tripData.startDate} />
-              </span>
-              -
-              <span>
-                <DateHydration date={tripData.endDate} />
-              </span>
-            </div>
+              <div className="mb-1 inline-flex gap-2 font-medium text-slate-700">
+                <IconCalendarWeek />
+                <span>
+                  <DateHydration date={tripData.startDate} />
+                </span>
+                -
+                <span>
+                  <DateHydration date={tripData.endDate} />
+                </span>
+              </div>
+            </>
           )}
           <p>{savedPlacesAmount} Places</p>
         </div>

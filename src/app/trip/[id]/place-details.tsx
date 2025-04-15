@@ -2,16 +2,13 @@ import OpeningHours from "@/components/opening-hours";
 import Rating from "@/components/ui/rating";
 import { Separator } from "@/components/ui/separator";
 import { TripPlaceDetails } from "@/server/types";
-import {
-  IconCheck,
-  IconMapPin,
-  IconPhone,
-  IconWorld,
-  IconX,
-} from "@tabler/icons-react";
-import Link from "next/link";
+import { IconCheck, IconMapPin, IconPhone, IconX } from "@tabler/icons-react";
 import { forwardRef, memo } from "react";
-import { InfoWithCopy, Review } from "./place-details-client-components";
+import {
+  InfoWithCopy,
+  PlaceLink,
+  Review,
+} from "./place-details-client-components";
 
 const keyLookup = {
   wheelchairAccessibleParking: "Parking",
@@ -139,23 +136,7 @@ const PlaceDetails = memo(
             highligtedDay={new Date().getDay()}
             hours={data.openingHours?.text}
           />
-          {data.website && (
-            <InfoWithCopy
-              copy={data.website}
-              tooltipLabel="Copy website URL"
-              successMessage="Website URL copied to clipboard!"
-              asChild
-            >
-              <Link
-                href={data.website}
-                target="_blank"
-                className="ring-offset-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
-              >
-                <IconWorld className="shrink-0" />
-                {data.website}
-              </Link>
-            </InfoWithCopy>
-          )}
+          {data.website && <PlaceLink website={data.website} />}
           {data.phone && (
             <InfoWithCopy
               copy={data.phone}

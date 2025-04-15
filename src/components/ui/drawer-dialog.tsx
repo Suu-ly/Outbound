@@ -71,7 +71,9 @@ export default function DrawerDialog({
           onInteractOutside={(e) => loading && e.preventDefault()}
           onEscapeKeyDown={(e) => loading && e.preventDefault()}
         >
-          <DialogTitle>{header}</DialogTitle>
+          <DialogTitle className="line-clamp-2 break-words">
+            {header}
+          </DialogTitle>
           <DialogDescription className="whitespace-pre-line">
             {description}
           </DialogDescription>
@@ -109,7 +111,9 @@ export default function DrawerDialog({
         onEscapeKeyDown={(e) => loading && e.preventDefault()}
       >
         <div className="space-y-6">
-          <DrawerTitle>{header}</DrawerTitle>
+          <DrawerTitle className="line-clamp-2 break-words">
+            {header}
+          </DrawerTitle>
           <DrawerDescription className="whitespace-pre-line">
             {description}
           </DrawerDescription>

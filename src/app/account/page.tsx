@@ -48,7 +48,7 @@ export default async function AccountPage() {
         </Link>
       </Header>
       <main className="flex grow flex-col items-center gap-6 px-4 py-8">
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex max-w-full flex-col items-center gap-2">
           <div className="group relative isolate overflow-hidden rounded-full border-2 border-slate-200 ring-slate-400 transition-shadow has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-offset-2">
             <AvatarEdit user={session.user} key={session.user.image}>
               <button
@@ -65,16 +65,16 @@ export default async function AccountPage() {
               </AvatarFallback>
             </Avatar>
           </div>
-          <h1 className="font-display text-4xl font-semibold">
+          <h1 className="line-clamp-2 w-full max-w-lg break-words font-display text-4xl font-semibold">
             {session.user.name}
           </h1>
         </div>
         <SignOutButton />
-        <div className="flex w-full max-w-3xl flex-col gap-3 xl:flex-row">
-          <h3 className="w-32 shrink-0 text-sm font-medium text-slate-900">
+        <div className="grid w-full max-w-3xl grid-cols-1 gap-3 xl:grid-cols-[128px_minmax(0,1fr)]">
+          <h3 className="text-sm font-medium text-slate-900">
             Account Details
           </h3>
-          <div className="grow space-y-2 text-slate-700">
+          <div className="space-y-2 text-slate-700">
             <EditNameDialog currentName={session.user.name}>
               <button className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left ring-offset-gray-50 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2">
                 <p className="w-20 shrink-0 text-sm font-medium text-slate-900">
@@ -84,11 +84,11 @@ export default async function AccountPage() {
                 <IconChevronRight className="size-5 shrink-0" />
               </button>
             </EditNameDialog>
-            <div className="flex gap-3 rounded-xl bg-white p-4">
+            <div className="flex w-full gap-3 rounded-xl bg-white p-4">
               <p className="w-20 shrink-0 text-sm font-medium text-slate-900">
                 Email
               </p>
-              <span className="truncate">{session.user.email}</span>
+              <span className="grow truncate">{session.user.email}</span>
             </div>
             <EditPasswordDialog>
               <button className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left ring-offset-gray-50 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2">
@@ -101,11 +101,9 @@ export default async function AccountPage() {
             </EditPasswordDialog>
           </div>
         </div>
-        <div className="flex w-full max-w-3xl flex-col gap-3 xl:flex-row">
-          <h3 className="w-32 shrink-0 text-sm font-medium text-slate-900">
-            Delete Account
-          </h3>
-          <div className="flex grow flex-col items-end gap-6 rounded-xl border-2 border-rose-200 p-4">
+        <div className="grid w-full max-w-3xl grid-cols-1 gap-3 xl:grid-cols-[128px_minmax(0,1fr)]">
+          <h3 className="text-sm font-medium text-slate-900">Delete Account</h3>
+          <div className="flex flex-col items-end gap-6 rounded-xl border-2 border-rose-200 p-4">
             <p className="text-sm text-slate-700">
               Deleting your account will permanently delete all of your data and
               trips. You cannot undo this action. Please proceed with caution.

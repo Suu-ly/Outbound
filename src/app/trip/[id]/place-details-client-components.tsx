@@ -12,7 +12,8 @@ import useCopyToClipboard from "@/lib/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import { PlacesReview } from "@/server/types";
 import { Slot } from "@radix-ui/react-slot";
-import { IconCheck, IconCopy } from "@tabler/icons-react";
+import { IconCheck, IconCopy, IconWorld } from "@tabler/icons-react";
+import Link from "next/link";
 import {
   CSSProperties,
   ReactNode,
@@ -29,12 +30,14 @@ const InfoWithCopy = ({
   tooltipLabel,
   successMessage,
   asChild = false,
+  className,
   children,
 }: {
   copy: string;
   tooltipLabel: string;
   successMessage?: string;
   asChild?: boolean;
+  className?: string;
   children: ReactNode;
 }) => {
   const [copied, copyToClipboard] = useCopyToClipboard();
@@ -50,7 +53,12 @@ const InfoWithCopy = ({
 
   return (
     <div className="group relative">
-      <Comp className="inline-flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100 [&_svg]:size-5 [&_svg]:text-slate-600">
+      <Comp
+        className={cn(
+          "inline-flex w-full items-center gap-3 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100 [&_svg]:size-5 [&_svg]:text-slate-600",
+          className,
+        )}
+      >
         {children}
       </Comp>
       <Tooltip>
@@ -68,6 +76,26 @@ const InfoWithCopy = ({
         <TooltipContent>{tooltipLabel}</TooltipContent>
       </Tooltip>
     </div>
+  );
+};
+
+const PlaceLink = ({ website }: { website: string }) => {
+  return (
+    <InfoWithCopy
+      copy={website}
+      tooltipLabel="Copy website URL"
+      successMessage="Website URL copied to clipboard!"
+      asChild
+    >
+      <Link
+        href={website}
+        target="_blank"
+        className="ring-slate-400 ring-offset-gray-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+      >
+        <IconWorld className="shrink-0" />
+        <span className="truncate">{website}</span>
+      </Link>
+    </InfoWithCopy>
   );
 };
 
@@ -191,4 +219,4 @@ const Review = ({ review }: { review: PlacesReview }) => {
   );
 };
 
-export { InfoWithCopy, Review };
+export { InfoWithCopy, PlaceLink, Review };
