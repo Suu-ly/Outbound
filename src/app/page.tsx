@@ -1,5 +1,6 @@
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+import Arrow from "@/components/ui/arrow";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ButtonLink from "@/components/ui/button-link";
 import { auth } from "@/server/auth";
@@ -355,26 +356,40 @@ export default async function Home({
         </Link>
       </Header>
       <main className="grow px-4 py-8">
-        <div className="mx-auto flex w-full max-w-sm grow flex-col gap-8 bg-gray-50 sm:max-w-7xl">
-          <div className="flex flex-col items-center justify-center gap-8 sm:flex-row">
-            <h1 className="grow font-display text-4xl font-semibold text-slate-900">
-              My Trips
-            </h1>
-            <ButtonLink href="/new" size="large">
-              <IconPlus />
-              New Trip
-            </ButtonLink>
-          </div>
-          <TripOverviewSortSelect />
+        <div className="mx-auto flex w-full max-w-sm grow flex-col gap-8 sm:max-w-7xl">
           {trips.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-              {trips.map((trip) => (
-                <TripCard trip={trip} key={trip.tripId} />
-              ))}
-            </div>
+            <>
+              <div className="flex flex-col items-center justify-center gap-8 sm:flex-row">
+                <h1 className="grow font-display text-4xl font-semibold text-slate-900">
+                  My Trips
+                </h1>
+                <ButtonLink href="/new" size="large">
+                  <IconPlus />
+                  New Trip
+                </ButtonLink>
+              </div>
+              <TripOverviewSortSelect />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+                {trips.map((trip) => (
+                  <TripCard trip={trip} key={trip.tripId} />
+                ))}
+              </div>
+            </>
           ) : (
-            <div className="w-full py-12 text-center text-slate-600">
-              You don&apos;t have any trips yet. Get started!
+            <div className="relative flex flex-col items-center gap-8">
+              <h1 className="text-center font-display text-4xl font-semibold text-slate-900">
+                My Trips
+              </h1>
+              <p className="text-center text-slate-500">
+                You don&apos;t have any trips yet.
+                <br />
+                Get started!
+              </p>
+              <ButtonLink href="/new" size="large">
+                <IconPlus />
+                New Trip
+              </ButtonLink>
+              <Arrow className="absolute left-1/2 top-[108px] translate-x-[52px] text-slate-700" />
             </div>
           )}
         </div>
