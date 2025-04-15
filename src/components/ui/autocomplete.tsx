@@ -205,7 +205,7 @@ export default function AutoComplete<T, P>({
           <CommandList className="w-full">
             {sync && scoredItems && scoredItems.length > 0 && (
               <CommandGroup heading={sync.header}>
-                {scoredItems.slice(0, 5).map(([item, index]) => {
+                {scoredItems.map(([item, index]) => {
                   const key = sync.listValueFunction(item);
                   return (
                     <CommandItem
