@@ -244,8 +244,8 @@ export default async function Home({
             <HomeFeature
               header="Your Trip, Made in Seconds!"
               description="Short on time? Let us arrange your itinerary for you!
-                  We'll organize your saved spots into a day-by-day
-                  itinerary optimized for the best route and timing."
+                  We'll organise your saved spots into a day-by-day
+                  itinerary optimised for the best route and timing."
               firstIcon={<IconMapPinBolt />}
               secondIcon={<IconStopwatch />}
               firstPoint="Instantly turns saved places into an itinerary"

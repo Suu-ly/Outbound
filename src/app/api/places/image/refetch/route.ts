@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     return Response.json(
       {
         status: "error",
-        message: "Unauthorized",
+        message: "Unauthorised",
       },
       {
         status: 401,
