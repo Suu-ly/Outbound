@@ -331,7 +331,6 @@ export const tripPlace = pgTable(
 export type InsertTripPlace = typeof tripPlace.$inferInsert;
 export type SelectTripPlace = typeof tripPlace.$inferSelect;
 
-// TODO create another table to store user preference
 export const travelTime = pgTable(
   "travel_time",
   {

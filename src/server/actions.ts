@@ -1501,6 +1501,9 @@ export async function generateItinerary(
   if (data.trip.userId !== session.user.id)
     return { message: "Unauthorised", status: "error" };
 
+  if (data.places.length === 0)
+    return { message: "No places in trip!", status: "error" };
+
   const { days: dayWithPlaces, unvisited } = getDays(data);
   for (let i = 0; i < dayWithPlaces.length; i++) {
     dayWithPlaces[i] = await TSP(dayWithPlaces[i]);

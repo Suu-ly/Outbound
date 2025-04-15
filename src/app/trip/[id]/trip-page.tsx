@@ -254,7 +254,7 @@ const NonAdminView = () => {
   const places = useAtomValue(tripPlacesAtom);
   const days = useAtomValue(dayPlacesAtom);
   return (
-    <>
+    <div className="flex flex-col gap-4 p-4">
       <h3 className="font-display text-2xl font-medium">Saved Places</h3>
       {places.saved.map((place, index) => (
         <div
@@ -320,7 +320,7 @@ const NonAdminView = () => {
           </DayFolder>
         ))}
       </div>
-    </>
+    </div>
   );
 };
 
@@ -388,10 +388,8 @@ export default function TripPage({ tripId }: { tripId: string }) {
           className="absolute size-full object-cover"
         />
       </div>
-      <div className="flex flex-col gap-4 p-4">
-        {isAdmin && <SortPlaces tripId={tripId} />}
-        {!isAdmin && <NonAdminView />}
-      </div>
+      {isAdmin && <SortPlaces tripId={tripId} />}
+      {!isAdmin && <NonAdminView />}
     </ViewMapToggle>
   );
 }

@@ -2,10 +2,10 @@
 
 import { PlaceDetailsCompactProps } from "@/app/trip/[id]/place-details-compact";
 import TimePicker from "@/components/time-picker";
+import Arrow from "@/components/ui/arrow";
 import { Button } from "@/components/ui/button";
 import ButtonLink from "@/components/ui/button-link";
 import DrawerDialog from "@/components/ui/drawer-dialog";
-import Spinner from "@/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -79,6 +79,7 @@ import { toast } from "sonner";
 import {
   dayPlacesAtom,
   isDraggingAtom,
+  savedPlacesAmountAtom,
   tripDetailsAtom,
   tripPlacesAtom,
 } from "../atoms";
@@ -379,6 +380,7 @@ const SAVED_ID = "saved";
 
 export default function SortPlaces({ tripId }: { tripId: string }) {
   const defaultStartTime = useAtomValue(tripDetailsAtom).startTime;
+  const savedPlacesAmount = useAtomValue(savedPlacesAmountAtom);
   const [places, setPlaces] = useAtom(tripPlacesAtom);
   const [days, setDays] = useAtom(dayPlacesAtom);
 
@@ -881,159 +883,204 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
       }}
       onDragCancel={onDragCancel}
     >
-      <SortableContext
-        items={[SAVED_ID, ...days.map((day) => day.dayId)]}
-        strategy={verticalListSortingStrategy}
+      <div
+        className={`flex flex-col gap-4 p-4 transition-opacity duration-300 ${isGenerating ? "pointer-events-none opacity-50" : ""}`}
       >
-        <div className="flex justify-between gap-3">
-          <h3 className="font-display text-2xl font-medium">Saved Places</h3>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <ButtonLink
-                href={`/trip/${tripId}/discover`}
-                size="small"
-                variant="secondary"
-                iconOnly
-                aria-label="Discover places"
-              >
-                <IconMapPinSearch />
-              </ButtonLink>
-            </TooltipTrigger>
-            <TooltipContent>Discover places</TooltipContent>
-          </Tooltip>
-        </div>
-        <DroppableContainer
-          id={SAVED_ID}
-          disabled={isSortingContainer}
-          items={places.saved.map((place) => place.placeInfo.placeId!)}
-          day={false}
+        <SortableContext
+          items={[SAVED_ID, ...days.map((day) => day.dayId)]}
+          strategy={verticalListSortingStrategy}
         >
-          <SortableContext
-            items={places.saved.map((place) => place.placeInfo.placeId!)}
-            strategy={verticalListSortingStrategy}
-          >
-            {places.saved.map((place, index) => (
-              <div
-                key={place.placeInfo.placeId}
-                className={"relative ml-5 border-l-2 border-gray-50 pl-6"}
-              >
-                <div
-                  className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
-                  aria-label={`Saved place ${index + 1}`}
-                >
-                  {index + 1}
-                </div>
-                <SortableItem
-                  data={place}
-                  disabled={isSortingContainer}
-                  id={place.placeInfo.placeId!}
-                  elementId={getElementId("saved", index)}
-                  onRemove={onRemove}
-                  handleMove={handleMove}
-                  handleNoteChange={handleNoteChange}
-                  handleDurationChange={handleDurationChange}
-                />
-              </div>
-            ))}
-          </SortableContext>
-        </DroppableContainer>
-        <div className="mt-4 flex justify-between gap-3">
-          <h3 className="font-display text-2xl font-medium">Itinerary</h3>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="small"
-                variant="secondary"
-                iconOnly
-                aria-label="Generate itinerary"
-                disabled={isGenerating}
-                onClick={handleGenerateItinerary}
-              >
-                {isGenerating ? <Spinner /> : <IconWand />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Generate itinerary</TooltipContent>
-          </Tooltip>
-        </div>
-        <div className="flex flex-col gap-6">
-          {days.map((day, dayIndex) => (
+          <div className="flex justify-between gap-3">
+            <h3 className="font-display text-2xl font-medium">Saved Places</h3>
+            {savedPlacesAmount > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ButtonLink
+                    href={`/trip/${tripId}/discover`}
+                    size="small"
+                    variant="secondary"
+                    iconOnly
+                    aria-label="Discover places"
+                  >
+                    <IconMapPinSearch />
+                  </ButtonLink>
+                </TooltipTrigger>
+                <TooltipContent>Discover places</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+          {savedPlacesAmount === 0 ? (
+            <div className="relative flex flex-col items-center gap-4">
+              <p className="text-center text-slate-500">
+                You have not yet saved any places.
+                <br />
+                Discover new places!
+              </p>
+              <ButtonLink href={`/trip/${tripId}/discover`} size="large">
+                <IconMapPinSearch /> Discover Places
+              </ButtonLink>
+              <Arrow className="absolute left-1/2 top-9 translate-x-[86px] text-slate-700" />
+            </div>
+          ) : (
             <DroppableContainer
-              day
-              key={day.dayId}
-              id={day.dayId}
-              items={places[day.dayId].map((place) => place.placeInfo.placeId!)}
-              index={dayIndex}
-              handleMove={handleMove}
-              setLoadingState={setLoadingState}
-              startTimeChange={setChangingDayFromIndex}
+              id={SAVED_ID}
+              disabled={isSortingContainer}
+              items={places.saved.map((place) => place.placeInfo.placeId!)}
+              day={false}
             >
               <SortableContext
+                items={places.saved.map((place) => place.placeInfo.placeId!)}
+                strategy={verticalListSortingStrategy}
+              >
+                {places.saved.map((place, index) => (
+                  <div
+                    key={place.placeInfo.placeId}
+                    className={"relative ml-5 border-l-2 border-gray-50 pl-6"}
+                  >
+                    <div
+                      className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-50 bg-amber-300 text-sm font-medium text-amber-900 transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""}`}
+                      aria-label={`Saved place ${index + 1}`}
+                    >
+                      {index + 1}
+                    </div>
+                    <SortableItem
+                      data={place}
+                      disabled={isSortingContainer}
+                      id={place.placeInfo.placeId!}
+                      elementId={getElementId("saved", index)}
+                      onRemove={onRemove}
+                      handleMove={handleMove}
+                      handleNoteChange={handleNoteChange}
+                      handleDurationChange={handleDurationChange}
+                    />
+                  </div>
+                ))}
+              </SortableContext>
+            </DroppableContainer>
+          )}
+          <div className="mt-4 flex justify-between gap-3">
+            <h3 className="font-display text-2xl font-medium">Itinerary</h3>
+            {savedPlacesAmount > 0 &&
+              places.saved.length < savedPlacesAmount && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="small"
+                      variant="secondary"
+                      iconOnly
+                      aria-label="Generate itinerary"
+                      loading={isGenerating}
+                      onClick={handleGenerateItinerary}
+                    >
+                      <IconWand />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Generate itinerary</TooltipContent>
+                </Tooltip>
+              )}
+          </div>
+          {savedPlacesAmount > 0 &&
+            places.saved.length >= savedPlacesAmount && (
+              <div className="relative flex flex-col items-center gap-4">
+                <p className="text-center text-slate-500">
+                  Want to make itinerary planning easy?
+                  <br />
+                  Try generating one automatically!
+                </p>
+                <Button
+                  onClick={handleGenerateItinerary}
+                  loading={isGenerating}
+                  size="large"
+                >
+                  <IconWand /> Generate Itinerary
+                </Button>
+                <Arrow className="absolute left-1/2 top-10 origin-top-left translate-x-32 rotate-[33deg] text-slate-700" />
+              </div>
+            )}
+          <div className="flex flex-col gap-6">
+            {days.map((day, dayIndex) => (
+              <DroppableContainer
+                day
+                key={day.dayId}
+                id={day.dayId}
                 items={places[day.dayId].map(
                   (place) => place.placeInfo.placeId!,
                 )}
-                strategy={verticalListSortingStrategy}
+                index={dayIndex}
+                handleMove={handleMove}
+                setLoadingState={setLoadingState}
+                startTimeChange={setChangingDayFromIndex}
               >
-                {places[day.dayId].map((place, index) => {
-                  return (
-                    <div
-                      key={place.placeInfo.placeId}
-                      className={cn(
-                        "relative ml-5 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
-                        activeId && !isSortingContainer && "border-transparent",
-                      )}
-                    >
+                <SortableContext
+                  items={places[day.dayId].map(
+                    (place) => place.placeInfo.placeId!,
+                  )}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {places[day.dayId].map((place, index) => {
+                    return (
                       <div
-                        className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-100 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`}
-                        aria-label={`Saved place on day ${dayIndex + 1} ${index + 1}`}
-                      >
-                        {index + 1}
-                      </div>
-                      <TravelTimeIndicator
-                        isInDay={day.dayId}
-                        index={index}
-                        startTime={day.dayStartTime}
-                        shouldHide={Boolean(activeId && !isSortingContainer)}
-                        startTimeClick={setChangingDayFromIndex}
-                      />
-                      <SortableItem
-                        data={place}
-                        isInDay={day.dayId}
-                        disabled={isSortingContainer}
-                        id={place.placeInfo.placeId!}
-                        dayIndex={dayIndex}
-                        elementId={getElementId("day", index, dayIndex)}
-                        onRemove={onRemove}
-                        handleMove={handleMove}
-                        handleNoteChange={handleNoteChange}
-                        handleDurationChange={handleDurationChange}
-                      >
-                        {index < places[day.dayId].length - 1 && ( // Not the last item
-                          <TravelTimeSelect
-                            fromId={place.placeInfo.placeId}
-                            fromCoords={place.placeInfo.location}
-                            toId={
-                              places[day.dayId][index + 1].placeInfo.placeId
-                            }
-                            toCoords={
-                              places[day.dayId][index + 1].placeInfo.location
-                            }
-                            isDragging={Boolean(
-                              activeId && !isSortingContainer,
-                            )}
-                          />
+                        key={place.placeInfo.placeId}
+                        className={cn(
+                          "relative ml-5 border-l-2 border-slate-700 pb-2 pl-6 transition [&:nth-last-child(2)]:border-transparent [&:nth-last-child(2)]:pb-0",
+                          activeId &&
+                            !isSortingContainer &&
+                            "border-transparent",
                         )}
-                      </SortableItem>
-                    </div>
-                  );
-                })}
-              </SortableContext>
-              {loadingState[day.dayId]?.map((id) => (
-                <PlaceDetailsSkeletonLoader key={`${id}loader`} />
-              ))}
-            </DroppableContainer>
-          ))}
-        </div>
-      </SortableContext>
+                      >
+                        <div
+                          className={`absolute -left-px top-0 flex size-8 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gray-100 text-sm font-medium transition-opacity ${activeId && !isSortingContainer ? "opacity-0" : ""} ${markerColorLookup[dayIndex % markerColorLookup.length].bg} ${markerColorLookup[dayIndex % markerColorLookup.length].text}`}
+                          aria-label={`Saved place on day ${dayIndex + 1} ${index + 1}`}
+                        >
+                          {index + 1}
+                        </div>
+                        <TravelTimeIndicator
+                          isInDay={day.dayId}
+                          index={index}
+                          startTime={day.dayStartTime}
+                          shouldHide={Boolean(activeId && !isSortingContainer)}
+                          startTimeClick={setChangingDayFromIndex}
+                        />
+                        <SortableItem
+                          data={place}
+                          isInDay={day.dayId}
+                          disabled={isSortingContainer}
+                          id={place.placeInfo.placeId!}
+                          dayIndex={dayIndex}
+                          elementId={getElementId("day", index, dayIndex)}
+                          onRemove={onRemove}
+                          handleMove={handleMove}
+                          handleNoteChange={handleNoteChange}
+                          handleDurationChange={handleDurationChange}
+                        >
+                          {index < places[day.dayId].length - 1 && ( // Not the last item
+                            <TravelTimeSelect
+                              fromId={place.placeInfo.placeId}
+                              fromCoords={place.placeInfo.location}
+                              toId={
+                                places[day.dayId][index + 1].placeInfo.placeId
+                              }
+                              toCoords={
+                                places[day.dayId][index + 1].placeInfo.location
+                              }
+                              isDragging={Boolean(
+                                activeId && !isSortingContainer,
+                              )}
+                            />
+                          )}
+                        </SortableItem>
+                      </div>
+                    );
+                  })}
+                </SortableContext>
+                {loadingState[day.dayId]?.map((id) => (
+                  <PlaceDetailsSkeletonLoader key={`${id}loader`} />
+                ))}
+              </DroppableContainer>
+            ))}
+          </div>
+        </SortableContext>
+      </div>
       <Portal>
         <DragOverlay dropAnimation={dropAnimation} zIndex={50}>
           {activeId ? (
