@@ -313,7 +313,7 @@ export async function updateTripPlaceNote(
     await db
       .update(tripPlace)
       .set({
-        note: note,
+        note: note ? note : null,
       })
       .from(trip)
       .where(
@@ -722,11 +722,17 @@ export async function updateTripName(
 ): Promise<ApiResponse<true>> {
   const session = await authenticate();
   if (!session) return { message: "Unauthorised", status: "error" };
+  const trim = newName.trim();
+  if (trim.length < 3)
+    return {
+      message: "Trip name must be at least 3 characters!",
+      status: "error",
+    };
   try {
     await db
       .update(trip)
       .set({
-        name: newName,
+        name: trim,
       })
       .where(and(eq(trip.id, tripId), eq(trip.userId, session.user.id)));
     await refresh();
@@ -837,10 +843,13 @@ export async function updateAvatar(image: string): Promise<ApiResponse<true>> {
 }
 
 export async function updateUserName(name: string): Promise<ApiResponse<true>> {
+  const trim = name.trim(); //It should already be trimmed
+  if (trim.length < 2)
+    return { message: "Name must be at least 2 characters!", status: "error" };
   const res = await auth.api.updateUser({
     headers: await headers(),
     body: {
-      name: name,
+      name: trim,
     },
   });
   if (res.status) {

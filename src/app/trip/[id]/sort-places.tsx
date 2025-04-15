@@ -573,11 +573,9 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         }),
       }));
       if (newNote)
-        updateTripPlaceNote(tripId, placeId, note ? note : null).then(
-          (data) => {
-            if (data.status === "error") toast.error(data.message);
-          },
-        );
+        updateTripPlaceNote(tripId, placeId, note).then((data) => {
+          if (data.status === "error") toast.error(data.message);
+        });
     },
     [setPlaces, tripId],
   );
