@@ -44,7 +44,7 @@ export default function TripCard({
           className="absolute size-full object-cover transition-transform duration-500 group-hover:scale-[102%]"
         />
       </div>
-      <div className="flex grow gap-1 bg-white p-3 pt-2">
+      <div className="flex grow gap-1 bg-white p-3 pr-2 pt-2">
         <div className="min-w-0 flex-1 flex-col">
           <Link
             href={`/trip/${trip.tripId}`}
