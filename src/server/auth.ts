@@ -63,8 +63,8 @@ export const auth = betterAuth({
                                 align="center"
                               >
                                 <img
-                                  src="http://cdn.mcauto-images-production.sendgrid.net/8e76061d0293c92a/2c3375a0-c7b4-4410-b690-3cbf0076c2b6/152x40.png"
-                                  width="152"
+                                  src="http://cdn.mcauto-images-production.sendgrid.net/8e76061d0293c92a/ee4a121c-7a2e-42ec-96be-14eba495ee20/173x40.png"
+                                  width="173"
                                   height="40"
                                   aria-hidden="true"
                                   style="margin-bottom:24px"
@@ -148,8 +148,8 @@ export const auth = betterAuth({
                                     align="center"
                                   >
                                     <img
-                                      src="http://cdn.mcauto-images-production.sendgrid.net/8e76061d0293c92a/2c3375a0-c7b4-4410-b690-3cbf0076c2b6/152x40.png"
-                                      width="152"
+                                      src="http://cdn.mcauto-images-production.sendgrid.net/8e76061d0293c92a/ee4a121c-7a2e-42ec-96be-14eba495ee20/173x40.png"
+                                      width="173"
                                       height="40"
                                       aria-hidden="true"
                                       style="margin-bottom:24px"

@@ -55,8 +55,8 @@ const ForgetPasswordForm = () => {
   if (submitted)
     return (
       <AuthLayout
-        header="Email sent"
-        subtitle="We've sent a password reset link to your email. Please check your spam folder if it does not show up!"
+        header="Email Sent"
+        subtitle="We've sent a password reset link to your email if your account exists. Please check your spam folder if it does not show up!"
       >
         <ButtonLink href="/" className="w-full" size="large">
           Back to Home
