@@ -77,6 +77,18 @@ export default {
             strokeDashoffset: "-59",
           },
         },
+        "blur-enter": {
+          from: {
+            opacity: "0",
+            filter: "blur(10px)",
+            transform: "translateY(40px)",
+          },
+          to: {
+            opcacity: "1",
+            filter: "blur(0px)",
+            transform: "translateY(0px)",
+          },
+        },
       },
       animation: {
         "caret-blink": "caret-blink 1.25s ease-out infinite",
@@ -85,12 +97,18 @@ export default {
         minimise: "minimise 0.3s cubic-bezier(0.8, 0, 0.2, 1)",
         spinner: "spinner 1.3s ease-in-out infinite",
         pickup: "pickup 0.3s cubic-bezier(0.45,1.3,0.3,1)",
+        "blur-enter": "blur-enter 1.5s cubic-bezier(0, 0, 0.2, 1)",
       },
       transitionTimingFunction: {
         snap: "cubic-bezier(0.8, 0, 0.2, 1)",
       },
       animationDuration: {
         "3s": "3s",
+      },
+      animationDelay: {
+        "250": "250ms",
+        "400": "400ms",
+        "550": "550ms",
       },
     },
   },

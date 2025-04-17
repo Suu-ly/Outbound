@@ -119,23 +119,23 @@ export default async function Home({
           <div className="mx-auto flex w-full max-w-sm flex-col gap-16 bg-gray-50 pt-12 sm:max-w-5xl sm:gap-24 lg:gap-48">
             <div className="grid grid-cols-1 items-center gap-16 sm:grid-cols-2 lg:grid-cols-5 xl:gap-20">
               <div className="flex flex-col items-start gap-6 lg:col-span-3 lg:gap-8">
-                <h1 className="font-display text-6xl font-semibold text-slate-900 lg:text-7xl">
+                <h1 className="animate-blur-enter font-display text-6xl font-semibold text-slate-900 delay-100 fill-mode-backwards lg:text-7xl">
                   Trip planning should be easy.
                 </h1>
-                <p className="text-xl font-medium text-slate-700 lg:text-2xl">
+                <p className="animate-blur-enter delay-250 text-xl font-medium text-slate-700 fill-mode-backwards lg:text-2xl">
                   We know planning trips can be frustrating. Plan your trips the
                   enjoyable way, with Outbound.
                 </p>
                 <ButtonLink
                   href="/register"
                   prefetch={false}
-                  className="mx-auto sm:mx-0"
+                  className="animate-blur-enter delay-400 mx-auto fill-mode-backwards sm:mx-0"
                   size="large"
                 >
                   Start Planning
                 </ButtonLink>
               </div>
-              <div className="relative aspect-[3/2] min-h-96 w-[48rem] overflow-hidden rounded-2xl border-2 border-slate-200 shadow-xl sm:min-h-[512px] sm:w-[57rem] lg:col-span-2 lg:min-h-[768px] lg:w-auto lg:rounded-3xl">
+              <div className="animate-blur-enter delay-550 relative aspect-[3/2] min-h-96 w-[48rem] overflow-hidden rounded-2xl border-2 border-slate-200 shadow-xl fill-mode-backwards sm:min-h-[512px] sm:w-[57rem] lg:col-span-2 lg:min-h-[768px] lg:w-auto lg:rounded-3xl">
                 <Image
                   src={Splash.src}
                   alt="Screenshot of Outbound"
