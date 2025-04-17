@@ -124,7 +124,7 @@ export default function AutoComplete<T, P>({
   };
 
   useEffect(() => {
-    if (!isClosed) return;
+    if (!isClosed || value.length === 0) return;
     const itemsChanged = () => {
       if (
         Array.isArray(async?.listItems) &&
@@ -140,6 +140,7 @@ export default function AutoComplete<T, P>({
             return true;
         }
         // For empty arrays, always treat as different
+        // Side effect is that stale no items found is shown
         if (async.listItems.length === 0) {
           return true;
         }
@@ -156,10 +157,15 @@ export default function AutoComplete<T, P>({
     }
     return () => {
       prevIsLoading.current = isLoading;
-      prevAsyncItems.current = async?.listItems;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, async, value]);
+
+  useEffect(() => {
+    // We want to keep track of whether the items has changed since isClosed became true
+    if (isClosed) prevAsyncItems.current = async?.listItems;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClosed]);
 
   useEffect(() => {
     const val = value;
