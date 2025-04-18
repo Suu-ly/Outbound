@@ -5,10 +5,11 @@ import { db } from "@/server/db";
 import {
   SelectTripTravelTime,
   travelTime,
+  trip,
   tripTravelTime,
 } from "@/server/db/schema";
 import { DistanceType } from "@/server/types";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { type NextRequest } from "next/server";
 
 type MapboxResponse =
@@ -143,7 +144,34 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const data = await redis.get<DistanceType>(`${fromCoords};${toCoords}`);
+  const [data, tripUser] = await Promise.all([
+    redis.get<DistanceType>(`${fromCoords};${toCoords}`),
+    db.select({ user: trip.userId }).from(trip).where(eq(trip.id, tripId)),
+  ]);
+
+  if (tripUser.length === 0)
+    return Response.json(
+      {
+        status: "error",
+        message: "Trip does not exist",
+      },
+      {
+        status: 400,
+        headers: updateCookies,
+      },
+    );
+  if (tripUser[0].user !== userSessionData.user.id)
+    return Response.json(
+      {
+        status: "error",
+        message: "Unauthorised",
+      },
+      {
+        status: 401,
+        headers: updateCookies,
+      },
+    );
+
   if (data) {
     await db
       .insert(tripTravelTime)

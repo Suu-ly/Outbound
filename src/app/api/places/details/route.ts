@@ -3,14 +3,15 @@ import { getCountry, safeJson } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { redis } from "@/server/cache";
 import { db } from "@/server/db";
-import { place as placeTable, tripPlace } from "@/server/db/schema";
+import { place as placeTable, trip, tripPlace } from "@/server/db/schema";
 import {
   ApiResponse,
   TripPlaceDetails,
   type GoogleError,
   type PlacesResult,
 } from "@/server/types";
-import { sql } from "drizzle-orm";
+import { Session, User } from "better-auth";
+import { eq, sql } from "drizzle-orm";
 import { type NextRequest } from "next/server";
 import getBingImage from "../get-bing-image";
 
@@ -32,7 +33,10 @@ export async function GET(request: NextRequest) {
       throw new Error("Unable to verify user status");
     });
   const setCookies = userSession.headers.getSetCookie();
-  const userSessionData = await safeJson(userSession);
+  const userSessionData = (await safeJson(userSession)) as {
+    session: Session;
+    user: User;
+  } | null;
   const updateCookies = new Headers();
   setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
   if (!userSessionData)
@@ -66,9 +70,36 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const data = await redis.get<
-    Extract<ApiResponse<TripPlaceDetails>, { status: "success" }>
-  >(name + secondary + "details");
+  const [data, tripUser] = await Promise.all([
+    redis.get<Extract<ApiResponse<TripPlaceDetails>, { status: "success" }>>(
+      name + secondary + "details",
+    ),
+    db.select({ user: trip.userId }).from(trip).where(eq(trip.id, tripId)),
+  ]);
+
+  if (tripUser.length === 0)
+    return Response.json(
+      {
+        status: "error",
+        message: "Trip does not exist",
+      },
+      {
+        status: 400,
+        headers: updateCookies,
+      },
+    );
+  if (tripUser[0].user !== userSessionData.user.id)
+    return Response.json(
+      {
+        status: "error",
+        message: "Unauthorised",
+      },
+      {
+        status: 401,
+        headers: updateCookies,
+      },
+    );
+
   if (data) {
     // insert into tripPlaces
     const toInsert = {

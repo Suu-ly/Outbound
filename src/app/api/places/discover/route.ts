@@ -3,14 +3,14 @@ import { getCountry, safeJson } from "@/lib/utils";
 import { auth } from "@/server/auth";
 import { redis } from "@/server/cache";
 import { db } from "@/server/db";
-import { InsertTripPlace, place, tripPlace } from "@/server/db/schema";
+import { InsertTripPlace, place, trip, tripPlace } from "@/server/db/schema";
 import {
   ApiResponse,
   TripPlaceDetails,
   type GoogleError,
   type PlacesResult,
 } from "@/server/types";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { type NextRequest } from "next/server";
 import getBingImage from "../get-bing-image";
 
@@ -63,12 +63,42 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const data = await redis.get<
-    Extract<
-      ApiResponse<{ places: TripPlaceDetails[]; nextPageToken: string | null }>,
-      { status: "success" }
-    >
-  >(location + bounds.toString() + nextPageToken);
+  const [data, tripUser] = await Promise.all([
+    redis.get<
+      Extract<
+        ApiResponse<{
+          places: TripPlaceDetails[];
+          nextPageToken: string | null;
+        }>,
+        { status: "success" }
+      >
+    >(location + bounds.toString() + nextPageToken),
+    db.select({ user: trip.userId }).from(trip).where(eq(trip.id, id)),
+  ]);
+
+  if (tripUser.length === 0)
+    return Response.json(
+      {
+        status: "error",
+        message: "Trip does not exist",
+      },
+      {
+        status: 400,
+        headers: updateCookies,
+      },
+    );
+  if (tripUser[0].user !== userSessionData.user.id)
+    return Response.json(
+      {
+        status: "error",
+        message: "Unauthorised",
+      },
+      {
+        status: 401,
+        headers: updateCookies,
+      },
+    );
+
   if (data) {
     const tripPlaceInsert: InsertTripPlace[] = [];
     for (let i = 0; i < data.data.places.length; i++) {
