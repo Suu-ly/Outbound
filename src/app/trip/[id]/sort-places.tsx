@@ -389,7 +389,8 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
     placeId: string;
   }>();
   const [changingDayTime, setChangingDayTime] = useState<DayData>();
-  const [isRemovingPlace, setIsRemovingPlace] = useState(false);
+  const [isChangingDayTime, startChangingDayTime] = useTransition();
+  const [isRemovingPlace, startRemovingPlace] = useTransition();
   const [loadingState, setLoadingState] = useState<
     Record<keyof typeof places, string[]>
   >({});
@@ -487,20 +488,28 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   };
 
   const removePlace = useCallback(
-    async (isInDay: number | string, placeId: string) => {
-      setIsRemovingPlace(true);
-      const response = await setPlaceAsUninterested(placeId, tripId);
-      if (response.status === "error") toast.error(response.message);
-      else
-        setPlaces((prev) => ({
-          ...prev,
-          [isInDay]: prev[isInDay].filter(
-            (place) => place.placeInfo.placeId !== placeId,
-          ),
-        }));
-      setIsRemovingPlace(false);
+    async (
+      toBeRemoved: { isInDay: number | string; placeId: string } | undefined,
+    ) => {
+      startRemovingPlace(async () => {
+        if (!toBeRemoved) return;
+        const response = await setPlaceAsUninterested(
+          toBeRemoved.placeId,
+          tripId,
+        );
+        if (response.status === "error") toast.error(response.message);
+        else {
+          setPlaces((prev) => ({
+            ...prev,
+            [toBeRemoved.isInDay]: prev[toBeRemoved.isInDay].filter(
+              (place) => place.placeInfo.placeId !== toBeRemoved.placeId,
+            ),
+          }));
+          setToBeRemoved(undefined);
+        }
+      });
     },
-    [setPlaces, tripId],
+    [setPlaces, tripId, setToBeRemoved],
   );
 
   const onRemove = useCallback((isInDay: number | string, placeId: string) => {
@@ -621,21 +630,35 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
   );
 
   const onChangeDayTimeConfirm = useCallback(
-    (dayId: number, newTime: string) => {
+    (close: () => void, hours: number, mins: number) => {
+      if (!changingDayTime) return;
+      if (
+        minsTo24HourFormat(hours * 60 + mins).value ===
+        changingDayTime.dayStartTime
+      ) {
+        return;
+      }
+      const dayId = changingDayTime.dayId;
+      const newTime = minsTo24HourFormat(hours * 60 + mins).value;
       let timeChanged = false;
       setDays((prev) =>
         prev.map((day) => {
           if (day.dayId !== dayId) return day;
-          if (day.dayStartTime !== newTime) timeChanged = true;
-          return { ...day, dayStartTime: newTime };
+          if (day.dayStartTime !== newTime) {
+            timeChanged = true;
+            return { ...day, dayStartTime: newTime };
+          }
+          return day;
         }),
       );
-      if (timeChanged)
-        updateDayStartTime(dayId, newTime).then((data) => {
-          if (data.status === "error") toast.error(data.message);
-        });
+      if (!timeChanged) return;
+      startChangingDayTime(async () => {
+        const res = await updateDayStartTime(dayId, newTime);
+        if (res.status === "error") toast.error(res.message);
+        else close();
+      });
     },
-    [setDays],
+    [changingDayTime, setDays],
   );
 
   const handleGenerateItinerary = useCallback(async () => {
@@ -1107,11 +1130,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         description="To undo this action, you can go to the “View Skipped Places” page."
         mainActionLabel="Remove"
         onMainAction={() => {
-          if (toBeRemoved)
-            removePlace(toBeRemoved.isInDay, toBeRemoved.placeId).then(() =>
-              setToBeRemoved(undefined),
-            );
-          else setToBeRemoved(undefined);
+          removePlace(toBeRemoved);
         }}
         destructive
       />
@@ -1130,6 +1149,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         onOpenChange={(open) => !open && setChangingDayTime(undefined)}
         header="Change start time"
         description="Change the time your day will start at."
+        loading={isChangingDayTime}
         startHours={Math.floor(
           digitStringToMins(
             changingDayTime ? changingDayTime.dayStartTime : "0900",
@@ -1140,19 +1160,7 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
             changingDayTime ? changingDayTime.dayStartTime : "0000",
           ) % 60
         }
-        onConfirm={(close, hours, mins) => {
-          if (!changingDayTime) return;
-          if (
-            minsTo24HourFormat(hours * 60 + mins).value !==
-            changingDayTime.dayStartTime
-          ) {
-            onChangeDayTimeConfirm(
-              changingDayTime.dayId,
-              minsTo24HourFormat(hours * 60 + mins).value,
-            );
-          }
-          close();
-        }}
+        onConfirm={onChangeDayTimeConfirm}
       />
     </DndContext>
   );

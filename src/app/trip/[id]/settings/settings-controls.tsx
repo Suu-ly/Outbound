@@ -16,7 +16,7 @@ import {
   forwardRef,
   ReactNode,
   useCallback,
-  useState,
+  useTransition,
 } from "react";
 import { toast } from "sonner";
 import { tripDetailsAtom } from "../../atoms";
@@ -55,21 +55,20 @@ SettingsItem.displayName = "SettingsItem";
 const DayStartTime = () => {
   const [tripDetails, setTripDetails] = useAtom(tripDetailsAtom);
   const currentStartTime = digitStringToMins(tripDetails.startTime);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, startLoading] = useTransition();
   const handleTimeChange = useCallback(
-    async (close: () => void, hours: number, minutes: number) => {
+    (close: () => void, hours: number, minutes: number) => {
       const newTime = minsTo24HourFormat(hours * 60 + minutes).value;
-      if (newTime !== tripDetails.startTime) {
-        setIsLoading(true);
+      if (newTime === tripDetails.startTime) return;
+      startLoading(async () => {
         const res = await updateTripStartTime(tripDetails.id, newTime);
-        setIsLoading(false);
         if (res.status === "error") toast.error(res.message);
         else {
           setTripDetails((prev) => ({ ...prev, startTime: newTime }));
           toast.success("Default start time updated successfully!");
+          close();
         }
-      }
-      close();
+      });
     },
     [setTripDetails, tripDetails],
   );
@@ -106,21 +105,20 @@ const DayStartTime = () => {
 const DayEndTime = () => {
   const [tripDetails, setTripDetails] = useAtom(tripDetailsAtom);
   const currentEndTime = digitStringToMins(tripDetails.endTime);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, startLoading] = useTransition();
   const handleTimeChange = useCallback(
-    async (close: () => void, hours: number, minutes: number) => {
+    (close: () => void, hours: number, minutes: number) => {
       const newTime = minsTo24HourFormat(hours * 60 + minutes).value;
-      if (newTime !== tripDetails.endTime) {
-        setIsLoading(true);
+      if (newTime === tripDetails.endTime) return;
+      startLoading(async () => {
         const res = await updateTripEndTime(tripDetails.id, newTime);
-        setIsLoading(false);
         if (res.status === "error") toast.error(res.message);
         else {
           setTripDetails((prev) => ({ ...prev, endTime: newTime }));
           toast.success("Day end time updated successfully!");
+          close();
         }
-      }
-      close();
+      });
     },
     [tripDetails, setTripDetails],
   );
@@ -156,20 +154,20 @@ const DayEndTime = () => {
 
 const RoundUpTravelTime = () => {
   const [tripDetails, setTripDetails] = useAtom(tripDetailsAtom);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, startLoading] = useTransition();
   const handleCheckedChange = useCallback(
-    async (checked: boolean) => {
+    (checked: boolean) => {
       if (checked === tripDetails.roundUpTime) return;
-      setIsLoading(true);
-      const res = await updateTripRoundUpTime(tripDetails.id, checked);
-      setIsLoading(false);
-      if (res.status === "error") toast.error(res.message);
-      else {
-        setTripDetails((prev) => ({ ...prev, roundUpTime: checked }));
-        toast.success(
-          "Trip travel time estimate preference updated successfully!",
-        );
-      }
+      startLoading(async () => {
+        const res = await updateTripRoundUpTime(tripDetails.id, checked);
+        if (res.status === "error") toast.error(res.message);
+        else {
+          setTripDetails((prev) => ({ ...prev, roundUpTime: checked }));
+          toast.success(
+            "Trip travel time estimate preference updated successfully!",
+          );
+        }
+      });
     },
     [tripDetails, setTripDetails],
   );
@@ -192,18 +190,18 @@ const RoundUpTravelTime = () => {
 
 const PrivateTrip = () => {
   const [tripDetails, setTripDetails] = useAtom(tripDetailsAtom);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, startLoading] = useTransition();
   const handleCheckedChange = useCallback(
-    async (checked: boolean) => {
+    (checked: boolean) => {
       if (checked === tripDetails.private) return;
-      setIsLoading(true);
-      const res = await updateTripPrivacy(tripDetails.id, checked);
-      setIsLoading(false);
-      if (res.status === "error") toast.error(res.message);
-      else {
-        setTripDetails((prev) => ({ ...prev, private: checked }));
-        toast.success("Trip privacy setting updated successfully!");
-      }
+      startLoading(async () => {
+        const res = await updateTripPrivacy(tripDetails.id, checked);
+        if (res.status === "error") toast.error(res.message);
+        else {
+          setTripDetails((prev) => ({ ...prev, private: checked }));
+          toast.success("Trip privacy setting updated successfully!");
+        }
+      });
     },
     [tripDetails, setTripDetails],
   );

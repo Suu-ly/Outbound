@@ -9,8 +9,8 @@ import {
   updateTripPrivacy,
 } from "@/server/actions";
 import { useAtom, useSetAtom } from "jotai";
-import { redirect } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   changeTripNameDialogOpenAtom,
@@ -28,7 +28,7 @@ const SetToPublicDialog = ({
     setToPublicDialogOpenAtom,
   );
   const basePath = `/trip/${setToPublicDialogOpen?.tripId}`;
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, startLoading] = useTransition();
   const [, copyToClipboard] = useCopyToClipboard();
   const onCopy = useCallback(
     (link: string, message: string) => {
@@ -53,22 +53,22 @@ const SetToPublicDialog = ({
       mainActionLabel="Set trip to public"
       loading={isLoading}
       onMainAction={async (close) => {
-        if (!setToPublicDialogOpen) return;
-        setIsLoading(true);
-        const res = await updateTripPrivacy(
-          setToPublicDialogOpen.tripId,
-          false,
-        );
-        setIsLoading(false);
-        if (res.status === "error") toast.error(res.message);
-        else {
-          if (onSetToPublicSuccess) onSetToPublicSuccess();
-          onCopy(
-            process.env.NEXT_PUBLIC_URL + basePath,
-            "Trip link copied to clipboard!",
+        startLoading(async () => {
+          if (!setToPublicDialogOpen) return;
+          const res = await updateTripPrivacy(
+            setToPublicDialogOpen.tripId,
+            false,
           );
-        }
-        close();
+          if (res.status === "error") toast.error(res.message);
+          else {
+            if (onSetToPublicSuccess) onSetToPublicSuccess();
+            onCopy(
+              process.env.NEXT_PUBLIC_URL + basePath,
+              "Trip link copied to clipboard!",
+            );
+          }
+          close();
+        });
       }}
     />
   );
@@ -82,7 +82,7 @@ const EditTripNameDialog = ({
   const [changeTripNameDialogOpen, setChangeTripNameDialogOpen] = useAtom(
     changeTripNameDialogOpenAtom,
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, startLoading] = useTransition();
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -117,25 +117,25 @@ const EditTripNameDialog = ({
         </>
       }
       onMainAction={async (close) => {
-        if (!changeTripNameDialogOpen) return;
-        const value = inputRef.current?.value;
-        if (!value || error) return;
-        const trimmed = value.trim();
-        if (trimmed === changeTripNameDialogOpen.currentName) {
+        startLoading(async () => {
+          if (!changeTripNameDialogOpen) return;
+          const value = inputRef.current?.value;
+          if (!value || error) return;
+          const trimmed = value.trim();
+          if (trimmed === changeTripNameDialogOpen.currentName) {
+            close();
+            return;
+          }
+          const res = await updateTripName(
+            changeTripNameDialogOpen.tripId,
+            trimmed,
+          );
+          if (res.status === "error") toast.error(res.message);
+          else if (onEditNameSuccess) {
+            onEditNameSuccess(trimmed);
+          }
           close();
-          return;
-        }
-        setIsLoading(true);
-        const res = await updateTripName(
-          changeTripNameDialogOpen.tripId,
-          trimmed,
-        );
-        setIsLoading(false);
-        if (res.status === "error") toast.error(res.message);
-        else if (onEditNameSuccess) {
-          onEditNameSuccess(trimmed);
-        }
-        close();
+        });
       }}
     />
   );
@@ -145,7 +145,8 @@ const DeleteTripDialog = () => {
   const [deleteTripDialogOpen, setDeleteTripDialogOpen] = useAtom(
     deleteTripDialogOpenAtom,
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, startLoading] = useTransition();
+  const router = useRouter();
 
   return (
     <DrawerDialog
@@ -159,16 +160,16 @@ const DeleteTripDialog = () => {
       loading={isLoading}
       destructive
       onMainAction={async (close) => {
-        if (!deleteTripDialogOpen) return;
-        setIsLoading(true);
-        const res = await deleteTrip(deleteTripDialogOpen.tripId);
-        setIsLoading(false);
-        if (res.status === "error") {
-          toast.error(res.message);
-        } else {
-          close();
-          redirect("/");
-        }
+        startLoading(async () => {
+          if (!deleteTripDialogOpen) return;
+          const res = await deleteTrip(deleteTripDialogOpen.tripId);
+          if (res.status === "error") {
+            toast.error(res.message);
+          } else {
+            close();
+            router.replace("/");
+          }
+        });
       }}
     />
   );

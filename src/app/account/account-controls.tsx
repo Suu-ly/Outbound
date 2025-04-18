@@ -15,7 +15,13 @@ import {
 import { IconEdit, IconPhoto } from "@tabler/icons-react";
 import { User } from "better-auth";
 import pica from "pica";
-import { KeyboardEvent, ReactNode, useRef, useState } from "react";
+import {
+  KeyboardEvent,
+  ReactNode,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -30,7 +36,7 @@ export function AvatarEdit({
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [avatarContent, setAvatarContent] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, startSaving] = useTransition();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -67,17 +73,17 @@ export function AvatarEdit({
     };
   };
 
-  const handleImageSave = async () => {
-    if (!avatarContent) return false;
-    setIsSaving(true);
-    const res = await updateAvatar(avatarContent);
-    setIsSaving(false);
-    if (res.status === "error") {
-      toast.error(res.message);
-      return false;
-    }
-    toast.success("Avatar updated successfully!");
-    return true;
+  const handleImageSave = async (close: () => void) => {
+    startSaving(async () => {
+      if (!avatarContent) return;
+      const res = await updateAvatar(avatarContent);
+      if (res.status === "error") {
+        toast.error(res.message);
+        return;
+      }
+      toast.success("Avatar updated successfully!");
+      close();
+    });
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLLabelElement>) => {
@@ -90,10 +96,7 @@ export function AvatarEdit({
       description="Change your publicly visible avatar."
       loading={isSaving}
       mainActionLabel="Save"
-      onMainAction={async (close) => {
-        const success = await handleImageSave();
-        if (success) close();
-      }}
+      onMainAction={handleImageSave}
       content={
         <div className="flex justify-center">
           {user.image ? (
@@ -172,22 +175,26 @@ export function EditNameDialog({
   children: ReactNode;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, startLoading] = useTransition();
   const [error, setError] = useState("");
 
-  const handleUserNameChange = async () => {
-    if (!inputRef.current || inputRef.current.value.trim().length < 2 || error)
-      return false;
-    if (inputRef.current.value.trim() === currentName) return true;
-    setIsLoading(true);
-    const res = await updateUserName(inputRef.current.value.trim());
-    setIsLoading(false);
-    if (res.status === "error") {
-      toast.error(res.message);
-      return false;
-    }
-    toast.success("Name updated successfully!");
-    return true;
+  const handleUserNameChange = async (close: () => void) => {
+    startLoading(async () => {
+      if (
+        !inputRef.current ||
+        inputRef.current.value.trim().length < 2 ||
+        error
+      )
+        return;
+      if (inputRef.current.value.trim() === currentName) return;
+      const res = await updateUserName(inputRef.current.value.trim());
+      if (res.status === "error") {
+        toast.error(res.message);
+        return;
+      }
+      toast.success("Name updated successfully!");
+      close();
+    });
   };
 
   return (
@@ -196,10 +203,7 @@ export function EditNameDialog({
       header="Edit name"
       description="Change your publicly visible name."
       mainActionLabel="Save"
-      onMainAction={async (close) => {
-        const success = await handleUserNameChange();
-        if (success) close();
-      }}
+      onMainAction={handleUserNameChange}
       content={
         <>
           <Input
@@ -243,8 +247,8 @@ export function DeleteUserDialog({ children }: { children: ReactNode }) {
     });
     if (error) {
       setError(error.message);
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
@@ -255,9 +259,7 @@ export function DeleteUserDialog({ children }: { children: ReactNode }) {
         "You will delete all your data and trips. You cannot undo this action.\n\nTo confirm, please enter your password below. "
       }
       mainActionLabel="Delete"
-      onMainAction={async () => {
-        await handleDeleteUser();
-      }}
+      onMainAction={handleDeleteUser}
       destructive
       content={
         <>
@@ -311,38 +313,37 @@ export function EditPasswordDialog({ children }: { children: ReactNode }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const cfmRef = useRef<HTMLInputElement>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, startLoading] = useTransition();
   const [error, setError] = useState<{
     current?: string[];
     password?: string[];
     confirm?: string[];
   }>();
 
-  const handleUserPasswordChange = async () => {
-    if (!inputRef.current || !cfmRef.current || !currentRef.current)
-      return false;
-    const validation = newPasswordSchema.safeParse({
-      current: currentRef.current.value,
-      password: inputRef.current.value,
-      confirm: cfmRef.current.value,
+  const handleUserPasswordChange = async (close: () => void) => {
+    startLoading(async () => {
+      if (!inputRef.current || !cfmRef.current || !currentRef.current) return;
+      const validation = newPasswordSchema.safeParse({
+        current: currentRef.current.value,
+        password: inputRef.current.value,
+        confirm: cfmRef.current.value,
+      });
+      if (!validation.success) {
+        setError(validation.error.flatten().fieldErrors);
+        return;
+      }
+      setError(undefined);
+      const res = await updatePassword(
+        inputRef.current.value,
+        currentRef.current.value,
+      );
+      if (res.status === "error") {
+        toast.error(res.message);
+        return;
+      }
+      toast.success("Password updated successfully!");
+      close();
     });
-    if (!validation.success) {
-      setError(validation.error.flatten().fieldErrors);
-      return false;
-    }
-    setIsLoading(true);
-    setError(undefined);
-    const res = await updatePassword(
-      inputRef.current.value,
-      currentRef.current.value,
-    );
-    setIsLoading(false);
-    if (res.status === "error") {
-      toast.error(res.message);
-      return false;
-    }
-    toast.success("Password updated successfully!");
-    return true;
   };
 
   return (
@@ -351,10 +352,7 @@ export function EditPasswordDialog({ children }: { children: ReactNode }) {
       header="Change password"
       description="Set a new password."
       mainActionLabel="Save"
-      onMainAction={async (close) => {
-        const success = await handleUserPasswordChange();
-        if (success) close();
-      }}
+      onMainAction={handleUserPasswordChange}
       content={
         <div className="space-y-6">
           <div className="space-y-2">

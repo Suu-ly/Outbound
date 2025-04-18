@@ -17,7 +17,14 @@ import {
 import { useSetAtom } from "jotai";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { CSSProperties, forwardRef, memo, useCallback, useState } from "react";
+import {
+  CSSProperties,
+  forwardRef,
+  memo,
+  useCallback,
+  useState,
+  useTransition,
+} from "react";
 import { mapActiveMarkerAtom } from "../../atoms";
 
 export type PlaceDetailsSkippedProps = {
@@ -30,7 +37,7 @@ const PlaceDetailsSkipped = memo(
     ({ data, onMoveToInterested }, ref) => {
       const [expanded, setExpanded] = useState(false);
       const tripId = useParams<{ id: string }>().id;
-      const [isMovingToInterested, setIsMovingToInterested] = useState(false);
+      const [isMovingToInterested, startMovingToInterested] = useTransition();
       const setActiveMapMarker = useSetAtom(mapActiveMarkerAtom);
 
       const handleOnClick = useCallback(() => {
@@ -48,9 +55,9 @@ const PlaceDetailsSkipped = memo(
       }, [data, expanded, setActiveMapMarker]);
 
       const handleMoveToInterested = async () => {
-        setIsMovingToInterested(true);
-        await onMoveToInterested(data);
-        setIsMovingToInterested(false);
+        startMovingToInterested(async () => {
+          await onMoveToInterested(data);
+        });
       };
 
       const dayIndex = (((new Date().getDay() - 1) % 7) + 7) % 7;
