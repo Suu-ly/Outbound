@@ -7,7 +7,7 @@ export default function PlaceDetailsSkeletonLoader() {
       role="presentation"
     >
       <span className="sr-only">Loading place</span>
-      <Skeleton className="absolute -left-[41px] top-0 size-8 rounded-full border-2 border-gray-100"></Skeleton>
+      <Skeleton className="absolute -left-[41px] top-0 size-8 rounded-full border-2 border-gray-100 bg-white"></Skeleton>
       <Skeleton className="relative mr-2 max-h-full w-20 shrink-0 self-stretch overflow-hidden rounded-lg xl:mr-3 xl:w-36"></Skeleton>
       <div className="w-full xl:min-h-24">
         <div className="flex gap-3">
