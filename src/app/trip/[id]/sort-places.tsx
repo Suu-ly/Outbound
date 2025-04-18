@@ -110,83 +110,100 @@ const coordinateGetter: KeyboardCoordinateGetter = (
   event,
   { context: { active, droppableRects, droppableContainers, collisionRect } },
 ) => {
-  if (directions.includes(event.code)) {
-    event.preventDefault();
+  if (!directions.includes(event.code)) return undefined;
 
-    if (!active || !collisionRect) {
+  event.preventDefault();
+
+  if (!active || !collisionRect) {
+    return;
+  }
+
+  const filteredContainers: DropContainerType[] = [];
+
+  // Get list of containers that are valid targets
+  droppableContainers.getEnabled().forEach((entry) => {
+    if (entry.disabled) {
       return;
     }
 
-    const filteredContainers: DropContainerType[] = [];
+    const rect = droppableRects.get(entry.id);
 
-    droppableContainers.getEnabled().forEach((entry) => {
-      if (!entry || entry?.disabled) {
-        return;
-      }
+    if (!rect) {
+      return;
+    }
 
-      const rect = droppableRects.get(entry.id);
+    const data = entry.data.current;
 
-      if (!rect) {
-        return;
-      }
+    // If dragging a container, only let containers be valid targets
+    if (
+      active.data.current?.type === "container" &&
+      data &&
+      data.type !== "container"
+    )
+      return;
+    // Do not set container as valid target if children are inside if dragging a place
+    if (
+      data &&
+      data.type === "container" &&
+      data.children?.length > 0 &&
+      data.isOpen === true &&
+      active.data.current?.type !== "container"
+    ) {
+      return;
+    }
 
-      const data = entry.data.current;
+    // If target collision rect is below, it is valid
+    if (event.code === KeyboardCode.Down && collisionRect.top < rect.top) {
+      filteredContainers.push(entry);
+    }
+    // If target collision rect is above, it is valid
+    else if (event.code === KeyboardCode.Up && collisionRect.top > rect.top) {
+      filteredContainers.push(entry);
+    }
+  });
 
-      if (data) {
-        const { type, children } = data;
-        // Do not set container as valid target if children are inside
-        if (type === "container" && children?.length > 0) {
-          if (active.data.current?.type !== "container") {
-            return;
-          }
-        }
-      }
+  const collisions = closestCenter({
+    active,
+    collisionRect,
+    droppableRects,
+    droppableContainers: filteredContainers,
+    pointerCoordinates: null,
+  });
+  const closestId = getFirstCollision(collisions, "id");
+  if (closestId === null) {
+    return undefined;
+  }
 
-      switch (event.code) {
-        case KeyboardCode.Down:
-          if (collisionRect.top < rect.top) {
-            filteredContainers.push(entry);
-          }
-          break;
-        case KeyboardCode.Up:
-          if (collisionRect.top > rect.top) {
-            filteredContainers.push(entry);
-          }
-          break;
-      }
-    });
-
-    const collisions = closestCenter({
-      active,
-      collisionRect: collisionRect,
-      droppableRects,
-      droppableContainers: filteredContainers,
-      pointerCoordinates: null,
-    });
-    const closestId = getFirstCollision(collisions, "id");
-
-    if (closestId != null) {
-      const newDroppable = droppableContainers.get(closestId);
-      const newNode = newDroppable?.node.current;
-      const newRect = newDroppable?.rect.current;
-
-      if (newNode && newRect) {
-        if (newDroppable.data.current?.type === "container") {
-          return {
-            x: newRect.left,
-            y: newRect.top,
-          };
-        }
-
-        return {
-          x: newRect.left,
-          y: newRect.top,
-        };
-      }
+  // If currently dragging container, just move it up or down by 32px
+  if (active.data.current?.type === "container") {
+    if (event.code === KeyboardCode.Down) {
+      return {
+        x: collisionRect.left,
+        y: collisionRect.top + 32,
+      };
+    } else {
+      return {
+        x: collisionRect.left,
+        y: collisionRect.top - 32,
+      };
     }
   }
 
-  return undefined;
+  const newDroppable = droppableContainers.get(closestId);
+  const newNode = newDroppable?.node.current;
+  const newRect = newDroppable?.rect.current;
+  if (!newNode || !newRect) return undefined;
+
+  if (newDroppable.data.current?.type === "container")
+    return {
+      x: collisionRect.left,
+      y: newRect.top,
+    };
+
+  return {
+    x: newRect.left,
+    y: newRect.top,
+  };
 };
 type SortableItemProps = {
   id: UniqueIdentifier;
