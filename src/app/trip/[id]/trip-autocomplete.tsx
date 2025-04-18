@@ -160,6 +160,7 @@ export default function TripAutocomplete({
     queryKey: ["selected", selectedId?.id],
     queryFn: () => getLocationData(selectedId),
     enabled: !!selectedId,
+    staleTime: 0,
     meta: {
       errorMessage: "Unable to fetch data for selected location",
     },
