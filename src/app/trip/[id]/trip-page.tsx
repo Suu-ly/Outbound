@@ -365,7 +365,9 @@ export default function TripPage({ tripId }: { tripId: string }) {
                     {tripData.userName.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-slate-700">{tripData.userName}</span>
+                <span className="truncate text-slate-700">
+                  {tripData.userName}
+                </span>
               </div>
               <Separator className="-mx-4 mb-3 w-[calc(100%+2rem)]" />
               <h1 className="line-clamp-2 break-words text-left font-display text-2xl font-semibold text-slate-900 xl:text-3xl">
