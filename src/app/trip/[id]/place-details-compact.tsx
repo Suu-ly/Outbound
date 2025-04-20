@@ -43,6 +43,7 @@ import { useParams } from "next/navigation";
 import {
   ChangeEvent,
   forwardRef,
+  KeyboardEvent,
   memo,
   useCallback,
   useEffect,
@@ -169,6 +170,13 @@ const PlaceDetailsCompact = memo(
         isInDay,
         note,
       ]);
+
+      const handleTextAreaKeyDown = useCallback(
+        (e: KeyboardEvent<HTMLTextAreaElement>) => {
+          if (e.key === "Escape" && noteRef.current) noteRef.current.blur();
+        },
+        [],
+      );
 
       useEffect(() => {
         if (inputIsFocused.current && noteRef.current) {
@@ -348,6 +356,7 @@ const PlaceDetailsCompact = memo(
                   small
                   onFocus={handleOnFocus}
                   onBlur={handleOnBlur}
+                  onKeyDown={handleTextAreaKeyDown}
                   className={`mt-3 hidden rounded-lg border-0 bg-slate-50 has-[textarea:focus-visible]:bg-slate-100 has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-slate-300 xl:flex [&_textarea]:placeholder:text-slate-600 ${!isAdmin ? "pointer-events-none" : ""}`}
                   placeholder="Add note..."
                   left={<IconNote />}
@@ -377,6 +386,7 @@ const PlaceDetailsCompact = memo(
                   small
                   onFocus={handleOnFocus}
                   onBlur={handleOnBlur}
+                  onKeyDown={handleTextAreaKeyDown}
                   className={`rounded-lg border-0 bg-slate-50 has-[textarea:focus-visible]:bg-slate-100 has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-slate-300 [&_textarea]:placeholder:text-slate-600 ${!isAdmin ? "pointer-events-none" : ""}`}
                   placeholder="Add note..."
                   left={<IconNote />}
