@@ -61,9 +61,18 @@ export function AvatarEdit({
         if (!ctx) return;
         // Crop image into a square
         ctx.drawImage(img, (side - width) / 2, (side - height) / 2);
-        await pica().resize(canvas, output, {
-          filter: "mks2013",
-        });
+        try {
+          // Firefox fingerprinting issue prevents this from working
+          await pica().resize(canvas, output, {
+            filter: "mks2013",
+          });
+        } catch {
+          await pica({
+            features: ["all"],
+          }).resize(canvas, output, {
+            filter: "lanczos3",
+          });
+        }
         setIsLoading(false);
         setAvatarContent(output.toDataURL("image/jpeg"));
         canvas.remove();
