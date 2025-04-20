@@ -21,6 +21,10 @@ export const auth = betterAuth({
     provider: "pg",
     schema,
   }),
+  appName: "Outbound",
+  advanced: {
+    cookiePrefix: "outbound",
+  },
   session: {
     freshAge: 0,
   },

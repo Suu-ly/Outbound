@@ -15,7 +15,7 @@ export default function middleware(request: NextRequest) {
   const pathName = request.nextUrl.pathname;
   const isSignedOutRoutes = SIGNED_OUT_ROUTES.includes(pathName);
 
-  const sessionCookie = getSessionCookie(request);
+  const sessionCookie = getSessionCookie(request, { cookiePrefix: "outbound" });
 
   // User is not logged in
   if (!sessionCookie) {
