@@ -27,34 +27,40 @@ export default function useDiscoverManager(tripId: string): [boolean, boolean] {
 
   const [queryValue, setQueryValue] = useState<QueryValue>({
     query: "",
-    currentSearchIndex: tripWindows.currentSearchIndex,
+    currentSearchIndex:
+      tripWindows.currentSearchIndex ??
+      Math.floor(Math.random() * tripWindows.windows.length),
     nextPageToken: tripWindows.nextPageToken,
   });
 
   const getNextIndex = useCallback(
     (prev: QueryValue, windowsLength: number) => {
+      // No other index to return
+      if (windowsLength === 1) return prev.currentSearchIndex;
+
       if (!prev.nextPageToken) {
-        if (prev.currentSearchIndex < windowsLength - 1) {
-          return prev.currentSearchIndex + 1;
+        // Return random next index that is not the same as current index
+        const next = Math.floor(Math.random() * (windowsLength - 1));
+        if (next >= prev.currentSearchIndex) return next + 1;
+        return next;
+      }
+      // Find random next index, but bias never searched windows
+      const possibleIndexes: number[] = [];
+      const possibleNewIndexes: number[] = [];
+      for (let i = 0, length = prev.nextPageToken.length; i < length; i++) {
+        if (prev.nextPageToken[i] === NO_TOKEN_STRING) {
+          possibleNewIndexes.push(i);
+        } else if (prev.nextPageToken[i] !== NO_MORE_RESULT_TOKEN) {
+          possibleIndexes.push(i);
         }
-        return prev.currentSearchIndex;
       }
-
-      const nextLargerToken = prev.nextPageToken.findIndex(
-        (val, index) =>
-          val !== NO_MORE_RESULT_TOKEN && index > prev.currentSearchIndex,
+      return (
+        possibleNewIndexes[
+          Math.floor(Math.random() * possibleNewIndexes.length)
+        ] ??
+        possibleIndexes[Math.floor(Math.random() * possibleIndexes.length)] ??
+        prev.currentSearchIndex
       );
-      if (nextLargerToken !== -1) {
-        return nextLargerToken;
-      }
-
-      const nextToken = prev.nextPageToken.findIndex(
-        (val) => val !== NO_MORE_RESULT_TOKEN,
-      );
-      if (nextToken !== -1) {
-        return nextToken;
-      }
-      return prev.currentSearchIndex;
     },
     [],
   );
@@ -81,7 +87,6 @@ export default function useDiscoverManager(tripId: string): [boolean, boolean] {
     if (data.status === "error") {
       throw new Error(data.message);
     }
-    setDiscoverLocations((prev) => prev.concat(data.data.places));
     const newWindows = {
       currentSearchIndex: getNextIndex(queryValue, tripWindows.windows.length),
       nextPageToken: getNextPageTokenArray(
@@ -92,6 +97,7 @@ export default function useDiscoverManager(tripId: string): [boolean, boolean] {
     };
     const res = await updateTripWindows(newWindows, tripId);
     if (res.status === "success") {
+      setDiscoverLocations((prev) => prev.concat(data.data.places));
       setTripWindows((prev) => ({
         ...prev,
         ...newWindows,
@@ -116,26 +122,33 @@ export default function useDiscoverManager(tripId: string): [boolean, boolean] {
         ["location", tripWindows.name],
         ["id", tripId],
       ]);
+      const searchIndex =
+        tripWindows.currentSearchIndex ??
+        Math.floor(Math.random() * tripWindows.windows.length);
+
+      // If the current search index is has no more results, means no more viable search windows
       if (
         tripWindows.nextPageToken &&
-        tripWindows.nextPageToken[tripWindows.currentSearchIndex] !==
-          NO_TOKEN_STRING &&
-        tripWindows.nextPageToken[tripWindows.currentSearchIndex] !==
-          NO_MORE_RESULT_TOKEN
+        tripWindows.nextPageToken[searchIndex] === NO_MORE_RESULT_TOKEN
       ) {
-        queryUrl.set(
-          "nextPageToken",
-          tripWindows.nextPageToken[tripWindows.currentSearchIndex],
-        );
+        setExhausted(true);
+        return;
+      }
+
+      if (
+        tripWindows.nextPageToken &&
+        tripWindows.nextPageToken[searchIndex] !== NO_TOKEN_STRING
+      ) {
+        queryUrl.set("nextPageToken", tripWindows.nextPageToken[searchIndex]);
       }
       const searchBounds = [
         [
-          tripWindows.windows[tripWindows.currentSearchIndex][0][0],
-          tripWindows.windows[tripWindows.currentSearchIndex][0][1],
+          tripWindows.windows[searchIndex][0][0],
+          tripWindows.windows[searchIndex][0][1],
         ],
         [
-          tripWindows.windows[tripWindows.currentSearchIndex][1][0],
-          tripWindows.windows[tripWindows.currentSearchIndex][1][1],
+          tripWindows.windows[searchIndex][1][0],
+          tripWindows.windows[searchIndex][1][1],
         ],
       ];
       for (let i = 0; i < searchBounds.length; i++) {
@@ -143,16 +156,11 @@ export default function useDiscoverManager(tripId: string): [boolean, boolean] {
           queryUrl.append("bounds", searchBounds[i][j].toString());
         }
       }
-      if (queryValue.query !== queryUrl.toString()) {
-        setQueryValue({
-          query: queryUrl.toString(),
-          currentSearchIndex: tripWindows.currentSearchIndex,
-          nextPageToken: tripWindows.nextPageToken,
-        });
-      } else {
-        // If query has not changed, means nothing else to search for
-        setExhausted(true);
-      }
+      setQueryValue({
+        query: queryUrl.toString(),
+        currentSearchIndex: searchIndex,
+        nextPageToken: tripWindows.nextPageToken,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePlaceIndex, discoverLocations.length, isFetching]);

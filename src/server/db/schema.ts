@@ -234,7 +234,7 @@ export const trip = pgTable(
     endDate: date("end_date", { mode: "date" }).notNull(),
     private: boolean("private").notNull().default(true),
     roundUpTime: boolean("round_up_time").notNull().default(true),
-    currentSearchIndex: integer("current_search_index").default(0).notNull(),
+    currentSearchIndex: integer("current_search_index"),
     nextPageToken: text("next_page_token").array(),
     startTime: varchar("start_time", { length: 4 }).notNull().default("0900"),
     endTime: varchar("end_time", { length: 4 }).notNull().default("2100"),

@@ -261,7 +261,7 @@ export type InitialQuery = {
     endDate: Date;
     private: boolean;
     roundUpTime: boolean;
-    currentSearchIndex: number;
+    currentSearchIndex: number | null;
     nextPageToken: string[] | null;
     startTime: string;
     endTime: string;
@@ -315,7 +315,7 @@ export type TripData = {
 export type WindowData = {
   name: string;
   windows: BoundingBox[];
-  currentSearchIndex: number;
+  currentSearchIndex: number | null;
   nextPageToken: string[] | null;
 };
 
