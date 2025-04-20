@@ -911,7 +911,6 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
             };
           });
         }
-        console.log("New order", newOrder);
         updateTripPlaceOrder(
           tripId,
           String(active.id),

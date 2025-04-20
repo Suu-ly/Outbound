@@ -286,10 +286,6 @@ export async function GET(request: NextRequest) {
     ["format", "json"],
     ["limit", "1"],
   ]);
-  console.log(
-    "Nominatim search",
-    getPlaceName(name, country, bounds.addressComponents),
-  );
 
   const polygon = await fetch(
     `https://nominatim.openstreetmap.org/search.php?${boundsQueryUrl.toString()}`,
