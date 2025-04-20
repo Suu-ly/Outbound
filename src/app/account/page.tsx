@@ -16,21 +16,34 @@ import {
 } from "./account-controls";
 
 export default async function AccountPage() {
-  const session = await auth.api
-    .getSession({
-      headers: await headers(),
-      query: {
-        disableRefresh: true,
-      },
-    })
-    .catch((e) => {
-      console.error(e);
-    });
+  const userHeaders = await headers();
+  const [session, accounts] = await Promise.all([
+    auth.api
+      .getSession({
+        headers: userHeaders,
+        query: {
+          disableRefresh: true,
+        },
+      })
+      .catch((e) => {
+        console.error(e);
+      }),
+    auth.api
+      .listUserAccounts({
+        headers: userHeaders,
+      })
+      .catch((e) => {
+        console.error(e);
+      }),
+  ]);
 
-  if (!session) {
+  if (!session || !accounts) {
     const path = new URLSearchParams([["redirect", "/account"]]);
     redirect(`/login?${path.toString()}`);
   }
+
+  // Checks if user has an email based account with password
+  const hasPassword = accounts.some((val) => val.provider === "credential");
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -90,15 +103,17 @@ export default async function AccountPage() {
               </p>
               <span className="grow truncate">{session.user.email}</span>
             </div>
-            <EditPasswordDialog>
-              <button className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left ring-offset-gray-50 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2">
-                <p className="w-20 shrink-0 text-sm font-medium text-slate-900">
-                  Password
-                </p>
-                <span className="grow truncate">●●●●●●●●●●</span>
-                <IconChevronRight className="size-5 shrink-0" />
-              </button>
-            </EditPasswordDialog>
+            {hasPassword && (
+              <EditPasswordDialog>
+                <button className="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left ring-offset-gray-50 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2">
+                  <p className="w-20 shrink-0 text-sm font-medium text-slate-900">
+                    Password
+                  </p>
+                  <span className="grow truncate">●●●●●●●●●●</span>
+                  <IconChevronRight className="size-5 shrink-0" />
+                </button>
+              </EditPasswordDialog>
+            )}
           </div>
         </div>
         <div className="grid w-full max-w-3xl grid-cols-1 gap-3 xl:grid-cols-[128px_minmax(0,1fr)]">
@@ -108,7 +123,7 @@ export default async function AccountPage() {
               Deleting your account will permanently delete all of your data and
               trips. You cannot undo this action. Please proceed with caution.
             </p>
-            <DeleteUserDialog>
+            <DeleteUserDialog hasPassword={hasPassword}>
               <Button
                 variant="secondary"
                 className="bg-red-200 text-rose-700 hover:bg-rose-200/90 hover:text-rose-800 active:ring-rose-300"

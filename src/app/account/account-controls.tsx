@@ -228,26 +228,58 @@ export function EditNameDialog({
   );
 }
 
-export function DeleteUserDialog({ children }: { children: ReactNode }) {
+export function DeleteUserDialog({
+  children,
+  hasPassword,
+}: {
+  children: ReactNode;
+  hasPassword?: boolean;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>();
 
   const handleDeleteUser = async () => {
-    if (!inputRef.current || !inputRef.current.value) return false;
-    setIsLoading(true);
-    const { error } = await authClient.deleteUser({
-      password: inputRef.current.value,
-      fetchOptions: {
-        onSuccess: () => {
-          serverNavigate("/");
+    if (!inputRef.current || !inputRef.current.value) {
+      setError(
+        hasPassword
+          ? "Please enter your password!"
+          : "Please confirm you wish to delete your account!",
+      );
+      return;
+    }
+    if (hasPassword) {
+      setIsLoading(true);
+      const { error } = await authClient.deleteUser({
+        password: inputRef.current.value,
+        fetchOptions: {
+          onSuccess: () => {
+            serverNavigate("/");
+          },
         },
-      },
-    });
-    if (error) {
-      setError(error.message);
-      setIsLoading(false);
+      });
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+      }
+    } else {
+      if (inputRef.current.value !== "delete") {
+        setError("Please type 'delete' to confirm deletion!");
+        return;
+      }
+      setIsLoading(true);
+      const { error } = await authClient.deleteUser({
+        fetchOptions: {
+          onSuccess: () => {
+            serverNavigate("/");
+          },
+        },
+      });
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+      }
     }
   };
 
@@ -256,7 +288,10 @@ export function DeleteUserDialog({ children }: { children: ReactNode }) {
       loading={isLoading}
       header="Delete account?"
       description={
-        "You will delete all your data and trips. You cannot undo this action.\n\nTo confirm, please enter your password below. "
+        "You will delete all your data and trips. You cannot undo this action.\n\n" +
+        (hasPassword
+          ? "To confirm, please enter your password below."
+          : "To confirm, please type 'delete' below.")
       }
       mainActionLabel="Delete"
       onMainAction={handleDeleteUser}
@@ -264,15 +299,19 @@ export function DeleteUserDialog({ children }: { children: ReactNode }) {
       content={
         <>
           <Input
-            type={showPassword ? "text" : "password"}
+            type={showPassword || !hasPassword ? "text" : "password"}
             ref={inputRef}
             disabled={isLoading}
-            placeholder="Enter your password"
+            placeholder={
+              hasPassword ? "Enter your password" : "Confirm deletion"
+            }
             right={
-              <TogglePasswordButton
-                showPassword={showPassword}
-                setShowPassword={setShowPassword}
-              />
+              hasPassword && (
+                <TogglePasswordButton
+                  showPassword={showPassword}
+                  setShowPassword={setShowPassword}
+                />
+              )
             }
           />
           <span className="mt-2 block text-sm font-medium text-red-500">
