@@ -4,7 +4,6 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
 import { config } from "dotenv";
-import { redis } from "./cache";
 import * as schema from "./db/schema";
 import { sendEmail } from "./send-email";
 
@@ -26,20 +25,20 @@ export const auth = betterAuth({
   advanced: {
     cookiePrefix: "outbound",
   },
-  secondaryStorage: {
-    get: async (key) => {
-      const value = await redis.get<string>(key);
-      return value ? value : null;
-    },
-    set: async (key, value, ttl) => {
-      // Need to stringify here as redis automatically serialises JSON
-      if (ttl) await redis.set(key, JSON.stringify(value), { ex: ttl });
-      else await redis.set(key, JSON.stringify(value));
-    },
-    delete: async (key) => {
-      await redis.del(key);
-    },
-  },
+  // secondaryStorage: {
+  //   get: async (key) => {
+  //     const value = await redis.get<string>(key);
+  //     return value;
+  //   },
+  //   set: async (key, value, ttl) => {
+  //     // Need to stringify here as redis automatically serialises JSON
+  //     if (ttl) await redis.set(key, JSON.stringify(value), { ex: ttl });
+  //     else await redis.set(key, JSON.stringify(value));
+  //   },
+  //   delete: async (key) => {
+  //     await redis.del(key);
+  //   },
+  // },
   rateLimit: {
     storage: "secondary-storage",
   },
