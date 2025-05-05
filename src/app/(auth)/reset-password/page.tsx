@@ -22,7 +22,7 @@ export default async function Register({
     return (
       <AuthLayout
         header="Invalid Link"
-        subtitle="This link is has already been used or is no longer active. If you still need to reset your password, please request a new link!"
+        subtitle="This link has already been used or is no longer active. If you still need to reset your password, please request a new link!"
       >
         <ButtonLink href="/" size="large" className="w-full">
           Back to Home
