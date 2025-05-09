@@ -167,11 +167,12 @@ const Review = ({ review }: { review: PlacesReview }) => {
       </div>
       <div className="mb-6" id={review.name}>
         <p
+          aria-labelledby={isOverflowing ? `${review.name}-button` : undefined}
           className={cn(
             "mb-1 overflow-hidden whitespace-pre-line text-slate-700",
             isOverflowing && !expanded && "line-clamp-3",
             isOverflowing &&
-              "data-[expanded=false]:animate-minimise data-[expanded=true]:animate-expand",
+              "data-[expanded=false]:motion-safe:animate-minimise data-[expanded=true]:motion-safe:animate-expand",
           )}
           style={
             {
@@ -190,6 +191,7 @@ const Review = ({ review }: { review: PlacesReview }) => {
         </p>
         {isOverflowing && (
           <button
+            id={`${review.name}-button`}
             className="-m-2 rounded-full p-2 text-xs font-medium text-brand-600 ring-offset-gray-50 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
             aria-expanded={expanded}
             aria-controls={review.name}

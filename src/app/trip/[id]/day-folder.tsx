@@ -123,7 +123,7 @@ const DayFolder = memo(
           </ContextMenu>
           <CollapsibleContent
             className={
-              "-mx-1 overflow-hidden px-1 pb-1 data-[state=closed]:animate-minimise data-[state=open]:animate-expand" // Negative margins so textfield active ring is not clipped
+              "-mx-1 overflow-hidden px-1 pb-1 data-[state=closed]:motion-safe:animate-minimise data-[state=open]:motion-safe:animate-expand" // Negative margins so textfield active ring is not clipped
             }
             style={
               {

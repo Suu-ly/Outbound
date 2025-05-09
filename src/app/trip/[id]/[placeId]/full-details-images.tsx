@@ -51,7 +51,7 @@ export default function FullPlaceDetailsImages({
 
   return (
     <Carousel orientation="vertical" disabled={true} className="mx-4">
-      <div className="relative overflow-hidden rounded-xl bg-white transition-transform active:scale-[0.985]">
+      <div className="relative overflow-hidden rounded-xl bg-white transition-transform motion-safe:active:scale-[0.985]">
         <CarouselContent className="mt-0 h-[400px] w-full sm:h-[520px]">
           {data.map((photo, index) => (
             <CarouselGoogleImage

@@ -37,7 +37,7 @@ import {
 } from "@tabler/icons-react";
 import { addDays } from "date-fns";
 import { useAtomValue, useSetAtom } from "jotai";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -105,6 +105,7 @@ const PlaceDetailsCompact = memo(
         data.userPlaceInfo.note ? data.userPlaceInfo.note : "",
       );
       const [timePickerOpen, setTimePickerOpen] = useState(false);
+      const shouldReduceMotion = useReducedMotion();
 
       const noteRef = useRef<HTMLTextAreaElement | null>(null);
       const inputIsFocused = useRef(false);
@@ -368,7 +369,7 @@ const PlaceDetailsCompact = memo(
             initial={note ? { height: "auto" } : { height: 0 }}
             animate={expanded === "min" ? { height: 0 } : { height: "auto" }}
             transition={{
-              duration: 0.3,
+              duration: shouldReduceMotion ? 0 : 0.3,
               ease: [0.8, 0, 0.2, 1],
             }}
             aria-hidden={expanded === "min"}
@@ -401,7 +402,7 @@ const PlaceDetailsCompact = memo(
                   : { height: "auto" }
               }
               transition={{
-                duration: 0.3,
+                duration: shouldReduceMotion ? 0 : 0.3,
                 ease: [0.8, 0, 0.2, 1],
               }}
               aria-hidden={expanded !== "max" || isDragging}

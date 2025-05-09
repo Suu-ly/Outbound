@@ -175,7 +175,7 @@ const PlaceMarker = ({
             aria-label={name + " map marker"}
             replace={elementId ? true : undefined}
             tabIndex={-1}
-            className={`flex size-6 items-center justify-center rounded-full border-2 text-sm font-semibold transition duration-300 ease-out animate-in zoom-in-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${colours} ${activePlace === placeId ? "scale-150 shadow-md" : ""}`}
+            className={`flex size-6 items-center justify-center rounded-full border-2 text-sm font-semibold transition duration-300 ease-out animate-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 motion-safe:zoom-in-50 motion-reduce:transition-none motion-reduce:fade-in-0 ${colours} ${activePlace === placeId ? "scale-150 shadow-md" : ""}`}
           >
             <span
               className="absolute size-10 rounded-full"
@@ -465,7 +465,7 @@ export const MapLegendPanel = () => {
         variant="outline"
         size="small"
         iconOnly
-        className="absolute right-0 top-0 z-10 mr-4 mt-4 origin-top-right bg-white shadow-md animate-in zoom-in-110"
+        className="absolute right-0 top-0 z-10 mr-4 mt-4 origin-top-right bg-white shadow-md animate-in zoom-in-110 motion-reduce:animate-none"
         aria-label="Open map legend panel"
         onClick={() => setExpanded(true)}
         ref={!expanded ? buttonRef : undefined}
@@ -475,7 +475,7 @@ export const MapLegendPanel = () => {
     );
 
   return (
-    <div className="absolute right-0 top-0 z-10 mr-4 mt-4 w-56 origin-top-right rounded-2xl border-2 border-slate-200 bg-white shadow-md transition-transform animate-in zoom-in-95 has-[[data-close=true]:active]:scale-[98%]">
+    <div className="absolute right-0 top-0 z-10 mr-4 mt-4 w-56 origin-top-right rounded-2xl border-2 border-slate-200 bg-white shadow-md transition-transform animate-in zoom-in-95 motion-safe:has-[[data-close=true]:active]:scale-[98%] motion-reduce:animate-none">
       <div className="flex items-center justify-between p-1 pl-2">
         <h3 className="text-xs font-medium text-slate-700">Legend</h3>
         <Button

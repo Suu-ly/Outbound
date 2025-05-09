@@ -20,6 +20,7 @@ import {
   PanInfo,
   useDragControls,
   useMotionValue,
+  useReducedMotion,
   useSpring,
   useTransform,
   useVelocity,
@@ -94,6 +95,8 @@ export default memo(
     const [ready, setReady] = useState(false);
     const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
+    const shouldReduceMotion = useReducedMotion();
+
     const handlePanStart = useCallback(
       (event: globalThis.PointerEvent, info: PanInfo) => {
         if (Math.abs(info.offset.x) > Math.abs(info.offset.y) && !minimised) {
@@ -127,6 +130,11 @@ export default memo(
       (info?: PanInfo) => {
         setStatus("accept");
         onDecision(data, true);
+
+        if (shouldReduceMotion) {
+          setTimeout(() => onRemove(data.id), 500);
+          return;
+        }
 
         const containerDims =
           scrollContainerRef.current!.getBoundingClientRect();
@@ -178,6 +186,7 @@ export default memo(
         mobile,
         onDecision,
         onRemove,
+        shouldReduceMotion,
         x,
         y,
       ],
@@ -187,6 +196,11 @@ export default memo(
       (info?: PanInfo) => {
         setStatus("reject");
         onDecision(data, false);
+
+        if (shouldReduceMotion) {
+          setTimeout(() => onRemove(data.id), 500);
+          return;
+        }
 
         if (!info) {
           animate(x, -480, {
@@ -205,7 +219,7 @@ export default memo(
           }).then(() => onRemove(data.id));
         }
       },
-      [data, onDecision, onRemove, x, y],
+      [data, onDecision, onRemove, x, y, shouldReduceMotion],
     );
 
     useImperativeHandle(ref, () => {
@@ -290,7 +304,7 @@ export default memo(
         className={cn(
           "pointer-events-none absolute left-0 top-0 z-[--index] size-full touch-none select-none sm:w-1/2 xl:w-1/3",
           active && "animate-activate",
-          active || (status !== "none" && "will-change-transform"),
+          (active || status !== "none") && "will-change-transform",
         )}
         drag={draggable}
         dragListener={false}
@@ -301,13 +315,14 @@ export default memo(
           scale: 0.97,
           borderRadius: "2rem",
         }}
+        animate={status !== "none" ? { scale: 0.97 } : undefined}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         style={
           {
             x,
             y,
-            rotateZ: rotate,
+            rotateZ: shouldReduceMotion ? undefined : rotate,
             "--index": 3 - index,
           } as MotionStyle
         }
@@ -331,19 +346,40 @@ export default memo(
           }}
           animate={
             status === "accept"
-              ? {
-                  clipPath:
-                    "inset(calc(50% - 16px) calc(50% - 16px) calc(50% - 16px) calc(50% - 16px) round 16rem)",
-                  transition: {
-                    duration: 0.5,
-                    ease: [0.4, 0, 0.2, 1],
-                  },
-                }
-              : isDragging || status === "reject"
+              ? shouldReduceMotion
                 ? {
-                    clipPath: "inset(0% 0% 0% 0% round 2rem)",
+                    opacity: 0,
+                    transition: {
+                      duration: 0.5,
+                      ease: [0.4, 0, 0.2, 1],
+                    },
                   }
-                : { clipPath: "inset(0%)" }
+                : {
+                    clipPath:
+                      "inset(calc(50% - 16px) calc(50% - 16px) calc(50% - 16px) calc(50% - 16px) round 16rem)",
+                    transition: {
+                      duration: 0.5,
+                      ease: [0.4, 0, 0.2, 1],
+                    },
+                  }
+              : status === "reject"
+                ? shouldReduceMotion
+                  ? {
+                      clipPath: "inset(0% 0% 0% 0% round 2rem)",
+                      opacity: 0,
+                      transition: {
+                        duration: 0.5,
+                        ease: [0.4, 0, 0.2, 1],
+                      },
+                    }
+                  : {
+                      clipPath: "inset(0% 0% 0% 0% round 2rem)",
+                    }
+                : isDragging
+                  ? {
+                      clipPath: "inset(0% 0% 0% 0% round 2rem)",
+                    }
+                  : { clipPath: "inset(0%)" }
           }
         >
           <div
@@ -375,7 +411,7 @@ export default memo(
                       className={cn(isDragging && "pointer-events-none")}
                       disabled={true}
                     >
-                      <div className="relative overflow-hidden rounded-xl bg-white transition-transform active:scale-[0.985]">
+                      <div className="relative overflow-hidden rounded-xl bg-white transition-transform motion-safe:active:scale-[0.985]">
                         <CarouselContent className="mt-0 h-[400px] w-full sm:h-[520px]">
                           {data.photos.map((photo, index) => (
                             <CarouselGoogleImage
