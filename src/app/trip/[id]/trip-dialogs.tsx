@@ -10,7 +10,7 @@ import {
 } from "@/server/actions";
 import { useAtom, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   changeTripNameDialogOpenAtom,
@@ -147,6 +147,15 @@ const DeleteTripDialog = () => {
   );
   const [isLoading, startLoading] = useTransition();
   const router = useRouter();
+  const nameRef = useRef("");
+
+  useEffect(() => {
+    if (deleteTripDialogOpen?.name) nameRef.current = deleteTripDialogOpen.name;
+  }, [deleteTripDialogOpen?.name]);
+
+  const name = deleteTripDialogOpen?.name
+    ? deleteTripDialogOpen.name
+    : nameRef.current;
 
   return (
     <DrawerDialog
@@ -154,7 +163,7 @@ const DeleteTripDialog = () => {
       onOpenChange={(open) => {
         if (!open) setDeleteTripDialogOpen(undefined);
       }}
-      header={`Delete ${deleteTripDialogOpen?.name}?`}
+      header={`Delete ${name}?`}
       description="This action cannot be undone!"
       mainActionLabel="Delete"
       loading={isLoading}
