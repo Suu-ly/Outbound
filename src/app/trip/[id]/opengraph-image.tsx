@@ -3,7 +3,7 @@ import { location, trip, tripPlace, user } from "@/server/db/schema";
 import { and, count, eq } from "drizzle-orm";
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import path from "node:path";
 
 // Image metadata
 export const size = {
@@ -18,8 +18,8 @@ export default async function Image({ params }: { params: { id: string } }) {
   const tripId = params.id;
   // Font loading, process.cwd() is Next.js project directory
   const [clashDisplay, generalSans, [tripDetails]] = await Promise.all([
-    readFile(join(process.cwd(), "src/app/ClashDisplay-Semibold.ttf")),
-    readFile(join(process.cwd(), "src/app/GeneralSans-Medium.ttf")),
+    readFile(path.resolve("src/app/ClashDisplay-Semibold.ttf")),
+    readFile(path.resolve("/src/app/GeneralSans-Medium.ttf")),
     db
       .select({
         title: trip.name,
