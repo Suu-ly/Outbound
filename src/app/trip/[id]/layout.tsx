@@ -37,8 +37,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const tripId = (await params).id;
   const result = await db
-    .select({ name: trip.name })
+    .select({ name: trip.name, userName: user.name, location: location.name })
     .from(trip)
+    .innerJoin(location, eq(location.id, trip.locationId))
+    .innerJoin(user, eq(user.id, trip.userId))
     .where(eq(trip.id, tripId))
     .limit(1);
 
@@ -49,6 +51,7 @@ export async function generateMetadata({
 
   return {
     title: { default: result[0].name, template: `%s - ${result[0].name}` },
+    description: `View trip details for ${result[0].userName}'s trip to ${result[0].location}!`,
   };
 }
 

@@ -21,7 +21,8 @@ const clashDisplay = localFont({
 
 export const metadata: Metadata = {
   title: "Outbound",
-  description: "Plan trips the fun way.",
+  description:
+    "We know planning trips can be frustrating. Plan your trips the enjoyable way, with Outbound. Just swipe left or right to decide which places to go, then plan your trip with our easy to use drag-and-drop planner with automatic itinerary generation. Planning has never been this easy.",
 };
 
 export default function RootLayout({

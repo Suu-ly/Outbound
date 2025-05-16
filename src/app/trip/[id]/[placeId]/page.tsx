@@ -16,7 +16,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const id = (await params).placeId;
   const result = await db
-    .select({ name: place.displayName })
+    .select({ name: place.displayName, description: place.description })
     .from(place)
     .where(eq(place.id, id))
     .limit(1);
@@ -27,7 +27,8 @@ export async function generateMetadata({
     };
 
   return {
-    title: `${result[0].name}`,
+    title: result[0].name,
+    description: result[0].description,
   };
 }
 

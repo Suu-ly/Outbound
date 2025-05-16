@@ -11,6 +11,8 @@ import SkipPlaceSearch from "./skip-place-search";
 
 export const metadata: Metadata = {
   title: "Skipped Places",
+  description:
+    "View all your past skipped places here. Add it back to your itinerary if you change your mind!",
 };
 
 export default async function SkippedPlacePage({

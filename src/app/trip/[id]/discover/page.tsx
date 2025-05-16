@@ -24,6 +24,8 @@ export async function generateMetadata({
 
   return {
     title: { absolute: `Discover Places in ${name}` },
+    description:
+      "Get attraction recommendations and save them to your trip using our swipe-based place discovery!",
   };
 }
 

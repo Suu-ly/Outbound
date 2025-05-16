@@ -16,6 +16,8 @@ import {
 
 export const metadata: Metadata = {
   title: "Settings",
+  description:
+    "Change your trip settings here and customise it to your liking.",
 };
 
 export default async function TripSwipePage({
