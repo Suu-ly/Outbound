@@ -6,15 +6,15 @@ import Providers from "./providers";
 
 const generalSans = localFont({
   src: [
-    { path: "./GeneralSans-Variable.woff2", style: "normal" },
-    { path: "./GeneralSans-VariableItalic.woff2", style: "italic" },
+    { path: "./fonts/GeneralSans-Variable.woff2", style: "normal" },
+    { path: "./fonts/GeneralSans-VariableItalic.woff2", style: "italic" },
   ],
   display: "swap",
   variable: "--font-general-sans",
 });
 
 const clashDisplay = localFont({
-  src: "./ClashDisplay-Variable.woff2",
+  src: "./fonts/ClashDisplay-Variable.woff2",
   display: "swap",
   variable: "--font-clash-display",
 });

@@ -3,7 +3,7 @@ import { location, trip, tripPlace, user } from "@/server/db/schema";
 import { and, count, eq } from "drizzle-orm";
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
-import path from "node:path";
+import { join } from "node:path";
 
 // Image metadata
 export const size = {
@@ -13,42 +13,45 @@ export const size = {
 export const contentType = "image/png";
 export const alt = "Details about the trip";
 
+const clashDisplay = await readFile(
+  join(process.cwd(), "src/app/fonts/ClashDisplay-Semibold.ttf"),
+);
+const generalSans = await readFile(
+  join(process.cwd(), "src/app/fonts/GeneralSans-Medium.ttf"),
+);
+
 // Image generation
 export default async function Image({ params }: { params: { id: string } }) {
   const tripId = params.id;
   // Font loading, process.cwd() is Next.js project directory
-  const [clashDisplay, generalSans, [tripDetails]] = await Promise.all([
-    readFile(path.resolve("src/app/ClashDisplay-Semibold.ttf")),
-    readFile(path.resolve("/src/app/GeneralSans-Medium.ttf")),
-    db
-      .select({
-        title: trip.name,
-        coverImg: location.coverImg,
-        location: location.name,
-        startDate: trip.startDate,
-        endDate: trip.endDate,
-        userName: user.name,
-        userImg: user.image,
-        places: count(tripPlace.placeId),
-      })
-      .from(trip)
-      .innerJoin(user, eq(user.id, trip.userId))
-      .innerJoin(location, eq(location.id, trip.locationId))
-      .leftJoin(
-        tripPlace,
-        and(eq(tripPlace.tripId, trip.id), eq(tripPlace.type, "saved")),
-      )
-      .groupBy(
-        trip.name,
-        location.coverImg,
-        location.name,
-        trip.startDate,
-        trip.endDate,
-        user.name,
-        user.image,
-      )
-      .where(eq(trip.id, tripId)),
-  ]);
+  const [tripDetails] = await db
+    .select({
+      title: trip.name,
+      coverImg: location.coverImg,
+      location: location.name,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      userName: user.name,
+      userImg: user.image,
+      places: count(tripPlace.placeId),
+    })
+    .from(trip)
+    .innerJoin(user, eq(user.id, trip.userId))
+    .innerJoin(location, eq(location.id, trip.locationId))
+    .leftJoin(
+      tripPlace,
+      and(eq(tripPlace.tripId, trip.id), eq(tripPlace.type, "saved")),
+    )
+    .groupBy(
+      trip.name,
+      location.coverImg,
+      location.name,
+      trip.startDate,
+      trip.endDate,
+      user.name,
+      user.image,
+    )
+    .where(eq(trip.id, tripId));
 
   return new ImageResponse(
     (
@@ -221,13 +224,11 @@ export default async function Image({ params }: { params: { id: string } }) {
           name: "General-sans",
           data: generalSans,
           style: "normal",
-          weight: 400,
         },
         {
           name: "Clash-display",
           data: clashDisplay,
           style: "normal",
-          weight: 400,
         },
       ],
     },
