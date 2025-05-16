@@ -11,22 +11,7 @@ export const size = {
   height: 630,
 };
 export const contentType = "image/png";
-export async function generateImageMetadata({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const [tripDetails] = await db
-    .select({ title: trip.name })
-    .from(trip)
-    .where(eq(trip.id, params.id));
-
-  return [
-    {
-      alt: tripDetails.title,
-    },
-  ];
-}
+export const alt = "Details about the trip";
 
 // Image generation
 export default async function Image({ params }: { params: { id: string } }) {
