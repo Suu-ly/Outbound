@@ -4,38 +4,6 @@ import { and, count, eq } from "drizzle-orm";
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { cache } from "react";
-
-const getData = cache(async (id: string) => {
-  return await db
-    .select({
-      title: trip.name,
-      coverImg: location.coverImg,
-      location: location.name,
-      startDate: trip.startDate,
-      endDate: trip.endDate,
-      userName: user.name,
-      userImg: user.image,
-      places: count(tripPlace.placeId),
-    })
-    .from(trip)
-    .innerJoin(user, eq(user.id, trip.userId))
-    .innerJoin(location, eq(location.id, trip.locationId))
-    .leftJoin(
-      tripPlace,
-      and(eq(tripPlace.tripId, trip.id), eq(tripPlace.type, "saved")),
-    )
-    .groupBy(
-      trip.name,
-      location.coverImg,
-      location.name,
-      trip.startDate,
-      trip.endDate,
-      user.name,
-      user.image,
-    )
-    .where(eq(trip.id, id));
-});
 
 // Image metadata
 export const size = {
@@ -48,7 +16,10 @@ export async function generateImageMetadata({
 }: {
   params: { id: string };
 }) {
-  const [tripDetails] = await getData(params.id);
+  const [tripDetails] = await db
+    .select({ title: trip.name })
+    .from(trip)
+    .where(eq(trip.id, params.id));
 
   return [
     {
@@ -64,7 +35,34 @@ export default async function Image({ params }: { params: { id: string } }) {
   const [clashDisplay, generalSans, [tripDetails]] = await Promise.all([
     readFile(join(process.cwd(), "src/app/ClashDisplay-Semibold.ttf")),
     readFile(join(process.cwd(), "src/app/GeneralSans-Medium.ttf")),
-    getData(tripId),
+    db
+      .select({
+        title: trip.name,
+        coverImg: location.coverImg,
+        location: location.name,
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        userName: user.name,
+        userImg: user.image,
+        places: count(tripPlace.placeId),
+      })
+      .from(trip)
+      .innerJoin(user, eq(user.id, trip.userId))
+      .innerJoin(location, eq(location.id, trip.locationId))
+      .leftJoin(
+        tripPlace,
+        and(eq(tripPlace.tripId, trip.id), eq(tripPlace.type, "saved")),
+      )
+      .groupBy(
+        trip.name,
+        location.coverImg,
+        location.name,
+        trip.startDate,
+        trip.endDate,
+        user.name,
+        user.image,
+      )
+      .where(eq(trip.id, tripId)),
   ]);
 
   return new ImageResponse(
