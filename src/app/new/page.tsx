@@ -6,6 +6,7 @@ import NewTrip from "./new-trip";
 
 export const metadata: Metadata = {
   title: "Start a New Trip",
+  description: "Get started on a new adventure.",
 };
 
 export default async function NewTripPage() {

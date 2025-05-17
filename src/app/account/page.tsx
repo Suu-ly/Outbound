@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/server/auth";
 import { IconChevronRight, IconEdit } from "@tabler/icons-react";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -14,6 +15,11 @@ import {
   EditNameDialog,
   EditPasswordDialog,
 } from "./account-controls";
+
+export const metadata: Metadata = {
+  title: "Account",
+  description: "View and change your account details.",
+};
 
 export default async function AccountPage() {
   const userHeaders = await headers();
