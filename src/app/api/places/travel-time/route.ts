@@ -9,6 +9,7 @@ import {
   tripTravelTime,
 } from "@/server/db/schema";
 import { DistanceType } from "@/server/types";
+import { Session, User } from "better-auth";
 import { eq, sql } from "drizzle-orm";
 import { type NextRequest } from "next/server";
 
@@ -108,20 +109,12 @@ export async function GET(request: NextRequest) {
     });
 
   const setCookies = userSession.headers.getSetCookie();
-  const userSessionData = await safeJson(userSession);
+  const userSessionData = (await safeJson(userSession)) as {
+    session: Session;
+    user: User;
+  } | null;
   const updateCookies = new Headers();
   setCookies.forEach((cookie) => updateCookies.append("Set-Cookie", cookie));
-  if (!userSessionData)
-    return Response.json(
-      {
-        status: "error",
-        message: "Unauthorised",
-      },
-      {
-        status: 401,
-        headers: updateCookies,
-      },
-    );
 
   const searchParams = request.nextUrl.searchParams;
   const fromId = searchParams.get("fromId");
@@ -160,28 +153,20 @@ export async function GET(request: NextRequest) {
         headers: updateCookies,
       },
     );
-  if (tripUser[0].user !== userSessionData.user.id)
-    return Response.json(
-      {
-        status: "error",
-        message: "Unauthorised",
-      },
-      {
-        status: 401,
-        headers: updateCookies,
-      },
-    );
 
   if (data) {
-    await db
-      .insert(tripTravelTime)
-      .values({
-        from: fromId,
-        to: toId,
-        tripId: tripId,
-        type: (mode as SelectTripTravelTime["type"]) ?? undefined,
-      })
-      .onConflictDoNothing();
+    // Update db only if the user is owner
+    if (tripUser[0].user !== userSessionData?.user.id) {
+      await db
+        .insert(tripTravelTime)
+        .values({
+          from: fromId,
+          to: toId,
+          tripId: tripId,
+          type: (mode as SelectTripTravelTime["type"]) ?? undefined,
+        })
+        .onConflictDoNothing();
+    }
 
     return Response.json(
       {
@@ -259,6 +244,18 @@ export async function GET(request: NextRequest) {
           walk: sql.raw(`excluded.${travelTime.walk.name}`),
         },
       });
+    await Promise.all([
+      // Insert into database only if they are the owner
+      tripUser[0].user === userSessionData?.user.id
+        ? db.insert(tripTravelTime).values({
+            from: fromId,
+            to: toId,
+            tripId: tripId,
+            type: (mode as SelectTripTravelTime["type"]) ?? undefined,
+          })
+        : undefined,
+      redis.set(`${fromCoords};${toCoords}`, result, { ex: 2624016 }), // 1 month expiry
+    ]);
   } catch {
     return Response.json(
       {
@@ -268,16 +265,6 @@ export async function GET(request: NextRequest) {
       { headers: updateCookies },
     );
   }
-
-  await Promise.all([
-    db.insert(tripTravelTime).values({
-      from: fromId,
-      to: toId,
-      tripId: tripId,
-      type: (mode as SelectTripTravelTime["type"]) ?? undefined,
-    }),
-    redis.set(`${fromCoords};${toCoords}`, result, { ex: 2624016 }), // 1 month expiry
-  ]);
 
   return Response.json(
     {
