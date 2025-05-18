@@ -16,6 +16,7 @@ import {
   forwardRef,
   ReactNode,
   useCallback,
+  useState,
   useTransition,
 } from "react";
 import { toast } from "sonner";
@@ -56,9 +57,16 @@ const DayStartTime = () => {
   const [tripDetails, setTripDetails] = useAtom(tripDetailsAtom);
   const currentStartTime = digitStringToMins(tripDetails.startTime);
   const [isLoading, startLoading] = useTransition();
+  const [error, setError] = useState<string | undefined>(undefined);
   const handleTimeChange = useCallback(
     (close: () => void, hours: number, minutes: number) => {
-      const newTime = minsTo24HourFormat(hours * 60 + minutes).value;
+      const newMins = hours * 60 + minutes;
+      if (newMins + 180 > digitStringToMins(tripDetails.endTime)) {
+        setError("Start time should be at least 3 hours before end time!");
+        return;
+      }
+      setError(undefined);
+      const newTime = minsTo24HourFormat(newMins).value;
       if (newTime === tripDetails.startTime) return;
       startLoading(async () => {
         const res = await updateTripStartTime(tripDetails.id, newTime);
@@ -81,6 +89,7 @@ const DayStartTime = () => {
       startMinutes={currentStartTime % 60}
       onConfirm={handleTimeChange}
       loading={isLoading}
+      error={error}
     >
       <SettingsItem
         title="Default day start time"
@@ -106,9 +115,16 @@ const DayEndTime = () => {
   const [tripDetails, setTripDetails] = useAtom(tripDetailsAtom);
   const currentEndTime = digitStringToMins(tripDetails.endTime);
   const [isLoading, startLoading] = useTransition();
+  const [error, setError] = useState<string | undefined>(undefined);
   const handleTimeChange = useCallback(
     (close: () => void, hours: number, minutes: number) => {
-      const newTime = minsTo24HourFormat(hours * 60 + minutes).value;
+      const newMins = hours * 60 + minutes;
+      if (newMins < digitStringToMins(tripDetails.startTime) + 180) {
+        setError("End time should be at least 3 hours after start time!");
+        return;
+      }
+      setError(undefined);
+      const newTime = minsTo24HourFormat(newMins).value;
       if (newTime === tripDetails.endTime) return;
       startLoading(async () => {
         const res = await updateTripEndTime(tripDetails.id, newTime);
@@ -131,6 +147,7 @@ const DayEndTime = () => {
       startMinutes={currentEndTime % 60}
       onConfirm={handleTimeChange}
       loading={isLoading}
+      error={error}
     >
       <SettingsItem
         title="Default day end time"

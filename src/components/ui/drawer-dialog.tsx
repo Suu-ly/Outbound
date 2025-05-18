@@ -57,14 +57,17 @@ export default function DrawerDialog({
 
   const close = () => {
     if (onOpenChange) onOpenChange(false);
-    else setInternalOpen(false);
+    setInternalOpen(false);
   };
 
   if (isLarge) {
     return (
       <Dialog
         open={open !== undefined ? open : internalOpen}
-        onOpenChange={onOpenChange ? onOpenChange : setInternalOpen}
+        onOpenChange={(open) => {
+          if (onOpenChange) onOpenChange(open);
+          setInternalOpen(open);
+        }}
       >
         {children && <DialogTrigger asChild>{children}</DialogTrigger>}
         <DialogContent
@@ -103,7 +106,10 @@ export default function DrawerDialog({
   return (
     <Drawer
       open={open !== undefined ? open : internalOpen}
-      onOpenChange={onOpenChange ? onOpenChange : setInternalOpen}
+      onOpenChange={(open) => {
+        if (onOpenChange) onOpenChange(open);
+        setInternalOpen(open);
+      }}
     >
       {children && <DrawerTrigger asChild>{children}</DrawerTrigger>}
       <DrawerContent
