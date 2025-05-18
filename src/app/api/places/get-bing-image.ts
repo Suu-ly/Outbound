@@ -1,9 +1,10 @@
 import { redis } from "@/server/cache";
-import { ApiResponse, BingImageResponse, BingReturn } from "@/server/types";
+import { ApiResponse, BingImageResponse, ImageReturn } from "@/server/types";
 
+/** @deprecated Bing search API will no longer work after 31 August 2025 */
 export default async function getBingImage(
   urlQuery: string,
-): Promise<ApiResponse<BingReturn>> {
+): Promise<ApiResponse<ImageReturn>> {
   if (!process.env.BING_SECRET) {
     throw new Error("Bing API Key is not set");
   }

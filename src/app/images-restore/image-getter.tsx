@@ -1,7 +1,7 @@
 "use client";
 
 import { updatePlaceImage } from "@/server/actions";
-import { ApiResponse, BingReturn } from "@/server/types";
+import { ApiResponse, ImageReturn } from "@/server/types";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -16,13 +16,14 @@ export default function ImageGetter({
     id: string;
   }[];
   placesNoLocation: {
+    location: string;
     name: string;
     id: string;
   }[];
   fetch: (place: {
     location?: string;
     name: string;
-  }) => Promise<ApiResponse<BingReturn>>;
+  }) => Promise<ApiResponse<ImageReturn>>;
 }) {
   const [currentSearch, setCurrentSearch] = useState<{
     location?: string;
@@ -56,10 +57,15 @@ export default function ImageGetter({
           setTimeout(resolve, 340);
         });
       }
-      for (let i = 0, length = placesNoLocation.length; i < length; i++) {
+      for (
+        let i = placesNoLocation.length - 1, length = placesNoLocation.length;
+        i < length;
+        i++
+      ) {
         setResult(undefined);
         setIndex(i + places.length);
         setCurrentSearch(placesNoLocation[i]);
+        console.log("FETCHING", placesNoLocation[i]);
         const res = await fetch(placesNoLocation[i]);
         if (res.status === "error") toast.error(res.message);
         else {
@@ -79,6 +85,9 @@ export default function ImageGetter({
     };
     getImages();
   }, [fetch, places, placesNoLocation]);
+
+  console.log("places", places);
+  console.log("places no loc", placesNoLocation);
 
   if (places.length + placesNoLocation.length === 0) {
     return (

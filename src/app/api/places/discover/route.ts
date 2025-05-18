@@ -12,7 +12,7 @@ import {
 } from "@/server/types";
 import { eq, sql } from "drizzle-orm";
 import { type NextRequest } from "next/server";
-import getBingImage from "../get-bing-image";
+import getGoogleImage from "../get-google-image";
 
 type PlaceDiscoverResponse = PlacesResult | Record<never, never> | GoogleError;
 
@@ -180,7 +180,7 @@ export async function GET(request: NextRequest) {
       const queryUrl = new URLSearchParams([
         ["q", `${places.places[i].displayName.text} ${location}`],
       ]);
-      imageQueries.push(getBingImage(queryUrl.toString()));
+      imageQueries.push(getGoogleImage(queryUrl.toString()));
     }
     const placeCoverImages = await Promise.all(imageQueries);
 

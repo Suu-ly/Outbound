@@ -13,7 +13,7 @@ import {
 import { Session, User } from "better-auth";
 import { eq, sql } from "drizzle-orm";
 import { type NextRequest } from "next/server";
-import getBingImage from "../get-bing-image";
+import getGoogleImage from "../get-google-image";
 
 type PlaceDetailsResponse =
   | Omit<PlacesResult, "nextPageToken">
@@ -183,7 +183,7 @@ export async function GET(request: NextRequest) {
       ["q", `${place.displayName.text} ${secondary}`],
     ]);
 
-    const placeCoverImage = await getBingImage(queryUrl.toString());
+    const placeCoverImage = await getGoogleImage(queryUrl.toString());
 
     const images =
       placeCoverImage.status === "success"

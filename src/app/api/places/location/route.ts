@@ -9,7 +9,7 @@ import {
 } from "@/server/types";
 import { eq } from "drizzle-orm";
 import { type NextRequest } from "next/server";
-import getBingImage from "../get-bing-image";
+import getGoogleImage from "../get-google-image";
 
 type BoundsResponse =
   | {
@@ -262,7 +262,7 @@ export async function GET(request: NextRequest) {
     )
       .then((response) => response.json())
       .then((data) => data as BoundsResponse),
-    getBingImage(queryUrl.toString()),
+    getGoogleImage(queryUrl.toString()),
   ]);
 
   if ("error" in bounds) {

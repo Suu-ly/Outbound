@@ -155,7 +155,7 @@ export const place = pgTable("place", {
   typeColor: varchar("type_color", { length: 8 }).notNull(),
   phone: varchar("phone", { length: 32 }),
   address: text("address").notNull(),
-  country: text("country"),
+  country: text("country").notNull(),
   location: jsonb("location")
     .notNull()
     .$type<PlacesResult["places"][number]["location"]>(),

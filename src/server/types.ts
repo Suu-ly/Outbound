@@ -102,7 +102,7 @@ type BingError = {
 
 export type BingImageResponse = BingImageAnswer | BingError;
 
-export type BingReturn = { image: string; thumbnail: string };
+export type ImageReturn = { image: string; thumbnail: string };
 
 export type PlacesReview = {
   name: string;

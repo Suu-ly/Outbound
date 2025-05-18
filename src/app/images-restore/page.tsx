@@ -2,7 +2,7 @@ import { db } from "@/server/db";
 import { location, place, trip, tripPlace } from "@/server/db/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { Metadata } from "next";
-import getBingImage from "../api/places/get-bing-image";
+import getGoogleImage from "../api/places/get-google-image";
 import ImageGetter from "./image-getter";
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export default async function ImageRestorePage() {
       .where(and(eq(place.coverImgSmall, ""), isNull(tripPlace.createdAt))),
   ]);
 
-  const getBingImageFromServer = async (place: {
+  const getGoogleImageFromServer = async (place: {
     location?: string;
     name: string;
   }) => {
@@ -43,7 +43,7 @@ export default async function ImageRestorePage() {
     const queryUrl = new URLSearchParams([
       ["q", `${place.name}${place.location ? " " + place.location : ""}`],
     ]);
-    const response = await getBingImage(queryUrl.toString());
+    const response = await getGoogleImage(queryUrl.toString());
     return response;
   };
 
@@ -51,7 +51,7 @@ export default async function ImageRestorePage() {
     <ImageGetter
       places={places}
       placesNoLocation={placesNoLocation}
-      fetch={getBingImageFromServer}
+      fetch={getGoogleImageFromServer}
     />
   );
 }
