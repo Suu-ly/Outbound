@@ -162,6 +162,13 @@
       "when": 1745147688931,
       "tag": "0022_shallow_otto_octavius",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1747574058221,
+      "tag": "0023_sturdy_nextwave",
+      "breakpoints": true
     }
   ]
 }

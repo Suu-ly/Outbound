@@ -1,0 +1,1 @@
+ALTER TABLE "place" ALTER COLUMN "country" SET NOT NULL;
