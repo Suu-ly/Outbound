@@ -13,6 +13,12 @@ type ShareButtonProps = {
   onAction?: () => void;
 };
 
+function isMobile() {
+  return /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(
+    navigator.userAgent,
+  );
+}
+
 export default function ShareButton({
   link,
   label = "Share",
@@ -23,7 +29,15 @@ export default function ShareButton({
   ...rest
 }: ShareButtonProps & ButtonProps) {
   const [copied, copyToClipboard] = useCopyToClipboard();
-  const onCopy = useCallback(() => {
+  const onCopy = useCallback(async () => {
+    if (isMobile() && navigator.canShare && navigator.canShare({ url: link })) {
+      try {
+        await navigator.share({ url: link });
+        return;
+      } catch {
+        console.log("Share API error, copying to clipboard instead.");
+      }
+    }
     copyToClipboard(link);
     toast.success(message, {
       id: link,
