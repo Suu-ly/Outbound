@@ -57,15 +57,10 @@ export default function ImageGetter({
           setTimeout(resolve, 340);
         });
       }
-      for (
-        let i = placesNoLocation.length - 1, length = placesNoLocation.length;
-        i < length;
-        i++
-      ) {
+      for (let i = 0, length = placesNoLocation.length; i < length; i++) {
         setResult(undefined);
         setIndex(i + places.length);
         setCurrentSearch(placesNoLocation[i]);
-        console.log("FETCHING", placesNoLocation[i]);
         const res = await fetch(placesNoLocation[i]);
         if (res.status === "error") toast.error(res.message);
         else {

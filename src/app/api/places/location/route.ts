@@ -245,7 +245,7 @@ export async function GET(request: NextRequest) {
     });
 
   const queryUrl = new URLSearchParams([
-    ["q", `${name}${country ? " " + country : ""} visit`],
+    ["q", `${name}${country ? " " + country : ""} scenic`],
   ]);
 
   const [bounds, images] = await Promise.all([
@@ -262,7 +262,7 @@ export async function GET(request: NextRequest) {
     )
       .then((response) => response.json())
       .then((data) => data as BoundsResponse),
-    getGoogleImage(queryUrl.toString()),
+    getGoogleImage(queryUrl.toString(), [420, 320]),
   ]);
 
   if ("error" in bounds) {

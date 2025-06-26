@@ -1,6 +1,7 @@
 import { redis } from "@/server/cache";
 import { supabase } from "@/server/supabase";
 import { ApiResponse, GoogleError, ImageReturn } from "@/server/types";
+import crypto from "node:crypto";
 import sharp from "sharp";
 
 type GoogleImageResponse =
@@ -30,13 +31,13 @@ const searchParams = new URLSearchParams([
   ["fields", "items.link,items.image,items.mime"],
   ["imgType", "photo"],
   ["num", "1"],
-  ["safe", "active"],
   ["searchType", "image"],
   ["key", process.env.GOOGLE_SEARCH_SECRET],
 ]);
 
 export default async function getGoogleImage(
   urlQuery: string,
+  minSize: [number, number] = [144, 176],
 ): Promise<ApiResponse<ImageReturn>> {
   // Check cache
   const redisData = await redis.get<{
@@ -47,7 +48,7 @@ export default async function getGoogleImage(
   if (redisData) return redisData;
 
   const data = await fetch(
-    `https://customsearch.googleapis.com/customsearch/v1?${urlQuery + "%20filetype:jpeg%20OR%20filetype:png%20OR%20filetype:bmp%20OR%20filetype:gif%20OR%20filetype:webP%20OR%20filetype:avif%20OR%20filetype:svg"}&${searchParams.toString()}`,
+    `https://customsearch.googleapis.com/customsearch/v1?${urlQuery + "%20filetype:jpeg%20OR%20filetype:png%20OR%20filetype:bmp%20OR%20filetype:webP"}&${searchParams.toString()}`,
     {
       method: "GET",
       headers: {
@@ -82,15 +83,16 @@ export default async function getGoogleImage(
     );
     const resized = await sharp(imageBuffer)
       .resize(
-        item.image.width / item.image.height < 144 / 176 // Max size of displayed image. Make sure image is at least enough to cover
-          ? { width: 160 }
-          : { height: 192 },
+        item.image.width / item.image.height < minSize[0] / minSize[1] // Max size of displayed image. Make sure image is at least enough to cover
+          ? { width: minSize[0] + 24 }
+          : { height: minSize[1] + 24 },
       )
       .toFormat("jpeg")
       .toBuffer();
+    const fileName = `${crypto.hash("sha256", urlQuery)}.jpeg`;
     const { data: storageData, error } = await supabase.storage
       .from("place-thumbnails")
-      .upload(`${urlQuery}.jpeg`, resized, {
+      .upload(fileName, resized, {
         contentType: "image/jpeg",
         upsert: true,
       });
@@ -102,7 +104,7 @@ export default async function getGoogleImage(
 
     const { data: path } = supabase.storage
       .from("place-thumbnails")
-      .getPublicUrl(`${urlQuery}.jpeg`);
+      .getPublicUrl(fileName);
 
     const result: ApiResponse<ImageReturn> = {
       data: {
