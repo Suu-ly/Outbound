@@ -1,12 +1,9 @@
 import AuthLayout from "@/components/auth-layout";
 import GithubSignIn from "@/components/github-sign-in";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { IconBrandGithub } from "@tabler/icons-react";
 import { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
-import LoginForm from "./login-form";
 
 export const metadata: Metadata = {
   title: "Login - Outbound",
@@ -29,9 +26,9 @@ export default function Login() {
           </Button>
         }
       >
-        <GithubSignIn className="mb-6">Login with Github</GithubSignIn>
+        <GithubSignIn>Login with Github</GithubSignIn>
       </Suspense>
-      <div className="relative mb-6 text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+      {/* <div className="relative mb-6 text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
         <span className="relative z-10 bg-white px-2 text-slate-500">Or</span>
       </div>
       <Suspense
@@ -64,7 +61,7 @@ export default function Login() {
         }
       >
         <LoginForm />
-      </Suspense>
+      </Suspense> */}
     </AuthLayout>
   );
 }

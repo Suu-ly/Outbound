@@ -122,20 +122,20 @@ export default async function Home({
                 <h1 className="animate-blur-enter font-display text-6xl font-semibold text-slate-900 delay-100 fill-mode-backwards lg:text-7xl">
                   Trip planning should be easy.
                 </h1>
-                <p className="animate-blur-enter delay-250 text-xl font-medium text-slate-700 fill-mode-backwards lg:text-2xl">
+                <p className="animate-blur-enter text-xl font-medium text-slate-700 delay-250 fill-mode-backwards lg:text-2xl">
                   We know planning trips can be frustrating. Plan your trips the
                   enjoyable way, with Outbound.
                 </p>
                 <ButtonLink
-                  href="/register"
+                  href="/login"
                   prefetch={false}
-                  className="animate-blur-enter delay-400 mx-auto fill-mode-backwards sm:mx-0"
+                  className="mx-auto animate-blur-enter delay-400 fill-mode-backwards sm:mx-0"
                   size="large"
                 >
                   Start Planning
                 </ButtonLink>
               </div>
-              <div className="animate-blur-enter delay-550 relative aspect-[3/2] min-h-96 w-[48rem] overflow-hidden rounded-2xl border-2 border-slate-200 shadow-xl fill-mode-backwards sm:min-h-[512px] sm:w-[57rem] lg:col-span-2 lg:min-h-[768px] lg:w-auto lg:rounded-3xl">
+              <div className="relative aspect-[3/2] min-h-96 w-[48rem] animate-blur-enter overflow-hidden rounded-2xl border-2 border-slate-200 shadow-xl delay-550 fill-mode-backwards sm:min-h-[512px] sm:w-[57rem] lg:col-span-2 lg:min-h-[768px] lg:w-auto lg:rounded-3xl">
                 <Image
                   src={Splash.src}
                   alt="Screenshot of Outbound"
@@ -302,7 +302,7 @@ export default async function Home({
               Let&apos;s plan your next adventure.
             </h3>
             <ButtonLink
-              href="/register"
+              href="/login"
               size="large"
               prefetch={false}
               className="bg-brand-300 text-brand-900"

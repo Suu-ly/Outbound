@@ -20,7 +20,10 @@ export default function middleware(request: NextRequest) {
   // User is not logged in
   if (!sessionCookie) {
     if (isSignedOutRoutes) {
-      return NextResponse.next();
+      if (pathName === "/login") {
+        return NextResponse.next();
+      }
+      return NextResponse.redirect(new URL("/login", request.url));
     }
     const redirect = new URLSearchParams([["redirect", pathName]]);
     return NextResponse.redirect(
