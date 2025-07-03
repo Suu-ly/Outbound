@@ -1166,15 +1166,15 @@ export default function SortPlaces({ tripId }: { tripId: string }) {
         header="Change start time"
         description="Change the time your day will start at."
         loading={isChangingDayTime}
-        startHours={Math.floor(
-          digitStringToMins(
-            changingDayTime ? changingDayTime.dayStartTime : "0900",
-          ) / 60,
-        )}
+        startHours={
+          changingDayTime
+            ? Math.floor(digitStringToMins(changingDayTime.dayStartTime) / 60)
+            : undefined
+        }
         startMinutes={
-          digitStringToMins(
-            changingDayTime ? changingDayTime.dayStartTime : "0000",
-          ) % 60
+          changingDayTime
+            ? digitStringToMins(changingDayTime.dayStartTime) % 60
+            : undefined
         }
         onConfirm={onChangeDayTimeConfirm}
       />

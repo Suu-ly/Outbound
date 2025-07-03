@@ -123,7 +123,7 @@ const DayFolder = memo(
           </ContextMenu>
           <CollapsibleContent
             className={
-              "-mx-1 overflow-hidden px-1 pb-1 data-[state=closed]:motion-safe:animate-minimise data-[state=open]:motion-safe:animate-expand" // Negative margins so textfield active ring is not clipped
+              "-mx-1 overflow-hidden data-[state=closed]:motion-safe:animate-minimise data-[state=open]:motion-safe:animate-expand" // Negative margins so textfield active ring is not clipped
             }
             style={
               {
@@ -132,7 +132,7 @@ const DayFolder = memo(
               } as CSSProperties
             }
           >
-            <div className="mt-4">
+            <div className="mt-4 px-1 pb-1">
               {children}
               {isAdmin &&
                 dayId !== undefined &&

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Carousel, CarouselTimeSlider } from "./ui/carousel";
 import DrawerDialog, { DrawerDialogProps } from "./ui/drawer-dialog";
 
@@ -17,16 +17,25 @@ export default function TimePicker({
   ...rest
 }: Omit<DrawerDialogProps, "onMainAction" | "content" | "mainActionLabel"> & {
   onConfirm: (close: () => void, hours: number, minutes: number) => void;
-  startHours: number;
-  startMinutes: number;
+  startHours: number | undefined;
+  startMinutes: number | undefined;
   hoursLength?: number;
   hoursLoop?: boolean;
   minutesLoop?: boolean;
   isDuration?: boolean;
   error?: string;
 }) {
-  const hours = useRef(startHours);
-  const minutes = useRef(startMinutes);
+  // Prevent the UI from resetting back to default state if startHours and startMinutes becomes undefined
+  const staleVals = useRef({ hours: 9, minutes: 0 });
+
+  const hours = useRef(startHours ?? staleVals.current.hours);
+  const minutes = useRef(startMinutes ?? staleVals.current.minutes);
+
+  useEffect(() => {
+    if (startHours !== undefined) staleVals.current.hours = startHours;
+    if (startMinutes !== undefined) staleVals.current.minutes = startMinutes;
+  }, [startHours, startMinutes]);
+
   return (
     <DrawerDialog
       {...rest}
@@ -47,7 +56,7 @@ export default function TimePicker({
                 loop: hoursLoop,
                 skipSnaps: true,
                 align: "center",
-                startIndex: startHours,
+                startIndex: hours.current,
                 containScroll: false,
               }}
             >
@@ -76,7 +85,7 @@ export default function TimePicker({
                 skipSnaps: true,
                 align: "center",
                 containScroll: false,
-                startIndex: Math.floor(startMinutes / 5),
+                startIndex: Math.floor(minutes.current / 5),
               }}
             >
               <CarouselTimeSlider
