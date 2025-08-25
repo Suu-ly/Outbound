@@ -1,7 +1,7 @@
 // Stolen from https://github.com/nodejs/nodejs.org/blob/main/apps/site/hooks/react-client/useCopyToClipboard.ts
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const copyToClipboard = async (value: string | undefined) => {
+export const copyToClipboard = async (value: string | undefined) => {
   if (!value || typeof navigator === "undefined") {
     return Promise.resolve(false);
   }
@@ -14,12 +14,21 @@ const copyToClipboard = async (value: string | undefined) => {
 
 const useCopyToClipboard = () => {
   const [copied, setCopied] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const copyDelay = useRef<NodeJS.Timeout>(null);
 
-  const copyText = (text: string | undefined) =>
-    copyToClipboard(text).then(setCopied);
+  const copyText = async (text: string | undefined) => {
+    // Only display loading spinner if copying takes more than 100ms
+    copyDelay.current = setTimeout(() => setIsCopying(true), 100);
+    const res = await copyToClipboard(text);
+    setCopied(res);
+  };
 
   useEffect(() => {
     if (copied) {
+      if (copyDelay.current) clearTimeout(copyDelay.current);
+      setIsCopying(false);
+
       const timerId = setTimeout(() => setCopied(false), 3000);
 
       return () => clearTimeout(timerId);
@@ -28,7 +37,7 @@ const useCopyToClipboard = () => {
     return undefined;
   }, [copied]);
 
-  return [copied, copyText] as const;
+  return [copied, copyText, isCopying] as const;
 };
 
 export default useCopyToClipboard;

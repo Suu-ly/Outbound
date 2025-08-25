@@ -3,6 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Rating from "@/components/ui/rating";
+import Spinner from "@/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
@@ -40,7 +41,7 @@ const InfoWithCopy = ({
   className?: string;
   children: ReactNode;
 }) => {
-  const [copied, copyToClipboard] = useCopyToClipboard();
+  const [copied, copyToClipboard, isCopying] = useCopyToClipboard();
 
   const onCopy = useCallback(() => {
     copyToClipboard(copy);
@@ -70,7 +71,7 @@ const InfoWithCopy = ({
             size="small"
             className="absolute right-4 top-0.5 hidden bg-slate-100 group-hover:inline-flex"
           >
-            {copied ? <IconCheck /> : <IconCopy />}
+            {copied ? <IconCheck /> : isCopying ? <Spinner /> : <IconCopy />}
           </Button>
         </TooltipTrigger>
         <TooltipContent>{tooltipLabel}</TooltipContent>

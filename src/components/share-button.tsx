@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import { Button, ButtonProps } from "./ui/button";
 import { DropdownMenuItem } from "./ui/dropdown-menu";
+import Spinner from "./ui/spinner";
 
 type ShareButtonProps = {
   link: string;
@@ -19,6 +20,21 @@ function isMobile() {
   );
 }
 
+export async function adaptiveCopy(
+  link: string,
+  copyFallback: () => Promise<void>,
+) {
+  if (isMobile() && navigator.canShare && navigator.canShare({ url: link })) {
+    try {
+      await navigator.share({ url: link });
+      return;
+    } catch {
+      console.error("Share API error, copying to clipboard instead.");
+    }
+  }
+  await copyFallback();
+}
+
 export default function ShareButton({
   link,
   label = "Share",
@@ -28,21 +44,17 @@ export default function ShareButton({
   onAction,
   ...rest
 }: ShareButtonProps & ButtonProps) {
-  const [copied, copyToClipboard] = useCopyToClipboard();
-  const onCopy = useCallback(async () => {
-    if (isMobile() && navigator.canShare && navigator.canShare({ url: link })) {
-      try {
-        await navigator.share({ url: link });
-        return;
-      } catch {
-        console.log("Share API error, copying to clipboard instead.");
-      }
-    }
-    copyToClipboard(link);
-    toast.success(message, {
-      id: link,
-    });
-  }, [copyToClipboard, link, message]);
+  const [copied, copyToClipboard, isCopying] = useCopyToClipboard();
+  const onCopy = useCallback(
+    () =>
+      adaptiveCopy(link, async () => {
+        await copyToClipboard(link);
+        toast.success(message, {
+          id: link,
+        });
+      }),
+    [copyToClipboard, link, message],
+  );
 
   if (isDropdown)
     return (
@@ -50,7 +62,7 @@ export default function ShareButton({
         onSelect={onAction ? onAction : onCopy}
         className={className}
       >
-        <IconShare />
+        {copied ? <IconCheck /> : isCopying ? <Spinner /> : <IconShare />}
         Share
       </DropdownMenuItem>
     );
@@ -65,7 +77,7 @@ export default function ShareButton({
       className={className}
       {...rest}
     >
-      {copied ? <IconCheck /> : <IconShare />}
+      {copied ? <IconCheck /> : isCopying ? <Spinner /> : <IconShare />}
     </Button>
   );
 }

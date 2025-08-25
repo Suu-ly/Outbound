@@ -1,5 +1,6 @@
 "use client";
 
+import { adaptiveCopy } from "@/components/share-button";
 import DrawerDialog from "@/components/ui/drawer-dialog";
 import { Input } from "@/components/ui/input";
 import useCopyToClipboard from "@/lib/use-copy-to-clipboard";
@@ -10,7 +11,7 @@ import {
 } from "@/server/actions";
 import { useAtom, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   changeTripNameDialogOpenAtom,
@@ -30,15 +31,16 @@ const SetToPublicDialog = ({
   const basePath = `/trip/${setToPublicDialogOpen?.tripId}`;
   const [isLoading, startLoading] = useTransition();
   const [, copyToClipboard] = useCopyToClipboard();
-  const onCopy = useCallback(
-    (link: string, message: string) => {
-      copyToClipboard(link);
-      toast.success(message, {
+
+  const link = process.env.NEXT_PUBLIC_URL + basePath;
+
+  const onCopy = () =>
+    adaptiveCopy(link, async () => {
+      await copyToClipboard(link);
+      toast.success("Trip link copied to clipboard!", {
         id: link,
       });
-    },
-    [copyToClipboard],
-  );
+    });
 
   return (
     <DrawerDialog
@@ -62,10 +64,7 @@ const SetToPublicDialog = ({
           if (res.status === "error") toast.error(res.message);
           else {
             if (onSetToPublicSuccess) onSetToPublicSuccess();
-            onCopy(
-              process.env.NEXT_PUBLIC_URL + basePath,
-              "Trip link copied to clipboard!",
-            );
+            await onCopy();
           }
           close();
         });
