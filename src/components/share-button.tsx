@@ -28,7 +28,10 @@ export async function adaptiveCopy(
     try {
       await navigator.share({ url: link });
       return;
-    } catch {
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") {
+        return;
+      }
       console.error("Share API error, copying to clipboard instead.");
     }
   }
